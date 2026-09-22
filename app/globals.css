@@ -1,0 +1,249 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+}
+
+.container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #777;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.count {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  color: #666;
+  font-size: 14px;
+}
+
+.write-card {
+  padding: 20px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+.title-input,
+.content-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.title-input {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.content-input {
+  min-height: 130px;
+  resize: vertical;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.title-input::placeholder,
+.content-input::placeholder {
+  color: #aaa;
+}
+
+.save-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #222;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  opacity: 0.9;
+}
+
+.memo-section {
+  margin-top: 32px;
+}
+
+.memo-section h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.memo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memo-card {
+  padding: 18px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 18px;
+}
+
+.memo-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.memo-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.memo-content {
+  margin: 14px 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #444;
+}
+
+.memo-date {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+.delete-button {
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.delete-button:hover {
+  color: #d33;
+}
+
+.empty {
+  padding: 48px 20px;
+  text-align: center;
+  background: white;
+  border: 1px dashed #ddd;
+  border-radius: 18px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty p {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.empty span {
+  color: #999;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: 18px 12px 36px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .write-card {
+    padding: 16px;
+  }
+}
+
+.login-card {
+  margin-top: 15vh;
+  padding: 28px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 22px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+.login-card h1 {
+  margin-bottom: 10px;
+}
+
+.login-description {
+  margin: 0 0 24px;
+  color: #888;
+  line-height: 1.6;
+}
+
+.login-error {
+  margin: 12px 0 0;
+  color: #d33;
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-button {
+  border: 1px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 10px;
+  padding: 8px 11px;
+  cursor: pointer;
+}
