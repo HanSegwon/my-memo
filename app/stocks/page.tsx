@@ -256,24 +256,6 @@ export default function StocksPage() {
       },
     }));
   }
-function toggleProfitSign(roundNo: number) {
-  const current =
-    drafts[roundNo]?.profit ?? '0';
-
-  if (current === '' || current === '0') {
-    return;
-  }
-
-  const nextValue = current.startsWith('-')
-    ? current.slice(1)
-    : `-${current}`;
-
-  updateDraft(
-    roundNo,
-    'profit',
-    nextValue
-  );
-}
 
   async function saveRecord(
     roundNo: number,
@@ -706,72 +688,35 @@ function toggleProfitSign(roundNo: number) {
                     </td>
 
                     <td>
-                      <div className="profit-input-wrap">
-                        <button
-                          type="button"
-                          className="profit-sign-button"
-                          onClick={() =>
-                            toggleProfitSign(
-                              row.roundNo
-                            )
-                          }
-                        >
-                          −
-                        </button>
-
-                        <input
-                          className={`money-input ${getNumberClass(
-                            Number(draft.profit || 0)
-                          )}`}
-                          inputMode="numeric"
-                          value={
-                            formatInputValue(
-                              draft.profit.startsWith('-')
-                                ? draft.profit.slice(1)
-                                : draft.profit,
-                              focusedField ===
-                                `${row.roundNo}-profit`
-                            )
-                          }
-                          onFocus={() =>
-                            setFocusedField(
-                              `${row.roundNo}-profit`
-                            )
-                          }
-                          onBlur={() =>
-                            handleFieldBlur(
-                              row.roundNo,
-                              'profit'
-                            )
-                          }
-                          onChange={(e) => {
-                            const cleaned =
-                              cleanMoneyInput(
-                                e.target.value
-                              );
-
-                            const isNegative =
-                              drafts[
-                                row.roundNo
-                              ]?.profit?.startsWith('-');
-
-                            const digits =
-                              cleaned.replace(
-                                /^-/,
-                                ''
-                              );
-
-                            updateDraft(
-                              row.roundNo,
-                              'profit',
-                              isNegative &&
-                                digits !== '0'
-                                ? `-${digits}`
-                                : digits
-                            );
-                          }}
-                        />
-                      </div>
+                      <input
+                        className={`money-input ${getNumberClass(
+                          Number(draft.profit || 0)
+                        )}`}
+                        inputMode="numeric"
+                        value={formatInputValue(
+                          draft.profit,
+                          focusedField ===
+                            `${row.roundNo}-profit`
+                        )}
+                        onFocus={() =>
+                          setFocusedField(
+                            `${row.roundNo}-profit`
+                          )
+                        }
+                        onBlur={() =>
+                          handleFieldBlur(
+                            row.roundNo,
+                            'profit'
+                          )
+                        }
+                        onChange={(e) =>
+                          updateDraft(
+                            row.roundNo,
+                            'profit',
+                            e.target.value
+                          )
+                        }
+                      />
                     </td>
 
                     <td>
