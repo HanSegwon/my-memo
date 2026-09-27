@@ -70,10 +70,17 @@ function getCurrentRound() {
 }
 
 function cleanMoneyInput(value: string) {
-  if (value === '') return '';
-  if (value === '-') return '-';
+  // 모바일 키보드에서 들어오는 유니코드 마이너스를
+  // 일반 하이픈(-)으로 통일
+  const normalized = value
+    .replace(/−/g, '-')
+    .replace(/﹣/g, '-')
+    .replace(/－/g, '-');
 
-  const withoutComma = value.replace(/,/g, '');
+  if (normalized === '') return '';
+  if (normalized === '-') return '-';
+
+  const withoutComma = normalized.replace(/,/g, '');
   const negative = withoutComma.startsWith('-');
   const digits = withoutComma.replace(/[^\d]/g, '');
 
