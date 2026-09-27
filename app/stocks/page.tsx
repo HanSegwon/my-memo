@@ -514,6 +514,36 @@ export default function StocksPage() {
     return result;
   }, [settings, records, drafts]);
 
+
+    const currentRoundNo = getCurrentRound();
+
+  const highlightedGoalRoundNo = useMemo(() => {
+    const currentRoundData = calculatedRows.find(
+      (row) => row.roundNo === currentRoundNo
+    );
+
+    if (!currentRoundData) {
+      return null;
+    }
+
+    const currentTotal = currentRoundData.total;
+
+    const candidates = calculatedRows.filter(
+      (row) => row.goal < currentTotal
+    );
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    return candidates.reduce((highest, row) => {
+      return row.goal > highest.goal
+        ? row
+        : highest;
+    }).roundNo;
+  }, [calculatedRows, currentRoundNo]);
+
+
   const summary = useMemo(() => {
     return calculatedRows.reduce(
       (sum, row) => ({
@@ -631,11 +661,16 @@ export default function StocksPage() {
                 return (
                   <tr
                     key={row.roundNo}
-                    className={
+                    className={[
                       isCurrentRound
                         ? 'current-round-values'
-                        : ''
-                    }
+                        : '',
+                      row.roundNo === highlightedGoalRoundNo
+                        ? 'goal-milestone-row'
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                   >
                     <td className="round-cell">
                       {row.roundNo}회차
@@ -647,6 +682,7 @@ export default function StocksPage() {
 
                     <td>
                       <input
+                        type="number" 
                         className={`money-input ${getNumberClass(
                           Number(draft.profit || 0)
                         )}`}
@@ -679,6 +715,7 @@ export default function StocksPage() {
 
                     <td>
                       <input
+                        type="number"
                         className={`money-input ${getNumberClass(
                           Number(draft.deposit || 0)
                         )}`}
@@ -711,6 +748,7 @@ export default function StocksPage() {
 
                     <td>
                       <input
+                        type="number"
                         className="money-input negative"
                         inputMode="decimal"
                         value={formatInputValue(

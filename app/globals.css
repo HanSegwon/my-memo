@@ -804,3 +804,7 @@ h1 {
     letter-spacing: -0.055em;
   }
 }
+
+.goal-milestone-row td {
+  background: #fff9df;
+}
