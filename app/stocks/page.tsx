@@ -299,16 +299,15 @@ export default function StocksPage() {
     }
   }
 
-  function convertProfitToNegative() {
-    if (
-      pendingProfitRound === null
-    ) {
+  async function convertProfitToNegative() {
+    if (pendingProfitRound === null) {
       return;
     }
 
+    const roundNo = pendingProfitRound;
+
     const current =
-      drafts[pendingProfitRound]?.profit ??
-      '0';
+      drafts[roundNo]?.profit ?? '0';
 
     const value = Math.abs(
       Number(current)
@@ -319,10 +318,24 @@ export default function StocksPage() {
         ? `-${Math.trunc(value)}`
         : '0';
 
-    updateDraft(
-      pendingProfitRound,
-      'profit',
-      nextValue
+    const currentDraft =
+      drafts[roundNo] ?? emptyDraft;
+
+    const nextDraft: DraftRecord = {
+      ...currentDraft,
+      profit: nextValue,
+    };
+
+    // 화면의 값을 음수로 변경
+    setDrafts((previous) => ({
+      ...previous,
+      [roundNo]: nextDraft,
+    }));
+
+    // 같은 음수값을 바로 DB에 저장
+    await saveRecord(
+      roundNo,
+      nextDraft
     );
 
     setShowNegativeDialog(false);
