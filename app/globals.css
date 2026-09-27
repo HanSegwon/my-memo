@@ -808,3 +808,39 @@ h1 {
 .goal-milestone-row td {
   background: #fff9df;
 }
+
+
+/* 주식관리 입력값 표시 강제 */
+.stock-table .money-input {
+  color: #222 !important;
+  -webkit-text-fill-color: #222 !important;
+  opacity: 1 !important;
+}
+
+/* 수익 / 입금 */
+.stock-table .money-input.positive {
+  color: #1769aa !important;
+  -webkit-text-fill-color: #1769aa !important;
+}
+
+.stock-table .money-input.negative {
+  color: #cf3030 !important;
+  -webkit-text-fill-color: #cf3030 !important;
+}
+
+.stock-table .money-input.zero {
+  color: #222 !important;
+  -webkit-text-fill-color: #222 !important;
+}
+
+/* 출금은 항상 빨간색 */
+.stock-table td:nth-child(5) .money-input {
+  color: #cf3030 !important;
+  -webkit-text-fill-color: #cf3030 !important;
+}
+
+/* 포커스 여부와 관계없이 동일하게 표시 */
+.stock-table .money-input:focus {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}

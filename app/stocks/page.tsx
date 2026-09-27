@@ -682,11 +682,10 @@ export default function StocksPage() {
 
                     <td>
                       <input
-                        type="number" 
                         className={`money-input ${getNumberClass(
                           Number(draft.profit || 0)
                         )}`}
-                        inputMode="decimal"
+                        inputMode="numeric"
                         value={formatInputValue(
                           draft.profit,
                           focusedField ===
