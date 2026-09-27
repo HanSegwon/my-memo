@@ -850,3 +850,62 @@ h1 {
   width: auto;
   min-width: 0;
 }
+
+.negative-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.negative-dialog {
+  width: min(100%, 320px);
+  padding: 22px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.negative-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  text-align: center;
+}
+
+.negative-dialog p {
+  margin: 0;
+  color: #888;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.negative-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.negative-dialog-cancel,
+.negative-dialog-confirm {
+  height: 42px;
+  border: 0;
+  border-radius: 9px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.negative-dialog-cancel {
+  background: #f3f3f3;
+  color: #555;
+}
+
+.negative-dialog-confirm {
+  background: #222;
+  color: #fff;
+}

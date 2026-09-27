@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -131,6 +131,16 @@ function formatInputValue(value: string, focused: boolean) {
 }
 
 export default function StocksPage() {
+
+  const [showNegativeDialog, setShowNegativeDialog] =
+    useState(false);
+
+  const [pendingProfitRound, setPendingProfitRound] =
+    useState<number | null>(null);
+
+  const longPressTimer =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const router = useRouter();
 
   const [authenticated, setAuthenticated] =
@@ -256,6 +266,70 @@ export default function StocksPage() {
       },
     }));
   }
+
+  function startProfitLongPress(
+    e: React.PointerEvent<HTMLInputElement>,
+    roundNo: number
+  ) {
+    if (e.pointerType !== 'touch') {
+      return;
+    }
+
+    longPressTimer.current =
+      setTimeout(() => {
+        const current =
+          drafts[roundNo]?.profit ?? '0';
+
+        const value = Number(current);
+
+        if (
+          Number.isFinite(value) &&
+          value > 0
+        ) {
+          setPendingProfitRound(roundNo);
+          setShowNegativeDialog(true);
+        }
+      }, 700);
+  }
+
+  function cancelProfitLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  function convertProfitToNegative() {
+    if (
+      pendingProfitRound === null
+    ) {
+      return;
+    }
+
+    const current =
+      drafts[pendingProfitRound]?.profit ??
+      '0';
+
+    const value = Math.abs(
+      Number(current)
+    );
+
+    const nextValue =
+      Number.isFinite(value)
+        ? `-${Math.trunc(value)}`
+        : '0';
+
+    updateDraft(
+      pendingProfitRound,
+      'profit',
+      nextValue
+    );
+
+    setShowNegativeDialog(false);
+    setPendingProfitRound(null);
+  }
+
+
 
   async function saveRecord(
     roundNo: number,
@@ -698,6 +772,17 @@ export default function StocksPage() {
                           focusedField ===
                             `${row.roundNo}-profit`
                         )}
+                        onPointerDown={(e) =>
+                          startProfitLongPress(
+                            e,
+                            row.roundNo
+                          )
+                        }
+                        onPointerUp={cancelProfitLongPress}
+                        onPointerCancel={cancelProfitLongPress}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                        }}
                         onFocus={() =>
                           setFocusedField(
                             `${row.roundNo}-profit`
@@ -913,6 +998,42 @@ export default function StocksPage() {
           </div>
         </div>
       )}
+
+      {showNegativeDialog && (
+        <div className="negative-dialog-backdrop">
+          <div className="negative-dialog">
+            <h3>음수로 변환하시겠습니까?</h3>
+
+            <p>
+              현재 수익값에 마이너스 부호를
+              적용합니다.
+            </p>
+
+            <div className="negative-dialog-actions">
+              <button
+                type="button"
+                className="negative-dialog-cancel"
+                onClick={() => {
+                  setShowNegativeDialog(false);
+                  setPendingProfitRound(null);
+                }}
+              >
+                취소
+              </button>
+
+              <button
+                type="button"
+                className="negative-dialog-confirm"
+                onClick={convertProfitToNegative}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </main>
   );
 }
