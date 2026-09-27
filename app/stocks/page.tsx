@@ -715,7 +715,6 @@ export default function StocksPage() {
 
                     <td>
                       <input
-                        type="number"
                         className={`money-input ${getNumberClass(
                           Number(draft.deposit || 0)
                         )}`}
@@ -748,7 +747,6 @@ export default function StocksPage() {
 
                     <td>
                       <input
-                        type="number"
                         className="money-input negative"
                         inputMode="decimal"
                         value={formatInputValue(
