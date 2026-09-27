@@ -257,6 +257,47 @@ export default function StocksPage() {
     }));
   }
 
+  function handleMoneyBeforeInput(
+  e: React.FormEvent<HTMLInputElement>,
+  roundNo: number,
+  field: FieldName
+  ) {
+    const nativeEvent = e.nativeEvent as InputEvent;
+    const data = nativeEvent.data;
+
+    if (
+      data !== '-' &&
+      data !== '−' &&
+      data !== '﹣' &&
+      data !== '－'
+    ) {
+      return;
+    }
+
+    e.preventDefault();
+
+    const current =
+      drafts[roundNo]?.[field] ?? '';
+
+    const normalized = current
+      .replace(/−/g, '-')
+      .replace(/﹣/g, '-')
+      .replace(/－/g, '-');
+
+    if (normalized.startsWith('-')) {
+      updateDraft(
+        roundNo,
+        field,
+        normalized.slice(1)
+      );
+    } else {
+      updateDraft(
+        roundNo,
+        field,
+        `-${normalized}`
+      );
+    }
+  }
   async function saveRecord(
     roundNo: number,
     draft: DraftRecord
@@ -693,6 +734,13 @@ export default function StocksPage() {
                           Number(draft.profit || 0)
                         )}`}
                         inputMode="numeric"
+                          onBeforeInput={(e) =>
+                          handleMoneyBeforeInput(
+                            e,
+                            row.roundNo,
+                            'profit'
+                          )
+                        }
                         value={formatInputValue(
                           draft.profit,
                           focusedField ===
