@@ -1432,6 +1432,74 @@ h1 {
   margin-bottom: 10px;
 }
 
+.weight-goal-description {
+  margin: 0 0 8px;
+  color: #858d99;
+  font-size: 11px;
+}
+
+.weight-goal-table-wrap {
+  max-height: 56svh;
+  margin-bottom: 10px;
+  overflow-y: auto;
+}
+
+.weight-goal-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.weight-goal-table th,
+.weight-goal-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #edf0f3;
+  text-align: left;
+}
+
+.weight-goal-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  color: #858d99;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.weight-goal-table th:first-child,
+.weight-goal-table td:first-child {
+  width: 48%;
+}
+
+.weight-goal-table td:first-child {
+  color: #46505e;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.weight-goal-table tr.is-current-month td {
+  background: #f5f8fd;
+}
+
+.weight-goal-table td:first-child small {
+  margin-left: 7px;
+  color: #58739e;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.weight-goal-table .weight-input-with-unit input {
+  height: 34px;
+  padding: 0 36px 0 9px;
+  font-size: 13px;
+}
+
+.weight-goal-table .weight-input-with-unit > span {
+  right: 9px;
+  font-size: 11px;
+}
+
 .weight-form-field {
   display: flex;
   flex-direction: column;

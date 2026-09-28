@@ -191,52 +191,79 @@ export async function POST(request: Request) {
     return Response.json({ settings: data });
   }
 
-  if (body.type === 'goal') {
-    const goalMonth = body.goalMonth;
-    if (typeof goalMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(goalMonth)) {
-      return Response.json({ message: '목표 월을 확인해주세요.' }, { status: 400 });
+  if (body.type === 'goals') {
+    if (!Array.isArray(body.goals) || body.goals.length > 12) {
+      return Response.json({ message: '월별 목표 정보를 확인해주세요.' }, { status: 400 });
     }
 
-    const weightText = String(body.targetWeight ?? '').trim();
-    if (!/^\d+(\.\d{1,2})?$/.test(weightText)) {
-      return Response.json({ message: '목표 체중을 확인해주세요.' }, { status: 400 });
-    }
-    const targetWeight = Number(weightText);
-    if (!Number.isFinite(targetWeight) || targetWeight <= 0 || targetWeight > 500) {
-      return Response.json(
-        { message: '목표 체중은 0보다 크고 500kg 이하여야 합니다.' },
-        { status: 400 }
-      );
-    }
+    const seenMonths = new Set<string>();
+    const goals: { goal_month: string; target_weight: number; updated_at: string }[] = [];
+    const emptyMonths: string[] = [];
+    for (const item of body.goals) {
+      if (typeof item?.goalMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(item.goalMonth)) {
+        return Response.json({ message: '목표 월을 확인해주세요.' }, { status: 400 });
+      }
+      const goalMonth = `${item.goalMonth}-01`;
+      if (seenMonths.has(goalMonth)) {
+        return Response.json({ message: '중복된 목표 월이 있습니다.' }, { status: 400 });
+      }
+      seenMonths.add(goalMonth);
 
-    const { data, error } = await supabaseAdmin
-      .from('weight_monthly_goals')
-      .upsert(
-        {
-          goal_month: `${goalMonth}-01`,
-          target_weight: targetWeight,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'goal_month' }
-      )
-      .select('goal_month, target_weight, updated_at')
-      .single();
-
-    if (error) {
-      if (isMissingTable(error)) {
+      const weightText = String(item.targetWeight ?? '').trim();
+      if (!weightText) {
+        emptyMonths.push(goalMonth);
+        continue;
+      }
+      if (!/^\d+(\.\d{1,2})?$/.test(weightText)) {
+        return Response.json({ message: '목표 체중을 확인해주세요.' }, { status: 400 });
+      }
+      const targetWeight = Number(weightText);
+      if (!Number.isFinite(targetWeight) || targetWeight <= 0 || targetWeight > 500) {
         return Response.json(
-          { message: 'Supabase에 월별 체중 목표 테이블을 먼저 만들어주세요.' },
-          { status: 503 }
+          { message: '목표 체중은 0보다 크고 500kg 이하여야 합니다.' },
+          { status: 400 }
         );
       }
-      console.error(error);
-      return Response.json(
-        { message: '월별 체중 목표를 저장하지 못했습니다.' },
-        { status: 500 }
-      );
+      goals.push({ goal_month: goalMonth, target_weight: targetWeight, updated_at: new Date().toISOString() });
     }
 
-    return Response.json({ goal: data });
+    let savedGoals: { goal_month: string; target_weight: number; updated_at: string }[] = [];
+    if (goals.length) {
+      const { data, error } = await supabaseAdmin
+        .from('weight_monthly_goals')
+        .upsert(goals, { onConflict: 'goal_month' })
+        .select('goal_month, target_weight, updated_at');
+      if (error) {
+        if (isMissingTable(error)) {
+          return Response.json(
+            { message: 'Supabase에 월별 체중 목표 테이블을 먼저 만들어주세요.' },
+            { status: 503 }
+          );
+        }
+        console.error(error);
+        return Response.json({ message: '월별 목표를 저장하지 못했습니다.' }, { status: 500 });
+      }
+      savedGoals = data ?? [];
+    }
+
+    if (emptyMonths.length) {
+      const { error } = await supabaseAdmin
+        .from('weight_monthly_goals')
+        .delete()
+        .in('goal_month', emptyMonths);
+      if (error) {
+        if (isMissingTable(error)) {
+          return Response.json(
+            { message: 'Supabase에 월별 체중 목표 테이블을 먼저 만들어주세요.' },
+            { status: 503 }
+          );
+        }
+        console.error(error);
+        return Response.json({ message: '빈 목표를 정리하지 못했습니다.' }, { status: 500 });
+      }
+    }
+
+    return Response.json({ goals: savedGoals });
   }
 
   if (body.type === 'record') {
