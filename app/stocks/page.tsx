@@ -185,6 +185,7 @@ export default function StocksPage() {
 
   const [savingSettings, setSavingSettings] =
     useState(false);
+  const stockChartScrollRef = useRef<HTMLDivElement | null>(null);
 
   const [settingsForm, setSettingsForm] = useState({
     initialInvestment: '',
@@ -726,6 +727,16 @@ export default function StocksPage() {
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.goalY}`)
     .join(' ');
 
+  useEffect(() => {
+    const chart = stockChartScrollRef.current;
+    if (!chart) return;
+
+    const frame = requestAnimationFrame(() => {
+      chart.scrollLeft = chart.scrollWidth;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [chartRows.length, loading, authenticated]);
+
   if (
     authenticated === null ||
     loading ||
@@ -807,7 +818,7 @@ export default function StocksPage() {
                   ))}
                 </svg>
 
-                <div className="stock-chart-scroll" aria-label="회차별 총액 차트, 좌우로 스크롤할 수 있습니다">
+                <div ref={stockChartScrollRef} className="stock-chart-scroll" aria-label="회차별 총액 차트, 좌우로 스크롤할 수 있습니다">
                   <svg
                     className="stock-chart-svg"
                     role="img"

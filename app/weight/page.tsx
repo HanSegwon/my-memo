@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -139,6 +139,7 @@ export default function WeightPage() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
   const [schemaRequired, setSchemaRequired] = useState(false);
+  const weightChartScrollRef = useRef<HTMLDivElement | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [recordDraft, setRecordDraft] =
@@ -165,6 +166,20 @@ export default function WeightPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const chart = weightChartScrollRef.current;
+    if (!chart) return;
+
+    const frame = requestAnimationFrame(() => {
+      const svg = chart.querySelector<SVGSVGElement>('svg[data-current-month-x]');
+      const currentX = svg?.dataset.currentMonthX;
+      chart.scrollLeft = currentX
+        ? Math.max(0, Number(currentX) - chart.clientWidth / 2)
+        : chart.scrollWidth;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [records.length, monthlyGoals.length, today, loading, authenticated]);
 
   async function checkAuth() {
     try {
@@ -461,6 +476,7 @@ export default function WeightPage() {
   const candidateMonths = [
     ...monthlyActuals.keys(),
     ...goalByMonth.keys(),
+    ...(today.slice(0, 7) && today.slice(0, 7) <= chartEndMonth ? [today.slice(0, 7)] : []),
   ].filter((month) => month <= chartEndMonth).sort();
   const chartStartMonth = candidateMonths[0] ?? chartEndMonth;
   const chartMonths: string[] = [];
@@ -479,6 +495,8 @@ export default function WeightPage() {
     actual: monthlyActuals.get(month),
     goal: goalByMonth.get(month),
   }));
+  const currentMonthIndex = chartMonths.indexOf(today.slice(0, 7));
+  const currentMonthX = currentMonthIndex >= 0 ? currentMonthIndex * 56 + 28 : undefined;
   const chartValues = monthlyChartData.flatMap((item) =>
     [item.actual, item.goal].filter((value): value is number => value !== undefined)
   );
@@ -580,11 +598,12 @@ export default function WeightPage() {
                   })}
                 </svg>
 
-                <div className="stock-chart-scroll" aria-label="월별 실제 체중과 목표 체중 그래프, 좌우로 스크롤할 수 있습니다">
+                <div ref={weightChartScrollRef} className="stock-chart-scroll" aria-label="월별 실제 체중과 목표 체중 그래프, 좌우로 스크롤할 수 있습니다">
                   <svg
                     className="stock-chart-svg"
                     role="img"
                     aria-label={`${chartMonths.length}개월의 실제 체중과 월별 목표 비교 그래프`}
+                    data-current-month-x={currentMonthX}
                     width={plotWidth + chartRight}
                     height={chartHeight}
                     viewBox={`0 0 ${plotWidth + chartRight} ${chartHeight}`}
@@ -604,6 +623,18 @@ export default function WeightPage() {
                         />
                       );
                     })}
+
+                    {currentMonthX !== undefined && (
+                      <line
+                        x1={currentMonthX}
+                        x2={currentMonthX}
+                        y1={chartTop}
+                        y2={chartHeight - chartBottom}
+                        stroke="#c3ccd8"
+                        strokeDasharray="3 4"
+                        strokeWidth="1"
+                      />
+                    )}
 
                     {monthlyChartData.map((item) => (
                       <text

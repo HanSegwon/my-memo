@@ -24,6 +24,16 @@ type StockRecord = {
   withdrawal: number;
 };
 
+type WeightRecordSummary = {
+  record_date: string;
+  weight_kg: number | null;
+};
+
+type MonthlyWeightGoalSummary = {
+  goal_month: string;
+  target_weight: number;
+};
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [passcode, setPasscode] = useState('');
@@ -31,6 +41,7 @@ export default function Home() {
   const passcodeInputs = useRef<Array<HTMLInputElement | null>>([]);
   const isPasscodeComplete = /^\d{6}$/.test(passcode);
   const [stockSummary, setStockSummary] = useState<string | null>(null);
+  const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
@@ -47,7 +58,7 @@ export default function Home() {
     setAuthenticated(data.authenticated);
 
     if (data.authenticated) {
-      await loadStockSummary();
+      await Promise.all([loadStockSummary(), loadWeightSummary()]);
     }
   }
 
@@ -153,7 +164,41 @@ export default function Home() {
 
     setPasscode('');
     setAuthenticated(true);
-    await loadStockSummary();
+    await Promise.all([loadStockSummary(), loadWeightSummary()]);
+  }
+
+  async function loadWeightSummary() {
+    try {
+      const response = await fetch('/api/weight', { cache: 'no-store' });
+      if (!response.ok) return;
+
+      const data = (await response.json()) as {
+        records: WeightRecordSummary[];
+        monthlyGoals: MonthlyWeightGoalSummary[];
+      };
+      const currentMonth = new Date(Date.now() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 7);
+      const target = data.monthlyGoals?.find(
+        (goal) => goal.goal_month === `${currentMonth}-01`
+      );
+      const latestWeight = data.records
+        ?.filter((record) => record.weight_kg !== null)
+        .sort((a, b) => b.record_date.localeCompare(a.record_date))[0];
+      if (!target || !latestWeight || latestWeight.weight_kg === null) return;
+
+      const formatKg = (value: number) => String(Number(value.toFixed(2)));
+      const remaining = Number((latestWeight.weight_kg - target.target_weight).toFixed(2));
+      if (remaining > 0) {
+        setWeightSummary(
+          `이번 달 목표 ${formatKg(target.target_weight)}kg까지 ${formatKg(remaining)}kg 더 빼면 돼요.`
+        );
+      } else {
+        setWeightSummary(`이번 달 목표 ${formatKg(target.target_weight)}kg를 달성했어요!`);
+      }
+    } catch {
+      // 체중 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
   }
 
   function updatePasscode(index: number, value: string) {
@@ -205,6 +250,7 @@ export default function Home() {
     });
 
     setAuthenticated(false);
+    setWeightSummary(null);
   }
 
   if (authenticated === null) {
@@ -349,7 +395,13 @@ export default function Home() {
           </Link>
 
           <Link href="/weight" className="home-button">
-            체중관리
+            <span className="home-button-title">체중관리</span>
+            {weightSummary && (
+              <>
+                <span className="home-button-divider" aria-hidden="true">|</span>
+                <span className="home-button-summary">{weightSummary}</span>
+              </>
+            )}
           </Link>
 
           <Link href="/routine" className="home-button">

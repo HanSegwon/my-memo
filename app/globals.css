@@ -1684,12 +1684,12 @@ h1 {
     padding: 12px 14px;
   }
 
-  .weight-container .stock-header-actions {
+  .stock-container .stock-header-actions {
     gap: 1px;
   }
 
-  .weight-container .stock-header-actions > button,
-  .weight-container .stock-header-actions > a {
+  .stock-container .stock-header-actions > button,
+  .stock-container .stock-header-actions > a {
     padding-right: 5px;
     padding-left: 5px;
     font-size: 11px;
