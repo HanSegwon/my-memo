@@ -674,6 +674,12 @@ export default function StocksPage() {
     );
   }, [calculatedRows]);
 
+  const currentTotal =
+    calculatedRows.find((row) => row.roundNo === currentRoundNo)?.total ??
+    calculatedRows.at(-1)?.total ??
+    settings?.initial_investment ??
+    0;
+
   const chartRows = calculatedRows.filter(
     (row) => row.roundNo <= currentRoundNo
   );
@@ -922,6 +928,11 @@ export default function StocksPage() {
         )}
 
         <section className="stock-summary">
+          <div className="summary-card summary-card-asset">
+            <span>자산 총액</span>
+            <strong>{formatMoney(currentTotal)}</strong>
+          </div>
+
           <div className="summary-card">
             <span>누적 수익</span>
             <strong

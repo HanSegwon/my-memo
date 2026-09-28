@@ -706,8 +706,8 @@ h1 {
 /* 상단 누적 정보 */
 .stock-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
   margin-bottom: 24px;
 }
 
@@ -732,12 +732,30 @@ h1 {
   width: 100%;
   overflow: hidden;
   color: #222;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+.summary-card-asset strong {
+  color: #1f2a44;
+}
+
+@media (max-width: 480px) {
+  .stock-summary {
+    gap: 6px;
+  }
+
+  .summary-card span {
+    font-size: 9px;
+  }
+
+  .summary-card strong {
+    font-size: clamp(8px, 2.65vw, 11px);
+  }
 }
 
 /* 회차 목록 */
