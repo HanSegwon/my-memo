@@ -140,6 +140,8 @@ export default function FamilyEventsPage() {
     setEvents((current) => current.filter((item) => item.id !== event.id));
   }
 
+  if (loading) return <main className="loading-screen"><LoadingDots /></main>;
+
   return (
     <main className="app">
       <section className="container stock-container family-events-container">

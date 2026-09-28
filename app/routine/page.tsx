@@ -101,6 +101,8 @@ export default function RoutinePage() {
   const todayLabel = getKoreanDate(clock);
   const activeRoutine = todayType === dayType ? getActiveRoutine(visibleRoutines, clock, todayType) : null;
 
+  if (loading) return <main className="loading-screen"><LoadingDots /></main>;
+
   return (
     <main className="app">
       <section className="container stock-container routine-container">

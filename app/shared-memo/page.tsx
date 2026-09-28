@@ -155,6 +155,8 @@ export default function SharedMemoPage() {
     );
   }
 
+  if (loading) return <main className="loading-screen"><LoadingDots /></main>;
+
   return (
     <main className="app">
       <section className="container">
