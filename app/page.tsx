@@ -11,10 +11,24 @@ const greetings = [
   '한세권님, 오늘도 응원합니다!',
 ];
 
+type StockSettings = {
+  initial_investment: number;
+  monthly_return_rate: number;
+  display_rounds: number;
+};
+
+type StockRecord = {
+  round_no: number;
+  profit: number;
+  deposit: number;
+  withdrawal: number;
+};
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
@@ -29,6 +43,83 @@ export default function Home() {
 
     const data = await response.json();
     setAuthenticated(data.authenticated);
+
+    if (data.authenticated) {
+      await loadStockSummary();
+    }
+  }
+
+  async function loadStockSummary() {
+    try {
+      const response = await fetch('/api/stocks', {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) return;
+
+      const data = (await response.json()) as {
+        settings: StockSettings;
+        records: StockRecord[];
+      };
+
+      if (!data.settings || !Array.isArray(data.records)) return;
+
+      const now = new Date();
+      const currentRound =
+        now.getFullYear() * 12 +
+        now.getMonth() -
+        (2025 * 12 + 8) +
+        1;
+
+      let previousTotal = data.settings.initial_investment;
+      let previousGoal = data.settings.initial_investment;
+      const monthlyRate = data.settings.monthly_return_rate / 100;
+      let currentTotal: number | null = null;
+      const goals: Array<{ roundNo: number; goal: number }> = [];
+
+      for (let roundNo = 1; roundNo <= data.settings.display_rounds; roundNo += 1) {
+        const record = data.records.find((item) => item.round_no === roundNo);
+        const total =
+          previousTotal +
+          Number(record?.profit ?? 0) +
+          Number(record?.deposit ?? 0) -
+          Number(record?.withdrawal ?? 0);
+        const goal = Math.round(previousGoal * (1 + monthlyRate));
+
+        goals.push({ roundNo, goal });
+        if (roundNo === currentRound) currentTotal = total;
+
+        previousTotal = total;
+        previousGoal = goal;
+      }
+
+      if (currentTotal === null) return;
+
+      const achievedGoals = goals.filter((item) => item.goal < currentTotal!);
+      if (achievedGoals.length === 0) return;
+
+      const highlightedRound = achievedGoals.reduce((highest, item) =>
+        item.goal > highest.goal ? item : highest
+      ).roundNo;
+
+      if (highlightedRound === currentRound) {
+        setStockSummary('이번 회차엔 꼭 수익을 내야 해요.');
+        return;
+      }
+
+      const targetDate = new Date(2025, 8 + highlightedRound - 1, 1);
+      const targetMonth = `${String(targetDate.getFullYear()).slice(-2)}.${String(
+        targetDate.getMonth() + 1
+      ).padStart(2, '0')}월`;
+
+      setStockSummary(
+        highlightedRound < currentRound
+          ? `’${targetMonth} 이후 주식 성과가 없어요.`
+          : `’${targetMonth} 목표를 향해 나아가고 있어요.`
+      );
+    } catch {
+      // 주식 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
+    }
   }
 
   async function login() {
@@ -53,6 +144,7 @@ export default function Home() {
 
     setPasscode('');
     setAuthenticated(true);
+    await loadStockSummary();
   }
 
   async function logout() {
@@ -147,7 +239,17 @@ export default function Home() {
 
         <section className="home-grid">
           <Link href="/stocks" className="home-button">
-            주식성과
+            <span className="home-button-title">주식성과</span>
+            {stockSummary && (
+              <>
+                <span className="home-button-divider" aria-hidden="true">
+                  |
+                </span>
+                <span className="home-button-summary">
+                  {stockSummary}
+                </span>
+              </>
+            )}
           </Link>
 
           <Link href="/overtime" className="home-button">
