@@ -720,6 +720,9 @@ export default function StocksPage() {
     date: row.date,
     roundNo: row.roundNo,
   }));
+  const currentRoundX =
+    chartPoints.find((point) => point.roundNo === currentRoundNo)?.x ??
+    chartPoints.at(-1)?.x;
   const chartLinePath = chartPoints
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
     .join(' ');
@@ -758,7 +761,7 @@ export default function StocksPage() {
       <section className="container stock-container">
         <header className="stock-header">
           <div>
-            <p className="eyebrow">Master 3.0</p>
+            <p className="eyebrow brand-eyebrow">Master 3.0</p>
             <h1>주식성과</h1>
           </div>
 
@@ -845,6 +848,18 @@ export default function StocksPage() {
                         />
                       );
                     })}
+
+                    {currentRoundX !== undefined && (
+                      <line
+                        x1={currentRoundX}
+                        x2={currentRoundX}
+                        y1={chartTop}
+                        y2={chartHeight - chartBottom}
+                        stroke="#aeb8c5"
+                        strokeDasharray="3 4"
+                        strokeWidth="1"
+                      />
+                    )}
 
                     {chartPoints.map((point) => (
                       <text

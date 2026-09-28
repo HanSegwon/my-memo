@@ -349,7 +349,7 @@ export default function Home() {
       <section className="container home-container">
         <header className="home-header">
           <div>
-            <p className="eyebrow">Master Planner 3.0</p>
+            <p className="eyebrow brand-eyebrow">Master 3.0</p>
             <h1>{greeting}</h1>
           </div>
 

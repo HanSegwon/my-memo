@@ -535,7 +535,7 @@ export default function WeightPage() {
       <section className="container stock-container weight-container">
         <header className="stock-header">
           <div>
-            <p className="eyebrow">Master 3.0</p>
+            <p className="eyebrow brand-eyebrow">Master 3.0</p>
             <h1>체중관리</h1>
           </div>
 
@@ -985,7 +985,7 @@ function WeightHeader() {
   return (
     <header className="stock-header">
       <div>
-        <p className="eyebrow">Master 3.0</p>
+        <p className="eyebrow brand-eyebrow">Master 3.0</p>
         <h1>체중관리</h1>
       </div>
       <Link href="/" className="logout-button">처음으로</Link>

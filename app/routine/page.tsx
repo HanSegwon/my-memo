@@ -6,7 +6,7 @@ export default function RoutinePage() {
       <section className="container">
         <header className="header">
           <div>
-            <p className="eyebrow">MY MEMO</p>
+            <p className="eyebrow brand-eyebrow">Master 3.0</p>
             <h1>생활루틴</h1>
           </div>
 
