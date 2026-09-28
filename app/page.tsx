@@ -3,12 +3,22 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+const greetings = [
+  '한세권님, 오늘도 멋진 하루예요!',
+  '한세권님, 오늘도 힘차게 시작해봐요!',
+  '한세권님, 오늘도 잘 해낼 수 있어요!',
+  '한세권님, 작은 한 걸음도 큰 시작이에요!',
+  '한세권님, 오늘도 당신의 하루를 응원해요!',
+];
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
+    setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
     checkAuth();
   }, []);
 
@@ -70,7 +80,7 @@ export default function Home() {
       <main className="app">
         <section className="container">
           <div className="login-card">
-            <p className="eyebrow">MY MEMO</p>
+            <p className="eyebrow">Master Planner 3.0</p>
 
             <h1>나의 메모</h1>
 
@@ -109,8 +119,8 @@ export default function Home() {
       <section className="container">
         <header className="home-header">
           <div>
-            <p className="eyebrow">MY MEMO</p>
-            <h1>나의 생활 관리</h1>
+            <p className="eyebrow">Master Planner 3.0</p>
+            <h1>{greeting}</h1>
           </div>
 
           <button className="logout-button" onClick={logout}>
