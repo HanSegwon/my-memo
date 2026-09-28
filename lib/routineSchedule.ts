@@ -46,11 +46,13 @@ export function getKoreanHolidayDates(year: number) {
   const holidays = new Set(fixed.map((item) => item.date));
   const lunarDays = [[1, 1], [1, 2], [12, 30], [4, 8], [8, 14], [8, 15], [8, 16]];
   const lunarSubstitute = new Set<string>();
-  for (const [month, day] of lunarDays) {
-    const date = lunarDate(year, month, day) ?? (month === 12 && day === 30 ? lunarDate(year, 12, 29) : null);
-    if (date) {
-      holidays.add(date);
-      lunarSubstitute.add(date);
+  for (const lunarYear of [year - 1, year]) {
+    for (const [month, day] of lunarDays) {
+      const date = lunarDate(lunarYear, month, day) ?? (month === 12 && day === 30 ? lunarDate(lunarYear, 12, 29) : null);
+      if (date?.startsWith(`${year}-`)) {
+        holidays.add(date);
+        lunarSubstitute.add(date);
+      }
     }
   }
   const eligible = new Set([...fixed.filter((item) => item.substitute).map((item) => item.date), ...lunarSubstitute]);
