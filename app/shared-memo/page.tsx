@@ -55,11 +55,6 @@ export default function SharedMemoPage() {
   }
 
   async function addMemo() {
-    if (!content.trim()) {
-      alert('메모 내용을 입력해주세요.');
-      return;
-    }
-
     setSaving(true);
 
     const response = await fetch('/api/memos', {
@@ -139,7 +134,7 @@ export default function SharedMemoPage() {
         <header className="header">
           <div>
             <p className="eyebrow brand-eyebrow">Master 3.0</p>
-            <h1>메모공유</h1>
+            <h1>할일메모</h1>
           </div>
 
           <Link href="/" className="logout-button">
@@ -151,14 +146,14 @@ export default function SharedMemoPage() {
           <input
             className="title-input"
             type="text"
-            placeholder="메모 제목"
+            placeholder="할 일 제목"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
 
           <textarea
             className="content-input"
-            placeholder="무슨 생각이 떠올랐나요?"
+            placeholder="자세한 내용을 작성하세요."
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />

@@ -66,13 +66,6 @@ export async function POST(request: Request) {
   const title = String(body.title ?? '').trim() || '제목 없음';
   const content = String(body.content ?? '').trim();
 
-  if (!content) {
-    return Response.json(
-      { message: '메모 내용을 입력해주세요.' },
-      { status: 400 }
-    );
-  }
-
   const { data, error } = await supabaseAdmin
     .from('memos')
     .insert({

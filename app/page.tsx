@@ -467,7 +467,7 @@ export default function Home() {
             href="/shared-memo"
             className="home-button"
           >
-            메모공유
+            할일메모
           </Link>
 
           <Link href="/family-events" className="home-button">
