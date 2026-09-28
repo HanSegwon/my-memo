@@ -82,8 +82,7 @@ function getMonday(date: string) {
 
 function formatDate(date: string) {
   const [year, month, day] = date.split('-');
-  const weekday = weekdays[getWeekdayNumber(date) - 1].label;
-  return `${year}.${month}.${day} (${weekday})`;
+  return `'${year.slice(-2)}.${month}.${day}`;
 }
 
 function formatChartDate(date: string) {
@@ -192,7 +191,7 @@ export default function WeightPage() {
   }
 
   const visibleDates = useMemo(
-    () => (today ? Array.from({ length: 6 }, (_, index) => addDays(today, index)) : []),
+    () => (today ? Array.from({ length: 6 }, (_, index) => addDays(today, -index)) : []),
     [today]
   );
 
@@ -565,7 +564,7 @@ export default function WeightPage() {
                 <th>중식</th>
                 <th>석식</th>
                 <th>대변</th>
-                <th>간헐적단식</th>
+                <th>간헐적<br />단식</th>
               </tr>
             </thead>
             <tbody>
@@ -589,14 +588,13 @@ export default function WeightPage() {
                   >
                     <td className="weight-date-cell">
                       <span>{formatDate(date)}</span>
-                      {date === today && <small>오늘</small>}
                     </td>
-                    <td>{record?.weight_kg === null || !record ? '—' : `${formatWeight(record.weight_kg)} kg`}</td>
-                    <td>{record?.exercise ?? '—'}</td>
-                    <td>{record?.breakfast ?? '—'}</td>
-                    <td>{record?.lunch ?? '—'}</td>
-                    <td>{record?.dinner ?? '—'}</td>
-                    <td>{record?.bowel_movements ?? '—'}</td>
+                    <td>{record?.weight_kg === null || !record ? '—' : formatWeight(record.weight_kg)}</td>
+                    <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>{record?.exercise ?? '—'}</td>
+                    <td className={record?.breakfast === '금식' ? 'weight-muted-value' : undefined}>{record?.breakfast ?? '—'}</td>
+                    <td className={record?.lunch === '금식' ? 'weight-muted-value' : undefined}>{record?.lunch ?? '—'}</td>
+                    <td className={record?.dinner === '금식' ? 'weight-muted-value' : undefined}>{record?.dinner ?? '—'}</td>
+                    <td>{record?.bowel_movements ?? (date === today ? 0 : '—')}</td>
                     <td className={fasting ? 'weight-fasting-mark' : 'weight-fasting-empty'}>
                       {fasting ? 'O' : '—'}
                     </td>
