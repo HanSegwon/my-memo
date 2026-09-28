@@ -281,7 +281,7 @@ h1 {
 
 .home-header h1 {
   color: #202124;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 650;
   line-height: 1.25;
   letter-spacing: -0.055em;
@@ -314,17 +314,16 @@ h1 {
 
 .home-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .home-button {
-  aspect-ratio: 1 / 1;
-  min-height: 0;
+  min-height: 68px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 16px;
+  justify-content: flex-start;
+  padding: 0 22px;
   border: 1px solid #ededed;
   border-radius: 16px;
   background: white;
@@ -334,7 +333,7 @@ h1 {
   letter-spacing: -0.025em;
   text-decoration: none;
   cursor: pointer;
-  text-align: center;
+  text-align: left;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
@@ -383,12 +382,13 @@ h1 {
   }
 
   .home-header h1 {
-    font-size: clamp(14px, 4vw, 22px);
+    font-size: clamp(16px, 4.3vw, 24px);
     letter-spacing: -0.05em;
   }
 
   .home-button {
-    padding: 12px;
+    min-height: 64px;
+    padding: 0 18px;
     font-size: 15px;
     border-radius: 14px;
   }
