@@ -1355,7 +1355,9 @@ h1 {
 }
 
 .weight-other-food-cell {
+  overflow: hidden;
   color: #6e7784 !important;
+  text-overflow: ellipsis;
 }
 
 .weight-fasting-mark {

@@ -86,12 +86,6 @@ function formatDate(date: string) {
   return `'${year.slice(-2)}.${month}.${day} (${weekday})`;
 }
 
-function formatOtherFood(value: string | null | undefined) {
-  if (!value) return '—';
-  const characters = Array.from(value);
-  return characters.length > 4 ? `${characters.slice(0, 4).join('')}...` : value;
-}
-
 function formatChartDate(date: string) {
   const [, month, day] = date.split('-');
   return `${month}.${day}`;
@@ -601,7 +595,7 @@ export default function WeightPage() {
                     <td className={record?.dinner === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.dinner === '미취식' ? '-' : record?.dinner ?? ''}
                     </td>
-                    <td className="weight-other-food-cell">{record?.other_food ? formatOtherFood(record.other_food) : ''}</td>
+                    <td className="weight-other-food-cell">{record?.other_food ?? ''}</td>
                   </tr>
                 );
               })}
