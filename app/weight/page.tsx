@@ -23,7 +23,6 @@ type WeightRecord = {
   lunch: MealAmount | null;
   dinner: MealAmount | null;
   other_food: string | null;
-  bowel_movements: number | null;
   updated_at: string;
 };
 
@@ -34,7 +33,6 @@ type RecordDraft = {
   lunch: MealAmount | '';
   dinner: MealAmount | '';
   otherFood: string;
-  bowelMovements: string;
 };
 
 const weekdays = [
@@ -57,7 +55,6 @@ const emptyRecordDraft: RecordDraft = {
   lunch: '',
   dinner: '',
   otherFood: '',
-  bowelMovements: '',
 };
 
 function getKoreanToday() {
@@ -229,10 +226,6 @@ export default function WeightPage() {
             lunch: record.lunch ?? '',
             dinner: record.dinner ?? '',
             otherFood: record.other_food ?? '',
-            bowelMovements:
-              record.bowel_movements === null
-                ? ''
-                : String(record.bowel_movements),
           }
         : { ...emptyRecordDraft }
     );
@@ -251,14 +244,6 @@ export default function WeightPage() {
         Number(recordDraft.weightKg) > 500)
     ) {
       setRecordError('체중은 0보다 크고 500kg 이하로 입력해주세요.');
-      return;
-    }
-
-    if (
-      recordDraft.bowelMovements &&
-      !/^[1-9]\d*$/.test(recordDraft.bowelMovements)
-    ) {
-      setRecordError('대변 횟수는 1 이상의 정수로 입력해주세요.');
       return;
     }
 
@@ -570,7 +555,6 @@ export default function WeightPage() {
               <tr>
                 <th>날짜</th>
                 <th>체중</th>
-                <th>대변</th>
                 <th>운동</th>
                 <th>단식</th>
                 <th>조식</th>
@@ -602,10 +586,9 @@ export default function WeightPage() {
                       <span>{formatDate(date)}</span>
                     </td>
                     <td>{record?.weight_kg === null || !record ? '—' : formatWeight(record.weight_kg)}</td>
-                    <td>{record?.bowel_movements ?? (date === today ? 0 : '—')}</td>
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>{record?.exercise ?? '—'}</td>
                     <td className={fasting ? 'weight-fasting-mark' : 'weight-fasting-empty'}>
-                      {fasting ? 'O' : '—'}
+                      {fasting ? '●' : '—'}
                     </td>
                     <td className={record?.breakfast === '금식' ? 'weight-muted-value' : undefined}>{record?.breakfast ?? '—'}</td>
                     <td className={record?.lunch === '금식' ? 'weight-muted-value' : undefined}>{record?.lunch ?? '—'}</td>
@@ -700,24 +683,6 @@ export default function WeightPage() {
                 onChange={(event) =>
                   setRecordDraft((current) => ({ ...current, otherFood: event.target.value }))
                 }
-              />
-            </label>
-
-            <label className="weight-form-field weight-bowel-field">
-              <span>대변 횟수</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={10}
-                placeholder="횟수 입력"
-                value={recordDraft.bowelMovements}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (/^\d*$/.test(value)) {
-                    setRecordDraft((current) => ({ ...current, bowelMovements: value }));
-                  }
-                }}
               />
             </label>
 

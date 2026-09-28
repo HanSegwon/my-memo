@@ -78,7 +78,7 @@ export async function GET() {
     supabaseAdmin
       .from('weight_records')
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, bowel_movements, updated_at'
+        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
       )
       .order('record_date', { ascending: true }),
   ]);
@@ -232,24 +232,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const bowelText = String(body.bowelMovements ?? '').trim();
-    let bowelMovements: number | null = null;
-    if (bowelText) {
-      if (!/^[1-9]\d*$/.test(bowelText)) {
-        return Response.json(
-          { message: '대변 횟수는 양의 정수로 입력해주세요.' },
-          { status: 400 }
-        );
-      }
-      bowelMovements = Number(bowelText);
-      if (!Number.isSafeInteger(bowelMovements) || bowelMovements > 2_147_483_647) {
-        return Response.json(
-          { message: '대변 횟수를 다시 확인해주세요.' },
-          { status: 400 }
-        );
-      }
-    }
-
     const { data, error } = await supabaseAdmin
       .from('weight_records')
       .upsert(
@@ -261,13 +243,12 @@ export async function POST(request: Request) {
           lunch: lunch.value,
           dinner: dinner.value,
           other_food: otherFood || null,
-          bowel_movements: bowelMovements,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'record_date' }
       )
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, bowel_movements, updated_at'
+        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
       )
       .single();
 

@@ -1291,14 +1291,13 @@ h1 {
 
 .weight-table th:nth-child(1) { width: 24%; }
 .weight-table th:nth-child(2) { width: 10%; }
-.weight-table th:nth-child(3) { width: 8%; }
-.weight-table th:nth-child(4) { width: 11%; }
-.weight-table th:nth-child(5) { width: 7%; }
+.weight-table th:nth-child(3) { width: 11%; }
+.weight-table th:nth-child(4) { width: 7%; }
+.weight-table th:nth-child(5),
 .weight-table th:nth-child(6),
-.weight-table th:nth-child(7),
-.weight-table th:nth-child(8) { width: 9%; }
-.weight-table th:nth-child(9) {
-  width: 13%;
+.weight-table th:nth-child(7) { width: 9%; }
+.weight-table th:nth-child(8) {
+  width: 21%;
   white-space: normal;
   line-height: 1.15;
 }
@@ -1360,9 +1359,9 @@ h1 {
 }
 
 .weight-fasting-mark {
-  color: #218b69 !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
+  color: #e25353 !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
 }
 
 .weight-fasting-empty {
@@ -1443,8 +1442,7 @@ h1 {
   position: relative;
 }
 
-.weight-input-with-unit input,
-.weight-bowel-field input {
+.weight-input-with-unit input {
   width: 100%;
   height: 44px;
   padding: 0 13px;
@@ -1461,8 +1459,7 @@ h1 {
   padding-right: 48px;
 }
 
-.weight-input-with-unit input:focus,
-.weight-bowel-field input:focus {
+.weight-input-with-unit input:focus {
   border-color: #7185a4;
   box-shadow: 0 0 0 3px rgba(81, 102, 132, 0.1);
 }
