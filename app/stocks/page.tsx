@@ -39,6 +39,23 @@ function formatMoney(value: number) {
   return Math.round(value).toLocaleString('ko-KR');
 }
 
+function formatChartAmount(value: number) {
+  const absolute = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absolute >= 100_000_000) {
+    return `${sign}${(absolute / 100_000_000)
+      .toFixed(1)
+      .replace(/\.0$/, '')}억`;
+  }
+
+  if (absolute >= 10_000) {
+    return `${sign}${Math.round(absolute / 10_000).toLocaleString('ko-KR')}만`;
+  }
+
+  return formatMoney(value);
+}
+
 function getNumberClass(value: number) {
   if (value > 0) return 'positive';
   if (value < 0) return 'negative';
@@ -165,6 +182,8 @@ export default function StocksPage() {
   const [showSettings, setShowSettings] =
     useState(false);
 
+  const [showChart, setShowChart] = useState(false);
+
   const [savingSettings, setSavingSettings] =
     useState(false);
 
@@ -206,7 +225,7 @@ export default function StocksPage() {
     if (!response.ok) {
       alert(
         data.message ||
-          '주식관리 데이터를 불러오지 못했습니다.'
+          '주식성과 데이터를 불러오지 못했습니다.'
       );
 
       setLoading(false);
@@ -655,6 +674,34 @@ export default function StocksPage() {
     );
   }, [calculatedRows]);
 
+  const chartWidth = Math.max(720, calculatedRows.length * 72 + 82);
+  const chartHeight = 276;
+  const chartLeft = 58;
+  const chartRight = 22;
+  const chartTop = 18;
+  const chartBottom = 56;
+  const chartPlotWidth = chartWidth - chartLeft - chartRight;
+  const chartPlotHeight = chartHeight - chartTop - chartBottom;
+  const chartMin = Math.min(0, ...calculatedRows.map((row) => row.total));
+  const chartMax = Math.max(0, ...calculatedRows.map((row) => row.total));
+  const chartRange = Math.max(chartMax - chartMin, 1);
+  const chartY = (value: number) =>
+    chartTop + ((chartMax - value) / chartRange) * chartPlotHeight;
+  const chartZeroY = chartY(0);
+  const chartSlotWidth = calculatedRows.length
+    ? chartPlotWidth / calculatedRows.length
+    : 0;
+  const chartPoints = calculatedRows.map((row, index) => ({
+    x: chartLeft + chartSlotWidth * (index + 0.5),
+    y: chartY(row.total),
+    total: row.total,
+    date: row.date,
+    roundNo: row.roundNo,
+  }));
+  const chartLinePath = chartPoints
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+
   if (
     authenticated === null ||
     loading ||
@@ -676,11 +723,34 @@ export default function StocksPage() {
       <section className="container stock-container">
         <header className="stock-header">
           <div>
-            <p className="eyebrow">MY MEMO</p>
-            <h1>주식관리</h1>
+            <p className="eyebrow">Master 3.0</p>
+            <h1>주식성과</h1>
           </div>
 
           <div className="stock-header-actions">
+            <button
+              className={`stock-chart-toggle${showChart ? ' is-active' : ''}`}
+              type="button"
+              onClick={() => setShowChart((visible) => !visible)}
+              aria-expanded={showChart}
+              aria-controls="stock-total-chart"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 16.5h14" />
+                <path d="M5 14V9m5 5V5m5 9V7" />
+                <path d="m4 7 5-3 5 2 3-3" />
+              </svg>
+              차트
+            </button>
+
             <button
               className="settings-button"
               onClick={() =>
@@ -698,6 +768,123 @@ export default function StocksPage() {
             </Link>
           </div>
         </header>
+
+        {showChart && (
+          <section className="stock-chart-panel" id="stock-total-chart">
+            <div className="stock-chart-heading">
+              <div>
+                <h2>회차별 총액</h2>
+                <p>회차 날짜를 기준으로 자산 흐름을 확인하세요.</p>
+              </div>
+              <div className="stock-chart-legend" aria-label="차트 범례">
+                <span><i className="chart-legend-bar" />총액</span>
+                <span><i className="chart-legend-line" />추이</span>
+              </div>
+            </div>
+
+            <div className="stock-chart-scroll" aria-label="회차별 총액 차트, 좌우로 스크롤할 수 있습니다">
+              <svg
+                className="stock-chart-svg"
+                role="img"
+                aria-label={`전체 ${calculatedRows.length}회차의 총액 막대 및 추이 그래프`}
+                width={chartWidth}
+                height={chartHeight}
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              >
+                {[0, 1, 2, 3, 4].map((step) => {
+                  const value = chartMax - (chartRange * step) / 4;
+                  const y = chartY(value);
+
+                  return (
+                    <g key={step}>
+                      <line
+                        x1={chartLeft}
+                        x2={chartWidth - chartRight}
+                        y1={y}
+                        y2={y}
+                        stroke="#edf0f4"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={chartLeft - 10}
+                        y={y + 3}
+                        fill="#8a929e"
+                        fontSize="10"
+                        textAnchor="end"
+                      >
+                        {formatChartAmount(value)}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {chartPoints.map((point) => {
+                  const barWidth = Math.min(30, chartSlotWidth * 0.42);
+                  const barHeight = Math.max(Math.abs(chartZeroY - point.y), 1);
+
+                  return (
+                    <g key={point.roundNo}>
+                      <rect
+                        x={point.x - barWidth / 2}
+                        y={Math.min(point.y, chartZeroY)}
+                        width={barWidth}
+                        height={barHeight}
+                        rx="4"
+                        fill="#9aacc7"
+                        fillOpacity="0.42"
+                      />
+                      <text
+                        x={point.x}
+                        y={chartHeight - 28}
+                        fill="#7d8592"
+                        fontSize="10"
+                        textAnchor="middle"
+                      >
+                        {point.date.slice(2)}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {chartLinePath && (
+                  <>
+                    <path
+                      d={chartLinePath}
+                      fill="none"
+                      stroke="#218b69"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {chartPoints.map((point) => (
+                      <circle
+                        key={`point-${point.roundNo}`}
+                        cx={point.x}
+                        cy={point.y}
+                        r="3.5"
+                        fill="#fff"
+                        stroke="#218b69"
+                        strokeWidth="2"
+                      />
+                    ))}
+                  </>
+                )}
+
+                <text
+                  x={chartLeft + chartPlotWidth / 2}
+                  y={chartHeight - 8}
+                  fill="#9aa1aa"
+                  fontSize="10"
+                  textAnchor="middle"
+                >
+                  회차 날짜
+                </text>
+              </svg>
+            </div>
+
+            <p className="stock-chart-hint">좌우로 밀어 전체 회차를 확인할 수 있어요.</p>
+          </section>
+        )}
 
         <section className="stock-summary">
           <div className="summary-card">
@@ -906,7 +1093,7 @@ export default function StocksPage() {
                 <p className="eyebrow">
                   STOCK SETTINGS
                 </p>
-                <h2>주식관리 설정</h2>
+                <h2>주식성과 설정</h2>
               </div>
 
               <button
