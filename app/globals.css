@@ -1013,17 +1013,7 @@ h1 {
   white-space: nowrap;
 }
 
-.routine-current-dot {
-  position: absolute;
-  top: -13px;
-  left: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #1673e6;
-}
-
-.routine-time i:not(.routine-current-dot) {
+.routine-time i {
   width: 10px;
   height: 1px;
   flex: 0 0 auto;
@@ -1032,6 +1022,18 @@ h1 {
 
 .routine-description {
   min-width: 0;
+}
+
+.routine-current-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #1673e6;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .routine-description h2 {
@@ -1156,7 +1158,7 @@ h1 {
     font-size: 11px;
   }
 
-  .routine-time i:not(.routine-current-dot) {
+  .routine-time i {
     width: 7px;
   }
 

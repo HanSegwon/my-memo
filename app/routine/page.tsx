@@ -130,8 +130,8 @@ export default function RoutinePage() {
             const end = formatTime(routine.end_time);
             return (
               <article className={`routine-item${activeRoutine?.id === routine.id ? ' is-current' : ''}`} key={routine.id}>
-                <div className="routine-time">{activeRoutine?.id === routine.id && <i className="routine-current-dot" aria-label="현재 진행 중" />}<span>{start}</span><i aria-hidden="true" /><span>{end}</span></div>
-                <div className="routine-description"><h2><span className="routine-title-text">{routine.title}</span></h2>{routine.details && <p>{routine.details}</p>}</div>
+                <div className="routine-time"><span>{start}</span><i aria-hidden="true" /><span>{end}</span></div>
+                <div className="routine-description">{activeRoutine?.id === routine.id && <span className="routine-current-badge">진행 중</span>}<h2><span className="routine-title-text">{routine.title}</span></h2>{routine.details && <p>{routine.details}</p>}</div>
                 <div className="routine-item-actions">
                   <button type="button" className="routine-edit-button" onClick={() => openForm(routine)} aria-label={`${routine.title} 수정`}>수정</button>
                   <button type="button" className="routine-delete-button" onClick={() => void deleteRoutine(routine)} aria-label={`${routine.title} 삭제`}>삭제</button>
