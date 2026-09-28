@@ -746,15 +746,7 @@ export default function StocksPage() {
     loading ||
     !settings
   ) {
-    return (
-      <main className="app">
-        <section className="container">
-          <div className="empty">
-            <p>불러오는 중<LoadingDots /></p>
-          </div>
-        </section>
-      </main>
-    );
+    return <main className="loading-screen"><LoadingDots /></main>;
   }
 
   return (

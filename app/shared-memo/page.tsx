@@ -135,15 +135,7 @@ export default function SharedMemoPage() {
   }
 
   if (authenticated === null) {
-    return (
-      <main className="app">
-        <section className="container">
-          <div className="empty">
-            <p>확인 중<LoadingDots /></p>
-          </div>
-        </section>
-      </main>
-    );
+    return <main className="loading-screen"><LoadingDots /></main>;
   }
 
   if (!authenticated) {
@@ -196,9 +188,7 @@ export default function SharedMemoPage() {
 
         <section className="memo-section">
           {loading ? (
-            <div className="empty">
-              <p>메모를 불러오는 중<LoadingDots /></p>
-            </div>
+            <div className="loading-inline"><LoadingDots /></div>
           ) : memos.length === 0 ? (
             <div className="empty">
               <p>아직 작성한 메모가 없습니다.</p>

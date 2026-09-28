@@ -333,15 +333,7 @@ export default function Home() {
   }
 
   if (authenticated === null) {
-    return (
-      <main className="app">
-        <section className="container home-container">
-          <div className="empty">
-            <p>확인 중<LoadingDots /></p>
-          </div>
-        </section>
-      </main>
-    );
+    return <main className="loading-screen"><LoadingDots /></main>;
   }
 
   if (!authenticated) {
