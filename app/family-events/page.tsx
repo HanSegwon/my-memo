@@ -181,10 +181,10 @@ export default function FamilyEventsPage() {
               const daysLeft = daysUntilEvent(date, todayString);
               return <li key={event.id} className="family-event-item">
                 <strong title={`${event.title} · ${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>{formatEventTitle(event.title)}</strong>
+                <span className="family-event-calendar-type">{event.calendar_type === 'lunar' ? '음력' : '양력'}</span>
                 <span className="family-event-date" title={`${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>
                   {formatRegisteredEventDate(event)}
                 </span>
-                <span className="family-event-calendar-type">{event.calendar_type === 'lunar' ? '음력' : '양력'}</span>
                 <span className="family-event-countdown">{daysLeft === 0 ? '오늘' : daysLeft < 0 ? `${Math.abs(daysLeft)}일 지남` : `${daysLeft}일 남음`}</span>
                 <button type="button" className="family-event-delete" onClick={() => openEditForm(event)} aria-label={`${event.title} 수정`}>수정</button>
                 <button type="button" className="family-event-delete" onClick={() => void deleteEvent(event)} aria-label={`${event.title} 삭제`}>삭제</button>

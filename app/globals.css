@@ -703,7 +703,7 @@ h1 {
 
 .family-event-item {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 42px 80px 52px 52px;
+  grid-template-columns: minmax(0, 1.5fr) 42px minmax(0, 1fr) 80px 52px 52px;
   align-items: center;
   column-gap: 10px;
   min-height: 64px;
@@ -954,7 +954,7 @@ h1 {
   }
 
   .family-event-item {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 30px 58px 36px 36px;
+    grid-template-columns: minmax(0, 1.5fr) 30px minmax(0, 1fr) 58px 36px 36px;
     column-gap: 6px;
     min-height: 56px;
   }
