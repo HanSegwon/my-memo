@@ -703,9 +703,9 @@ h1 {
 
 .family-event-item {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto auto auto auto;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 36px 80px 52px 52px;
   align-items: center;
-  gap: 9px;
+  column-gap: 12px;
   min-height: 64px;
   border-top: 1px solid #f0f1f3;
 }
@@ -734,12 +734,15 @@ h1 {
 }
 
 .family-event-countdown {
+  justify-self: start;
   color: #808080;
   font-size: 12px;
+  text-align: left;
   white-space: nowrap;
 }
 
 .family-event-delete {
+  width: 100%;
   padding: 7px 9px;
   border: 1px solid #ececec;
   border-radius: 8px;
@@ -950,8 +953,8 @@ h1 {
   }
 
   .family-event-item {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto auto auto auto;
-    gap: 4px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 30px 60px 38px 38px;
+    column-gap: 8px;
     min-height: 56px;
   }
 
