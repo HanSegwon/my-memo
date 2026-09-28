@@ -982,13 +982,7 @@ h1 {
 }
 
 .routine-item.is-current {
-  position: relative;
-  z-index: 1;
-  border: 3px solid #1673e6;
-  border-left-width: 7px;
-  border-radius: 12px;
-  background: #eaf3ff;
-  box-shadow: inset 0 0 0 1px rgba(22, 115, 230, 0.12);
+  background: #f7faff;
 }
 
 .routine-item.is-current + .routine-item { border-top-color: transparent; }
@@ -998,6 +992,7 @@ h1 {
 }
 
 .routine-time {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1008,7 +1003,17 @@ h1 {
   white-space: nowrap;
 }
 
-.routine-time i {
+.routine-current-dot {
+  position: absolute;
+  top: -13px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1673e6;
+}
+
+.routine-time i:not(.routine-current-dot) {
   width: 10px;
   height: 1px;
   flex: 0 0 auto;
@@ -1035,28 +1040,6 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.routine-current-badge {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: #1673e6;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
-.routine-current-badge i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #fff;
 }
 
 .routine-description p {
@@ -1163,7 +1146,7 @@ h1 {
     font-size: 11px;
   }
 
-  .routine-time i {
+  .routine-time i:not(.routine-current-dot) {
     width: 7px;
   }
 
