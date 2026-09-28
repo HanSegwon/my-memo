@@ -182,7 +182,7 @@ export default function Home() {
         if (!response.ok) return;
         const data = await response.json() as { routines: ScheduledRoutine[] };
         const active = getActiveRoutine(data.routines ?? [], new Date(), getRoutineDayType());
-        setRoutineSummary(active ? `지금은 ${active.title} 할 시간입니다.` : null);
+        setRoutineSummary(active ? `지금은 ${active.title} 시간입니다.` : null);
       } catch {
         // 생활루틴 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
       }

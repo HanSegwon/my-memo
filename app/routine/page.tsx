@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getKoreanDate, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
+import { getActiveRoutine, getKoreanDate, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
 
 type RoutineItem = {
   id: string;
@@ -98,14 +98,7 @@ export default function RoutinePage() {
 
   const visibleRoutines = routines.filter((item) => item.day_type === dayType);
   const todayLabel = getKoreanDate(clock);
-  const currentTime = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(clock);
-  const activeRoutine = todayType === dayType ? visibleRoutines.find((item) => {
-    const now = currentTime;
-    const start = formatTime(item.start_time);
-    const end = formatTime(item.end_time);
-    if (start === end) return false;
-    return start < end ? now >= start && now < end : now >= start || now < end;
-  }) : null;
+  const activeRoutine = todayType === dayType ? getActiveRoutine(visibleRoutines, clock, todayType) : null;
 
   return (
     <main className="app">
@@ -127,7 +120,7 @@ export default function RoutinePage() {
           <span className="routine-today-type">오늘 {todayLabel.slice(5).replace('-', '.')} · {todayType === 'weekday' ? '평일' : '휴일'}</span>
         </div>
 
-        {activeRoutine && <p className="routine-now">지금은 <strong>{activeRoutine.title}</strong> 할 시간입니다.</p>}
+        {activeRoutine && <p className="routine-now">지금은 <strong>{activeRoutine.title}</strong> 시간입니다.</p>}
         {error && !showForm && <p className="routine-error" role="alert">{error}</p>}
         <section className="routine-list" aria-label={`${dayType === 'weekday' ? '평일' : '휴일'} 생활루틴 목록`}>
           {loading ? <p className="routine-empty">생활루틴을 불러오는 중입니다.</p> : visibleRoutines.length === 0 ? (
@@ -135,11 +128,10 @@ export default function RoutinePage() {
           ) : visibleRoutines.map((routine) => {
             const start = formatTime(routine.start_time);
             const end = formatTime(routine.end_time);
-            const active = todayType === dayType && start !== end && (start < end ? currentTime >= start && currentTime < end : currentTime >= start || currentTime < end);
             return (
-              <article className={`routine-item${active ? ' is-current' : ''}`} key={routine.id}>
+              <article className={`routine-item${activeRoutine?.id === routine.id ? ' is-current' : ''}`} key={routine.id}>
                 <div className="routine-time"><span>{start}</span><i aria-hidden="true" /><span>{end}</span></div>
-                <div className="routine-description"><h2>{routine.title}</h2>{routine.details && <p>{routine.details}</p>}</div>
+                <div className="routine-description"><h2><span className="routine-title-text">{routine.title}</span>{activeRoutine?.id === routine.id && <span className="routine-current-badge"><i aria-hidden="true" />진행 중</span>}</h2>{routine.details && <p>{routine.details}</p>}</div>
                 <div className="routine-item-actions">
                   <button type="button" className="routine-edit-button" onClick={() => openForm(routine)} aria-label={`${routine.title} 수정`}>수정</button>
                   <button type="button" className="routine-delete-button" onClick={() => void deleteRoutine(routine)} aria-label={`${routine.title} 삭제`}>삭제</button>
