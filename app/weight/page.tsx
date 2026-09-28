@@ -102,12 +102,6 @@ function formatGoalMonth(month: string) {
   return `${year}년 ${Number(monthNumber)}월`;
 }
 
-function addMonths(month: string, amount: number) {
-  const date = new Date(`${month}-01T00:00:00.000Z`);
-  date.setUTCMonth(date.getUTCMonth() + amount);
-  return date.toISOString().slice(0, 7);
-}
-
 function formatWeight(value: number) {
   return Number(value).toFixed(2).replace(/\.0+$|(?<=\.[0-9])0$/, '');
 }
@@ -153,6 +147,7 @@ export default function WeightPage() {
   const [recordError, setRecordError] = useState('');
   const [savingRecord, setSavingRecord] = useState(false);
   const [showGoal, setShowGoal] = useState(false);
+  const [goalYearDraft, setGoalYearDraft] = useState('');
   const [goalDrafts, setGoalDrafts] = useState<Record<string, string>>({});
   const [goalError, setGoalError] = useState('');
   const [savingGoal, setSavingGoal] = useState(false);
@@ -226,11 +221,18 @@ export default function WeightPage() {
     [records]
   );
 
-  const goalMonths = useMemo(() => {
+  const goalYears = useMemo(() => {
     if (!today) return [];
-    const currentMonth = today.slice(0, 7);
-    return Array.from({ length: 12 }, (_, index) => addMonths(currentMonth, index));
+    const currentYear = Number(today.slice(0, 4));
+    return Array.from({ length: 4 }, (_, index) => String(currentYear + index));
   }, [today]);
+
+  const goalMonths = useMemo(
+    () => goalYearDraft
+      ? Array.from({ length: 12 }, (_, index) => `${goalYearDraft}-${String(index + 1).padStart(2, '0')}`)
+      : [],
+    [goalYearDraft]
+  );
 
   const chartRows = useMemo(
     () =>
@@ -303,15 +305,27 @@ export default function WeightPage() {
   }
 
   function openGoal() {
-    const months = goalMonths.length
-      ? goalMonths
-      : Array.from({ length: 12 }, (_, index) => addMonths(getKoreanToday().slice(0, 7), index));
+    const year = (today || getKoreanToday()).slice(0, 4);
+    const months = Array.from({ length: 12 }, (_, index) => `${year}-${String(index + 1).padStart(2, '0')}`);
+    setGoalYearDraft(year);
     setGoalDrafts(Object.fromEntries(months.map((month) => {
       const goal = monthlyGoals.find((item) => item.goal_month === `${month}-01`);
       return [month, goal ? String(goal.target_weight) : ''];
     })));
     setGoalError('');
     setShowGoal(true);
+  }
+
+  function changeGoalYear(year: string) {
+    setGoalYearDraft(year);
+    const months = Array.from({ length: 12 }, (_, index) => `${year}-${String(index + 1).padStart(2, '0')}`);
+    setGoalDrafts((current) => ({
+      ...current,
+      ...Object.fromEntries(months.map((month) => {
+        const goal = monthlyGoals.find((item) => item.goal_month === `${month}-01`);
+        return [month, goal ? String(goal.target_weight) : ''];
+      })),
+    }));
   }
 
   function changeGoalWeight(month: string, value: string) {
@@ -811,7 +825,13 @@ export default function WeightPage() {
               </button>
             </div>
 
-            <p className="weight-goal-description">이번 달부터 12개월 목표를 표에서 한 번에 입력하세요.</p>
+            <label className="weight-form-field weight-goal-year">
+              <span>목표 연도</span>
+              <select value={goalYearDraft} onChange={(event) => changeGoalYear(event.target.value)}>
+                {goalYears.map((year) => <option key={year} value={year}>{year}년</option>)}
+              </select>
+            </label>
+            <p className="weight-goal-description">선택한 연도의 월별 목표 체중을 입력하세요.</p>
             <div className="weight-goal-table-wrap">
               <table className="weight-goal-table">
                 <thead>
@@ -821,7 +841,7 @@ export default function WeightPage() {
                   {goalMonths.map((month) => (
                     <tr key={month} className={month === (today || getKoreanToday()).slice(0, 7) ? 'is-current-month' : undefined}>
                       <td>
-                        {formatGoalMonth(month)}
+                        {Number(month.slice(5))}월
                         {month === (today || getKoreanToday()).slice(0, 7) && <small>이번 달</small>}
                       </td>
                       <td>
