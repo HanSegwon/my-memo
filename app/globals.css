@@ -900,6 +900,178 @@ h1 {
   cursor: default;
 }
 
+.routine-container {
+  max-width: 760px;
+}
+
+.routine-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.routine-add-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #242424;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.routine-list {
+  overflow: hidden;
+  border: 1px solid #ededed;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.routine-item {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 18px;
+  min-height: 94px;
+  padding: 18px 20px;
+}
+
+.routine-item + .routine-item {
+  border-top: 1px solid #f0f1f3;
+}
+
+.routine-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #626a73;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.routine-time i {
+  width: 10px;
+  height: 1px;
+  flex: 0 0 auto;
+  background: #aeb4bc;
+}
+
+.routine-description {
+  min-width: 0;
+}
+
+.routine-description h2 {
+  margin: 0;
+  overflow: hidden;
+  color: #252525;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routine-description p {
+  margin: 6px 0 0;
+  color: #858b94;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.routine-delete-button {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid #ececec;
+  border-radius: 9px;
+  background: #fff;
+  color: #858585;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.routine-empty,
+.routine-empty-state {
+  margin: 0;
+  padding: 48px 20px;
+  color: #969ba3;
+  font-size: 13px;
+  text-align: center;
+}
+
+.routine-empty-state h2 {
+  margin: 0 0 8px;
+  color: #36393d;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.routine-empty-state p {
+  margin: 0;
+}
+
+.routine-error {
+  margin: 0 0 12px;
+  color: #c44444;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.routine-time-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.routine-time-fields label {
+  display: grid;
+  gap: 7px;
+  color: #444;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.routine-form .routine-detail-input {
+  min-height: 96px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .routine-item {
+    grid-template-columns: 108px minmax(0, 1fr) 38px;
+    gap: 10px;
+    min-height: 84px;
+    padding: 15px 12px;
+  }
+
+  .routine-time {
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .routine-time i {
+    width: 7px;
+  }
+
+  .routine-description h2 {
+    font-size: 14px;
+  }
+
+  .routine-description p {
+    font-size: 12px;
+  }
+}
+
 .family-event-repeat-row {
   display: flex;
   align-items: center;
