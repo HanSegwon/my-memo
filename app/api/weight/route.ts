@@ -78,7 +78,7 @@ export async function GET() {
     supabaseAdmin
       .from('weight_records')
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, bowel_movements, updated_at'
+        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, bowel_movements, updated_at'
       )
       .order('record_date', { ascending: true }),
   ]);
@@ -212,6 +212,14 @@ export async function POST(request: Request) {
     const breakfast = validateChoice(body.breakfast, VALID_MEALS);
     const lunch = validateChoice(body.lunch, VALID_MEALS);
     const dinner = validateChoice(body.dinner, VALID_MEALS);
+    const otherFood =
+      typeof body.otherFood === 'string' ? body.otherFood.trim() : '';
+    if (otherFood.length > 100) {
+      return Response.json(
+        { message: '기타 취식은 100자 이내로 입력해주세요.' },
+        { status: 400 }
+      );
+    }
     if (
       !exercise.valid ||
       !breakfast.valid ||
@@ -252,13 +260,14 @@ export async function POST(request: Request) {
           breakfast: breakfast.value,
           lunch: lunch.value,
           dinner: dinner.value,
+          other_food: otherFood || null,
           bowel_movements: bowelMovements,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'record_date' }
       )
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, bowel_movements, updated_at'
+        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, bowel_movements, updated_at'
       )
       .single();
 

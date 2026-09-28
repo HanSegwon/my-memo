@@ -22,6 +22,7 @@ type WeightRecord = {
   breakfast: MealAmount | null;
   lunch: MealAmount | null;
   dinner: MealAmount | null;
+  other_food: string | null;
   bowel_movements: number | null;
   updated_at: string;
 };
@@ -32,6 +33,7 @@ type RecordDraft = {
   breakfast: MealAmount | '';
   lunch: MealAmount | '';
   dinner: MealAmount | '';
+  otherFood: string;
   bowelMovements: string;
 };
 
@@ -54,6 +56,7 @@ const emptyRecordDraft: RecordDraft = {
   breakfast: '',
   lunch: '',
   dinner: '',
+  otherFood: '',
   bowelMovements: '',
 };
 
@@ -82,7 +85,14 @@ function getMonday(date: string) {
 
 function formatDate(date: string) {
   const [year, month, day] = date.split('-');
-  return `'${year.slice(-2)}.${month}.${day}`;
+  const weekday = weekdays[getWeekdayNumber(date) - 1].label;
+  return `'${year.slice(-2)}.${month}.${day} (${weekday})`;
+}
+
+function formatOtherFood(value: string | null | undefined) {
+  if (!value) return '—';
+  const characters = Array.from(value);
+  return characters.length > 4 ? `${characters.slice(0, 4).join('')}...` : value;
 }
 
 function formatChartDate(date: string) {
@@ -218,6 +228,7 @@ export default function WeightPage() {
             breakfast: record.breakfast ?? '',
             lunch: record.lunch ?? '',
             dinner: record.dinner ?? '',
+            otherFood: record.other_food ?? '',
             bowelMovements:
               record.bowel_movements === null
                 ? ''
@@ -559,12 +570,13 @@ export default function WeightPage() {
               <tr>
                 <th>날짜</th>
                 <th>체중</th>
+                <th>대변</th>
                 <th>운동</th>
+                <th>단식</th>
                 <th>조식</th>
                 <th>중식</th>
                 <th>석식</th>
-                <th>대변</th>
-                <th>간헐적<br />단식</th>
+                <th>기타 취식</th>
               </tr>
             </thead>
             <tbody>
@@ -590,14 +602,15 @@ export default function WeightPage() {
                       <span>{formatDate(date)}</span>
                     </td>
                     <td>{record?.weight_kg === null || !record ? '—' : formatWeight(record.weight_kg)}</td>
-                    <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>{record?.exercise ?? '—'}</td>
-                    <td className={record?.breakfast === '금식' ? 'weight-muted-value' : undefined}>{record?.breakfast ?? '—'}</td>
-                    <td className={record?.lunch === '금식' ? 'weight-muted-value' : undefined}>{record?.lunch ?? '—'}</td>
-                    <td className={record?.dinner === '금식' ? 'weight-muted-value' : undefined}>{record?.dinner ?? '—'}</td>
                     <td>{record?.bowel_movements ?? (date === today ? 0 : '—')}</td>
+                    <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>{record?.exercise ?? '—'}</td>
                     <td className={fasting ? 'weight-fasting-mark' : 'weight-fasting-empty'}>
                       {fasting ? 'O' : '—'}
                     </td>
+                    <td className={record?.breakfast === '금식' ? 'weight-muted-value' : undefined}>{record?.breakfast ?? '—'}</td>
+                    <td className={record?.lunch === '금식' ? 'weight-muted-value' : undefined}>{record?.lunch ?? '—'}</td>
+                    <td className={record?.dinner === '금식' ? 'weight-muted-value' : undefined}>{record?.dinner ?? '—'}</td>
+                    <td className="weight-other-food-cell">{formatOtherFood(record?.other_food)}</td>
                   </tr>
                 );
               })}
@@ -676,6 +689,19 @@ export default function WeightPage() {
                 setRecordDraft((current) => ({ ...current, dinner: value }))
               }
             />
+
+            <label className="weight-form-field">
+              <span>기타 취식</span>
+              <input
+                type="text"
+                maxLength={100}
+                placeholder="예: 간식, 야식 등"
+                value={recordDraft.otherFood}
+                onChange={(event) =>
+                  setRecordDraft((current) => ({ ...current, otherFood: event.target.value }))
+                }
+              />
+            </label>
 
             <label className="weight-form-field weight-bowel-field">
               <span>대변 횟수</span>
