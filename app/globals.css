@@ -732,7 +732,7 @@ h1 {
   width: 100%;
   overflow: hidden;
   color: #222;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.2;
   text-align: center;
@@ -754,7 +754,7 @@ h1 {
   }
 
   .summary-card strong {
-    font-size: clamp(8px, 2.65vw, 11px);
+    font-size: clamp(10px, 3.2vw, 13px);
   }
 }
 
