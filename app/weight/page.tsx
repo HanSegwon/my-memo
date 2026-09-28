@@ -559,7 +559,6 @@ export default function WeightPage() {
             <div className="stock-chart-heading">
               <div>
                 <h2>월별 체중 비교</h2>
-                <p>월별 마지막 체중 기록과 목표 체중을 비교합니다.</p>
               </div>
               <div className="stock-chart-legend" aria-label="차트 범례">
                 <span><i className="chart-legend-bar" />실제 체중</span>
@@ -692,21 +691,9 @@ export default function WeightPage() {
                         strokeWidth="2"
                       />
                     ))}
-                    <text
-                      x={plotWidth / 2}
-                      y={chartHeight - 8}
-                      fill="#9aa1aa"
-                      fontSize="10"
-                      textAnchor="middle"
-                    >
-                      월
-                    </text>
                   </svg>
                 </div>
               </div>
-            )}
-            {chartValues.length > 0 && chartMonths.length > 1 && (
-              <p className="stock-chart-hint">마지막 목표 월까지 월별 체중을 비교합니다. 좌우로 밀어 확인할 수 있어요.</p>
             )}
           </section>
         )}
