@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 type FastingFrequency = 'weekly' | 'biweekly';
 type Exercise = '상체' | '하체' | '코어' | '휴식';
-type MealAmount = '금식' | '적게' | '중간' | '많이';
+type MealAmount = '미취식' | '소식' | '보통' | '과식';
 
 type WeightSettings = {
   id: number;
@@ -46,7 +46,7 @@ const weekdays = [
 ];
 
 const exercises: Exercise[] = ['상체', '하체', '코어', '휴식'];
-const mealAmounts: MealAmount[] = ['금식', '적게', '중간', '많이'];
+const mealAmounts: MealAmount[] = ['미취식', '소식', '보통', '과식'];
 
 const emptyRecordDraft: RecordDraft = {
   weightKg: '',
@@ -586,13 +586,21 @@ export default function WeightPage() {
                       <span>{formatDate(date)}</span>
                     </td>
                     <td>{record?.weight_kg === null || !record ? '—' : formatWeight(record.weight_kg)}</td>
-                    <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>{record?.exercise ?? '—'}</td>
+                    <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
+                      {record?.exercise === '휴식' ? '-' : record?.exercise ?? '—'}
+                    </td>
                     <td className={fasting ? 'weight-fasting-mark' : 'weight-fasting-empty'}>
                       {fasting ? '●' : '—'}
                     </td>
-                    <td className={record?.breakfast === '금식' ? 'weight-muted-value' : undefined}>{record?.breakfast ?? '—'}</td>
-                    <td className={record?.lunch === '금식' ? 'weight-muted-value' : undefined}>{record?.lunch ?? '—'}</td>
-                    <td className={record?.dinner === '금식' ? 'weight-muted-value' : undefined}>{record?.dinner ?? '—'}</td>
+                    <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
+                      {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? '—'}
+                    </td>
+                    <td className={record?.lunch === '미취식' ? 'weight-muted-value' : undefined}>
+                      {record?.lunch === '미취식' ? '-' : record?.lunch ?? '—'}
+                    </td>
+                    <td className={record?.dinner === '미취식' ? 'weight-muted-value' : undefined}>
+                      {record?.dinner === '미취식' ? '-' : record?.dinner ?? '—'}
+                    </td>
                     <td className="weight-other-food-cell">{formatOtherFood(record?.other_food)}</td>
                   </tr>
                 );

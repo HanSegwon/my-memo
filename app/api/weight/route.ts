@@ -4,7 +4,7 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 
 const COOKIE_NAME = 'memo_auth';
 const VALID_EXERCISES = ['상체', '하체', '코어', '휴식'];
-const VALID_MEALS = ['금식', '적게', '중간', '많이'];
+const VALID_MEALS = ['미취식', '소식', '보통', '과식'];
 const SCHEMA_MESSAGE =
   '체중관리 데이터베이스가 아직 준비되지 않았습니다. Supabase에서 체중관리 테이블을 먼저 만들어주세요.';
 

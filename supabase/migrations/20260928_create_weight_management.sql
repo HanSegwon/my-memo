@@ -20,13 +20,12 @@ create table if not exists public.weight_records (
   exercise text
     check (exercise is null or exercise in ('상체', '하체', '코어', '휴식')),
   breakfast text
-    check (breakfast is null or breakfast in ('금식', '적게', '중간', '많이')),
+    check (breakfast is null or breakfast in ('미취식', '소식', '보통', '과식')),
   lunch text
-    check (lunch is null or lunch in ('금식', '적게', '중간', '많이')),
+    check (lunch is null or lunch in ('미취식', '소식', '보통', '과식')),
   dinner text
-    check (dinner is null or dinner in ('금식', '적게', '중간', '많이')),
-  bowel_movements integer
-    check (bowel_movements is null or bowel_movements > 0),
+    check (dinner is null or dinner in ('미취식', '소식', '보통', '과식')),
+  other_food text,
   updated_at timestamptz not null default now()
 );
 
