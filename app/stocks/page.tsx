@@ -182,7 +182,6 @@ export default function StocksPage() {
   const [showSettings, setShowSettings] =
     useState(false);
 
-  const [showChart, setShowChart] = useState(false);
 
   const [savingSettings, setSavingSettings] =
     useState(false);
@@ -683,7 +682,7 @@ export default function StocksPage() {
   const chartRows = calculatedRows.filter(
     (row) => row.roundNo <= currentRoundNo
   );
-  const chartWidth = Math.max(680, chartRows.length * 44 + 82);
+  const chartWidth = chartRows.length * 44 + 80;
   const chartHeight = 276;
   const chartLeft = 58;
   const chartRight = 22;
@@ -693,10 +692,10 @@ export default function StocksPage() {
   const chartPlotHeight = chartHeight - chartTop - chartBottom;
   const chartStep = 10_000_000;
   const chartDataMin = chartRows.length
-    ? Math.min(...chartRows.map((row) => row.total))
+    ? Math.min(...chartRows.flatMap((row) => [row.total, row.goal]))
     : 20_000_000;
   const chartDataMax = chartRows.length
-    ? Math.max(...chartRows.map((row) => row.total))
+    ? Math.max(...chartRows.flatMap((row) => [row.total, row.goal]))
     : 30_000_000;
   const chartMin = chartDataMin < 20_000_000
     ? Math.floor(chartDataMin / chartStep) * chartStep
@@ -708,19 +707,23 @@ export default function StocksPage() {
   const chartRange = Math.max(chartMax - chartMin, chartStep);
   const chartY = (value: number) =>
     chartTop + ((chartMax - value) / chartRange) * chartPlotHeight;
-  const chartBaselineY = chartY(chartMin);
   const chartSlotWidth = chartRows.length
     ? chartPlotWidth / chartRows.length
     : 0;
   const chartPoints = chartRows.map((row, index) => ({
     x: chartSlotWidth * (index + 0.5),
     y: chartY(row.total),
+    goalY: chartY(row.goal),
     total: row.total,
+    goal: row.goal,
     date: row.date,
     roundNo: row.roundNo,
   }));
   const chartLinePath = chartPoints
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+  const chartGoalLinePath = chartPoints
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.goalY}`)
     .join(' ');
 
   if (
@@ -750,29 +753,6 @@ export default function StocksPage() {
 
           <div className="stock-header-actions">
             <button
-              className={`stock-chart-toggle${showChart ? ' is-active' : ''}`}
-              type="button"
-              onClick={() => setShowChart((visible) => !visible)}
-              aria-expanded={showChart}
-              aria-controls="stock-total-chart"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 16.5h14" />
-                <path d="M5 14V9m5 5V5m5 9V7" />
-                <path d="m4 7 5-3 5 2 3-3" />
-              </svg>
-              차트
-            </button>
-
-            <button
               className="settings-button"
               onClick={() =>
                 setShowSettings(true)
@@ -790,16 +770,14 @@ export default function StocksPage() {
           </div>
         </header>
 
-        {showChart && (
-          <section className="stock-chart-panel" id="stock-total-chart">
+        <section className="stock-chart-panel" id="stock-total-chart">
             <div className="stock-chart-heading">
               <div>
                 <h2>회차별 총액</h2>
-                <p>회차 날짜를 기준으로 자산 흐름을 확인하세요.</p>
               </div>
               <div className="stock-chart-legend" aria-label="차트 범례">
-                <span><i className="chart-legend-bar" />총액</span>
-                <span><i className="chart-legend-line" />추이</span>
+                <span><i className="chart-legend-line" />자산 총액</span>
+                <span><i className="chart-legend-goal" />회차 목표</span>
               </div>
             </div>
 
@@ -857,33 +835,18 @@ export default function StocksPage() {
                       );
                     })}
 
-                    {chartPoints.map((point) => {
-                      const barWidth = Math.min(38, chartSlotWidth * 0.86);
-                      const barHeight = Math.max(chartBaselineY - point.y, 1);
-
-                      return (
-                        <g key={point.roundNo}>
-                          <rect
-                            x={point.x - barWidth / 2}
-                            y={point.y}
-                            width={barWidth}
-                            height={barHeight}
-                            rx="4"
-                            fill="#9aacc7"
-                            fillOpacity="0.48"
-                          />
-                          <text
-                            x={point.x}
-                            y={chartHeight - 28}
-                            fill="#7d8592"
-                            fontSize="10"
-                            textAnchor="middle"
-                          >
-                            {point.date.slice(2)}
-                          </text>
-                        </g>
-                      );
-                    })}
+                    {chartPoints.map((point) => (
+                      <text
+                        key={`round-${point.roundNo}`}
+                        x={point.x}
+                        y={chartHeight - 28}
+                        fill="#7d8592"
+                        fontSize="10"
+                        textAnchor="middle"
+                      >
+                        {point.date.slice(2)}
+                      </text>
+                    ))}
 
                     {chartLinePath && (
                       <>
@@ -908,24 +871,35 @@ export default function StocksPage() {
                         ))}
                       </>
                     )}
-
-                    <text
-                      x={chartPlotWidth / 2}
-                      y={chartHeight - 8}
-                      fill="#9aa1aa"
-                      fontSize="10"
-                      textAnchor="middle"
-                    >
-                      회차 날짜
-                    </text>
+                    {chartGoalLinePath && (
+                      <>
+                        <path
+                          d={chartGoalLinePath}
+                          fill="none"
+                          stroke="#e25353"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        {chartPoints.map((point) => (
+                          <circle
+                            key={`goal-${point.roundNo}`}
+                            cx={point.x}
+                            cy={point.goalY}
+                            r="3.5"
+                            fill="#fff"
+                            stroke="#e25353"
+                            strokeWidth="2"
+                          />
+                        ))}
+                      </>
+                    )}
                   </svg>
                 </div>
               </div>
             </div>
 
-            <p className="stock-chart-hint">좌우로 밀어 전체 회차를 확인할 수 있어요.</p>
-          </section>
-        )}
+        </section>
 
         <section className="stock-summary">
           <div className="summary-card summary-card-asset">

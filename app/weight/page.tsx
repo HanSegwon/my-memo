@@ -139,7 +139,6 @@ export default function WeightPage() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
   const [schemaRequired, setSchemaRequired] = useState(false);
-  const [showChart, setShowChart] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [recordDraft, setRecordDraft] =
@@ -523,20 +522,6 @@ export default function WeightPage() {
           </div>
 
           <div className="stock-header-actions">
-            <button
-              className={`stock-chart-toggle${showChart ? ' is-active' : ''}`}
-              type="button"
-              onClick={() => setShowChart((visible) => !visible)}
-              aria-expanded={showChart}
-              aria-controls="weight-chart"
-            >
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M3 16.5h14" />
-                <path d="M5 14V9m5 5V5m5 9V7" />
-                <path d="m4 7 5-3 5 2 3-3" />
-              </svg>
-              차트
-            </button>
             <button className="weight-goal-button" type="button" onClick={openGoal}>
               목표
             </button>
@@ -554,14 +539,12 @@ export default function WeightPage() {
           </div>
         )}
 
-        {showChart && (
-          <section className="stock-chart-panel weight-chart-panel" id="weight-chart">
+        <section className="stock-chart-panel weight-chart-panel" id="weight-chart">
             <div className="stock-chart-heading">
               <div>
                 <h2>월별 체중 비교</h2>
               </div>
               <div className="stock-chart-legend" aria-label="차트 범례">
-                <span><i className="chart-legend-bar" />실제 체중</span>
                 <span><i className="chart-legend-line" />실제 변화</span>
                 <span><i className="chart-legend-goal" />월 목표</span>
               </div>
@@ -622,24 +605,6 @@ export default function WeightPage() {
                       );
                     })}
 
-                    {monthlyChartData.filter((item) => item.actual !== undefined).map((item) => {
-                      const barWidth = 32;
-                      const baseline = chartY(minWeight);
-                      const y = chartY(item.actual!);
-                      return (
-                        <g key={item.month}>
-                          <rect
-                            x={item.x - barWidth / 2}
-                            y={y}
-                            width={barWidth}
-                            height={Math.max(baseline - y, 1)}
-                            rx="4"
-                            fill="#9aacc7"
-                            fillOpacity="0.48"
-                          />
-                        </g>
-                      );
-                    })}
                     {monthlyChartData.map((item) => (
                       <text
                         key={`month-${item.month}`}
@@ -695,8 +660,7 @@ export default function WeightPage() {
                 </div>
               </div>
             )}
-          </section>
-        )}
+        </section>
 
         <section className="weight-table-wrap" aria-label="체중관리 일별 기록">
           <table className="weight-table">
