@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
 
 const greetings = [
   '한세권님, 오늘도 파이팅!',
@@ -42,6 +43,7 @@ export default function Home() {
   const isPasscodeComplete = /^\d{6}$/.test(passcode);
   const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
+  const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function Home() {
     setAuthenticated(data.authenticated);
 
     if (data.authenticated) {
-      await Promise.all([loadStockSummary(), loadWeightSummary()]);
+      await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary()]);
     }
   }
 
@@ -164,7 +166,7 @@ export default function Home() {
 
     setPasscode('');
     setAuthenticated(true);
-    await Promise.all([loadStockSummary(), loadWeightSummary()]);
+    await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary()]);
   }
 
   async function loadWeightSummary() {
@@ -198,6 +200,28 @@ export default function Home() {
       }
     } catch {
       // 체중 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
+  async function loadFamilyEventSummary() {
+    try {
+      const response = await fetch('/api/family-events', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = (await response.json()) as { events: FamilyEvent[] };
+      const today = new Date();
+      const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const upcoming = (data.events ?? []).flatMap((event) => {
+        const date = getNextEventDate(event, todayString);
+        return date ? [{ event, date }] : [];
+      }).sort((a, b) => a.date.localeCompare(b.date))[0];
+      if (!upcoming) {
+        setFamilyEventSummary(null);
+        return;
+      }
+      const daysLeft = daysUntilEvent(upcoming.date, todayString);
+      setFamilyEventSummary(`${upcoming.event.title} ${daysLeft === 0 ? '오늘입니다.' : `${daysLeft}일 남았습니다.`}`);
+    } catch {
+      // 집안행사 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
     }
   }
 
@@ -251,6 +275,7 @@ export default function Home() {
 
     setAuthenticated(false);
     setWeightSummary(null);
+    setFamilyEventSummary(null);
   }
 
   if (authenticated === null) {
@@ -413,6 +438,16 @@ export default function Home() {
             className="home-button"
           >
             메모공유
+          </Link>
+
+          <Link href="/family-events" className="home-button">
+            <span className="home-button-title">집안행사</span>
+            {familyEventSummary && (
+              <>
+                <span className="home-button-divider" aria-hidden="true">|</span>
+                <span className="home-button-summary">{familyEventSummary}</span>
+              </>
+            )}
           </Link>
         </section>
       </section>
