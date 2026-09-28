@@ -13,18 +13,12 @@ function fromDateString(value: string) {
   return new Date(year, month - 1, day);
 }
 function formatEventDate(value: string) {
-  const date = fromDateString(value);
-  const dateText = new Intl.DateTimeFormat('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' }).format(date);
-  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
-  return `${dateText} (${weekday})`;
+  const [year, month, day] = value.split('-');
+  return `'${year.slice(-2)}. ${month}. ${day}`;
 }
 function formatRegisteredEventDate(event: FamilyEvent) {
   const registeredDate = `${event.event_year}-${String(event.event_month).padStart(2, '0')}-${String(event.event_day).padStart(2, '0')}`;
-  if (event.calendar_type === 'solar') return formatEventDate(registeredDate);
-  const convertedDate = getEventDateInYear(event, event.event_year) ?? registeredDate;
-  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(fromDateString(convertedDate));
-  const dateText = new Intl.DateTimeFormat('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' }).format(fromDateString(registeredDate));
-  return `${dateText} (${weekday})`;
+  return formatEventDate(registeredDate);
 }
 function formatEventTitle(title: string) {
   const characters = Array.from(title);
