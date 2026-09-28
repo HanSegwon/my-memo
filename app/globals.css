@@ -147,10 +147,47 @@ h1 {
 }
 
 .memo-card {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: start;
+  gap: 13px;
   padding: 18px;
   background: white;
   border: 1px solid #e8e8e8;
   border-radius: 18px;
+}
+
+.memo-card.is-completed .memo-card-main { opacity: 0.42; }
+
+.memo-card-main { min-width: 0; }
+
+.memo-complete-button {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  margin-top: 1px;
+  padding: 0;
+  place-items: center;
+  border: 1.5px solid #c9cdd3;
+  border-radius: 50%;
+  background: #fff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.memo-complete-button[aria-pressed="true"] {
+  border-color: #7c9ac0;
+  background: #8ca8ca;
+}
+
+.memo-complete-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .memo-top {
@@ -158,6 +195,16 @@ h1 {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+.memo-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+
+.memo-edit-button {
+  border: 0;
+  background: transparent;
+  color: #858b94;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .memo-card h3 {

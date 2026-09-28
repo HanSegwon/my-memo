@@ -268,8 +268,9 @@ export default function Home() {
     try {
       const response = await fetch('/api/memos', { cache: 'no-store' });
       if (!response.ok) return;
-      const data = await response.json() as { memos: Array<{ id: number }> };
-      setTodoMemoSummary(`아직 못한 집안일이 총 ${data.memos?.length ?? 0}건 있습니다.`);
+      const data = await response.json() as { memos: Array<{ id: number; is_completed: boolean }> };
+      const remaining = (data.memos ?? []).filter((memo) => !memo.is_completed).length;
+      setTodoMemoSummary(`아직 못한 집안일이 총 ${remaining}건 있습니다.`);
     } catch {
       // 할 일 메모 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
     }
