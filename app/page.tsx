@@ -98,25 +98,30 @@ export default function Home() {
       const achievedGoals = goals.filter((item) => item.goal < currentTotal!);
       if (achievedGoals.length === 0) return;
 
-      const highlightedRound = achievedGoals.reduce((highest, item) =>
+      const highlightedGoal = achievedGoals.reduce((highest, item) =>
         item.goal > highest.goal ? item : highest
-      ).roundNo;
-
-      if (highlightedRound === currentRound) {
-        setStockSummary('이번 회차엔 꼭 수익을 내야 해요.');
-        return;
-      }
-
-      const targetDate = new Date(2025, 8 + highlightedRound - 1, 1);
+      );
+      const targetRound = highlightedGoal.roundNo + 1;
+      const targetGoal = Math.round(
+        highlightedGoal.goal * (1 + monthlyRate)
+      );
+      const remainingAmount = targetGoal - currentTotal;
+      const targetDate = new Date(2025, 8 + targetRound - 1, 1);
       const targetMonth = `${String(targetDate.getFullYear()).slice(-2)}.${String(
         targetDate.getMonth() + 1
       ).padStart(2, '0')}월`;
 
-      setStockSummary(
-        highlightedRound < currentRound
-          ? `’${targetMonth} 이후 주식 성과가 없어요.`
-          : `’${targetMonth} 목표를 향해 나아가고 있어요.`
-      );
+      const formattedAmount = Math.abs(remainingAmount).toLocaleString('ko-KR');
+
+      if (remainingAmount > 0) {
+        setStockSummary(`’${targetMonth} 목표까지 ${formattedAmount}원 남았어요.`);
+      } else if (remainingAmount < 0) {
+        setStockSummary(
+          `’${targetMonth} 목표를 ${formattedAmount}원 초과 달성했어요.`
+        );
+      } else {
+        setStockSummary(`’${targetMonth} 목표를 달성했어요!`);
+      }
     } catch {
       // 주식 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
     }
