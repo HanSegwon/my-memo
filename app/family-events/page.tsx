@@ -18,6 +18,14 @@ function formatEventDate(value: string) {
   const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
   return `${dateText} (${weekday})`;
 }
+function formatRegisteredEventDate(event: FamilyEvent) {
+  const registeredDate = `${event.event_year}-${String(event.event_month).padStart(2, '0')}-${String(event.event_day).padStart(2, '0')}`;
+  if (event.calendar_type === 'solar') return formatEventDate(registeredDate);
+  const convertedDate = getEventDateInYear(event, event.event_year) ?? registeredDate;
+  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(fromDateString(convertedDate));
+  const dateText = new Intl.DateTimeFormat('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' }).format(fromDateString(registeredDate));
+  return `${dateText} (${weekday})`;
+}
 
 export default function FamilyEventsPage() {
   const [today, setToday] = useState(() => new Date());
@@ -168,10 +176,11 @@ export default function FamilyEventsPage() {
             {upcomingEvents.map(({ event, date }) => {
               const daysLeft = daysUntilEvent(date, todayString);
               return <li key={event.id} className="family-event-item">
-                <span className="family-event-date" title={`${event.calendar_type === 'lunar' ? `음력 ${event.event_month}.${event.event_day}${event.is_leap_month ? ' 윤달' : ''}` : '양력'} · ${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>
-                  {formatEventDate(date)}
-                </span>
                 <strong title={`${event.title} · ${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>{event.title}</strong>
+                <span className="family-event-date" title={`${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>
+                  {formatRegisteredEventDate(event)}
+                </span>
+                <span className="family-event-calendar-type">{event.calendar_type === 'lunar' ? '음력' : '양력'}</span>
                 <span className="family-event-countdown">{daysLeft === 0 ? '오늘' : daysLeft < 0 ? `${Math.abs(daysLeft)}일 지남` : `${daysLeft}일 남음`}</span>
                 <button type="button" className="family-event-delete" onClick={() => openEditForm(event)} aria-label={`${event.title} 수정`}>수정</button>
                 <button type="button" className="family-event-delete" onClick={() => void deleteEvent(event)} aria-label={`${event.title} 삭제`}>삭제</button>

@@ -703,7 +703,7 @@ h1 {
 
 .family-event-item {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) auto auto auto;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto auto auto auto;
   align-items: center;
   gap: 9px;
   min-height: 64px;
@@ -715,6 +715,12 @@ h1 {
   color: #444;
   font-size: 11px;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.family-event-calendar-type {
+  color: #858585;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -944,12 +950,16 @@ h1 {
   }
 
   .family-event-item {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) auto auto auto;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto auto auto auto;
     gap: 4px;
     min-height: 56px;
   }
 
   .family-event-date {
+    font-size: 9px;
+  }
+
+  .family-event-calendar-type {
     font-size: 10px;
   }
 
