@@ -479,6 +479,14 @@ export default function Home() {
               </>
             )}
           </Link>
+
+          <button type="button" className="home-button home-button-upcoming" disabled>
+            자녀학원
+          </button>
+
+          <button type="button" className="home-button home-button-upcoming" disabled>
+            경조사비
+          </button>
         </section>
       </section>
     </main>

@@ -492,6 +492,16 @@ h1 {
   box-shadow: 0 7px 20px rgba(0, 0, 0, 0.045);
 }
 
+.home-button:disabled {
+  cursor: default;
+}
+
+.home-button:disabled:hover {
+  transform: none;
+  border-color: #ededed;
+  box-shadow: none;
+}
+
 .home-button:focus-visible,
 .home-header .logout-button:focus-visible {
   outline: 2px solid #555;
