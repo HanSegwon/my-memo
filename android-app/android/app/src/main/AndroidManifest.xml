@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Master Planner 3.0"
+        android:label="마스터"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
