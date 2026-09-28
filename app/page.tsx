@@ -171,8 +171,13 @@ export default function Home() {
     pastedDigits.split('').forEach((digit, offset) => {
       next[index + offset] = digit;
     });
-    setPasscode(next.join('').trimEnd());
+    const nextPasscode = next.join('').trimEnd();
+    setPasscode(nextPasscode);
     setLoginError('');
+    if (/^\d{6}$/.test(nextPasscode)) {
+      passcodeInputs.current[index]?.blur();
+      return;
+    }
     passcodeInputs.current[Math.min(index + pastedDigits.length, 5)]?.focus();
   }
 
@@ -184,8 +189,13 @@ export default function Home() {
     digits.split('').forEach((digit, offset) => {
       next[index + offset] = digit;
     });
-    setPasscode(next.join('').trimEnd());
+    const nextPasscode = next.join('').trimEnd();
+    setPasscode(nextPasscode);
     setLoginError('');
+    if (/^\d{6}$/.test(nextPasscode)) {
+      passcodeInputs.current[index]?.blur();
+      return;
+    }
     passcodeInputs.current[Math.min(index + digits.length, 5)]?.focus();
   }
 
