@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import LoadingDots from '../../components/LoadingDots';
 import { useRouter } from 'next/navigation';
 
 type FastingFrequency = 'weekly' | 'biweekly';
@@ -444,7 +445,7 @@ export default function WeightPage() {
     return (
       <main className="app">
         <section className="container">
-          <div className="empty"><p>불러오는 중...</p></div>
+          <div className="empty"><p>불러오는 중<LoadingDots /></p></div>
         </section>
       </main>
     );

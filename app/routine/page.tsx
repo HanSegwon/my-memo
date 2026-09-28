@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import LoadingDots from '../../components/LoadingDots';
 import { getActiveRoutine, getKoreanDate, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
 
 type RoutineItem = {
@@ -123,7 +124,7 @@ export default function RoutinePage() {
         {activeRoutine && <p className="routine-now">지금은 <strong>{activeRoutine.title}</strong> 시간입니다.</p>}
         {error && !showForm && <p className="routine-error" role="alert">{error}</p>}
         <section className="routine-list" aria-label={`${dayType === 'weekday' ? '평일' : '휴일'} 생활루틴 목록`}>
-          {loading ? <p className="routine-empty">생활루틴을 불러오는 중입니다.</p> : visibleRoutines.length === 0 ? (
+          {loading ? <p className="routine-empty">생활루틴을 불러오는 중<LoadingDots /></p> : visibleRoutines.length === 0 ? (
             <div className="routine-empty-state"><h2>{dayType === 'weekday' ? '평일' : '휴일'}의 리듬을 만들어 보세요</h2><p>+ 버튼으로 이 루틴을 추가할 수 있습니다.</p></div>
           ) : visibleRoutines.map((routine) => {
             const start = formatTime(routine.start_time);

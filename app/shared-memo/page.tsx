@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import LoadingDots from '../../components/LoadingDots';
 
 type Memo = {
   id: number;
@@ -138,7 +139,7 @@ export default function SharedMemoPage() {
       <main className="app">
         <section className="container">
           <div className="empty">
-            <p>확인 중...</p>
+            <p>확인 중<LoadingDots /></p>
           </div>
         </section>
       </main>
@@ -196,7 +197,7 @@ export default function SharedMemoPage() {
         <section className="memo-section">
           {loading ? (
             <div className="empty">
-              <p>메모를 불러오는 중...</p>
+              <p>메모를 불러오는 중<LoadingDots /></p>
             </div>
           ) : memos.length === 0 ? (
             <div className="empty">

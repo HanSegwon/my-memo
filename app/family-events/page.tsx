@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import LoadingDots from '../../components/LoadingDots';
 import KoreanLunarCalendar from 'korean-lunar-calendar';
 import { daysUntilEvent, getEventDateInYear, getNextEventDate, type FamilyEvent } from '../../lib/familyEvents';
 
@@ -175,7 +176,7 @@ export default function FamilyEventsPage() {
             <button className="family-event-add-button" type="button" onClick={openForm} aria-label="행사 추가" title="행사 추가">+</button>
           </div>
           {error && !showForm && <p className="family-event-error" role="alert">{error}</p>}
-          {loading ? <p className="family-event-empty">행사를 불러오는 중입니다.</p> : upcomingEvents.length === 0 ? <p className="family-event-empty">아직 등록된 행사가 없습니다.</p> : <ul className="family-event-items">
+          {loading ? <p className="family-event-empty">행사를 불러오는 중<LoadingDots /></p> : upcomingEvents.length === 0 ? <p className="family-event-empty">아직 등록된 행사가 없습니다.</p> : <ul className="family-event-items">
             {upcomingEvents.map(({ event, date }) => {
               const daysLeft = daysUntilEvent(date, todayString);
               return <li key={event.id} className="family-event-item">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
 import { getActiveRoutine, getRoutineDayType, type ScheduledRoutine } from '../lib/routineSchedule';
 
@@ -336,7 +337,7 @@ export default function Home() {
       <main className="app">
         <section className="container home-container">
           <div className="empty">
-            <p>확인 중...</p>
+            <p>확인 중<LoadingDots /></p>
           </div>
         </section>
       </main>
