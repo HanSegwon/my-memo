@@ -26,6 +26,12 @@ type WeightRecord = {
   updated_at: string;
 };
 
+type MonthlyWeightGoal = {
+  goal_month: string;
+  target_weight: number;
+  updated_at: string;
+};
+
 type RecordDraft = {
   weightKg: string;
   exercise: Exercise | '';
@@ -91,6 +97,11 @@ function formatChartDate(date: string) {
   return `${month}.${day}`;
 }
 
+function formatGoalMonth(month: string) {
+  const [year, monthNumber] = month.split('-');
+  return `${year}년 ${Number(monthNumber)}월`;
+}
+
 function formatWeight(value: number) {
   return Number(value).toFixed(2).replace(/\.0+$|(?<=\.[0-9])0$/, '');
 }
@@ -122,6 +133,8 @@ export default function WeightPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [today, setToday] = useState('');
   const [records, setRecords] = useState<WeightRecord[]>([]);
+  const [monthlyGoals, setMonthlyGoals] = useState<MonthlyWeightGoal[]>([]);
+  const [goalTableReady, setGoalTableReady] = useState(true);
   const [settings, setSettings] = useState<WeightSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
@@ -133,6 +146,11 @@ export default function WeightPage() {
     useState<RecordDraft>(emptyRecordDraft);
   const [recordError, setRecordError] = useState('');
   const [savingRecord, setSavingRecord] = useState(false);
+  const [showGoal, setShowGoal] = useState(false);
+  const [goalMonthDraft, setGoalMonthDraft] = useState('');
+  const [goalWeightDraft, setGoalWeightDraft] = useState('');
+  const [goalError, setGoalError] = useState('');
+  const [savingGoal, setSavingGoal] = useState(false);
   const [settingsDraft, setSettingsDraft] = useState<{
     frequency: FastingFrequency;
     weekdays: number[];
@@ -184,6 +202,8 @@ export default function WeightPage() {
 
       setSettings(data.settings as WeightSettings);
       setRecords((data.records ?? []) as WeightRecord[]);
+      setMonthlyGoals((data.monthlyGoals ?? []) as MonthlyWeightGoal[]);
+      setGoalTableReady(data.goalTableReady !== false);
     } catch {
       setPageError('체중관리 정보를 불러오지 못했습니다. 다시 시도해주세요.');
     } finally {
@@ -268,6 +288,60 @@ export default function WeightPage() {
       setRecordError('기록을 저장하지 못했습니다. 다시 시도해주세요.');
     } finally {
       setSavingRecord(false);
+    }
+  }
+
+  function openGoal() {
+    const month = (today || getKoreanToday()).slice(0, 7);
+    const currentGoal = monthlyGoals.find((goal) => goal.goal_month === `${month}-01`);
+    setGoalMonthDraft(month);
+    setGoalWeightDraft(currentGoal ? String(currentGoal.target_weight) : '');
+    setGoalError('');
+    setShowGoal(true);
+  }
+
+  function changeGoalMonth(month: string) {
+    setGoalMonthDraft(month);
+    const goal = monthlyGoals.find((item) => item.goal_month === `${month}-01`);
+    setGoalWeightDraft(goal ? String(goal.target_weight) : '');
+  }
+
+  async function saveGoal(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const weightText = goalWeightDraft.trim();
+    if (!/^\d+(\.\d{1,2})?$/.test(weightText) || Number(weightText) <= 0 || Number(weightText) > 500) {
+      setGoalError('목표 체중은 0보다 크고 500kg 이하로 입력해주세요.');
+      return;
+    }
+
+    setSavingGoal(true);
+    setGoalError('');
+    try {
+      const response = await fetch('/api/weight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'goal',
+          goalMonth: goalMonthDraft,
+          targetWeight: weightText,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setGoalError(data.message || '월별 목표를 저장하지 못했습니다.');
+        return;
+      }
+
+      setMonthlyGoals((current) => [
+        ...current.filter((goal) => goal.goal_month !== data.goal.goal_month),
+        data.goal as MonthlyWeightGoal,
+      ].sort((a, b) => a.goal_month.localeCompare(b.goal_month)));
+      setGoalTableReady(true);
+      setShowGoal(false);
+    } catch {
+      setGoalError('월별 목표를 저장하지 못했습니다. 다시 시도해주세요.');
+    } finally {
+      setSavingGoal(false);
     }
   }
 
@@ -395,6 +469,9 @@ export default function WeightPage() {
                 <path d="m4 7 5-3 5 2 3-3" />
               </svg>
               차트
+            </button>
+            <button className="weight-goal-button" type="button" onClick={openGoal}>
+              목표
             </button>
             <button className="settings-button" type="button" onClick={openSettings}>
               설정
@@ -692,6 +769,64 @@ export default function WeightPage() {
 
             <button className="settings-save-button weight-save-button" type="submit" disabled={savingRecord}>
               {savingRecord ? '저장 중...' : '기록 저장'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {showGoal && (
+        <div className="modal-backdrop" onMouseDown={() => setShowGoal(false)}>
+          <form
+            className="settings-modal weight-dialog weight-goal-dialog"
+            onSubmit={saveGoal}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="settings-modal-header">
+              <div>
+                <p className="eyebrow">MONTHLY WEIGHT GOAL</p>
+                <h2>월별 체중 목표</h2>
+              </div>
+              <button className="modal-close" type="button" onClick={() => setShowGoal(false)}>
+                닫기
+              </button>
+            </div>
+
+            <label className="weight-form-field">
+              <span>목표 월</span>
+              <input
+                type="month"
+                value={goalMonthDraft}
+                onChange={(event) => changeGoalMonth(event.target.value)}
+                required
+              />
+            </label>
+
+            <label className="weight-form-field">
+              <span>{goalMonthDraft ? `${formatGoalMonth(goalMonthDraft)} 목표 체중` : '목표 체중'}</span>
+              <div className="weight-input-with-unit">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="예: 65.0"
+                  value={goalWeightDraft}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (/^\d*(\.\d{0,2})?$/.test(value)) setGoalWeightDraft(value);
+                  }}
+                  required
+                />
+                <span>kg</span>
+              </div>
+            </label>
+
+            {!goalTableReady && (
+              <p className="weight-dialog-error">
+                월별 목표 저장을 위해 Supabase에 목표 테이블을 추가해야 합니다.
+              </p>
+            )}
+            {goalError && <p className="weight-dialog-error" role="alert">{goalError}</p>}
+            <button className="settings-save-button weight-save-button" type="submit" disabled={savingGoal}>
+              {savingGoal ? '저장 중...' : '목표 저장'}
             </button>
           </form>
         </div>

@@ -69,7 +69,7 @@ export async function GET() {
     return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const [settingsResult, recordsResult] = await Promise.all([
+  const [settingsResult, recordsResult, goalsResult] = await Promise.all([
     supabaseAdmin
       .from('weight_settings')
       .select('id, fasting_frequency, fasting_weekdays, fasting_anchor_date')
@@ -81,6 +81,10 @@ export async function GET() {
         'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
       )
       .order('record_date', { ascending: true }),
+    supabaseAdmin
+      .from('weight_monthly_goals')
+      .select('goal_month, target_weight, updated_at')
+      .order('goal_month', { ascending: true }),
   ]);
 
   if (settingsResult.error || recordsResult.error) {
@@ -89,6 +93,14 @@ export async function GET() {
     console.error(error);
     return Response.json(
       { message: '체중관리 정보를 불러오지 못했습니다.' },
+      { status: 500 }
+    );
+  }
+
+  if (goalsResult.error && !isMissingTable(goalsResult.error)) {
+    console.error(goalsResult.error);
+    return Response.json(
+      { message: '월별 체중 목표를 불러오지 못했습니다.' },
       { status: 500 }
     );
   }
@@ -102,6 +114,8 @@ export async function GET() {
       fasting_anchor_date: anchorDate,
     },
     records: recordsResult.data ?? [],
+    monthlyGoals: goalsResult.data ?? [],
+    goalTableReady: !goalsResult.error,
   });
 }
 
@@ -175,6 +189,54 @@ export async function POST(request: Request) {
     }
 
     return Response.json({ settings: data });
+  }
+
+  if (body.type === 'goal') {
+    const goalMonth = body.goalMonth;
+    if (typeof goalMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(goalMonth)) {
+      return Response.json({ message: '목표 월을 확인해주세요.' }, { status: 400 });
+    }
+
+    const weightText = String(body.targetWeight ?? '').trim();
+    if (!/^\d+(\.\d{1,2})?$/.test(weightText)) {
+      return Response.json({ message: '목표 체중을 확인해주세요.' }, { status: 400 });
+    }
+    const targetWeight = Number(weightText);
+    if (!Number.isFinite(targetWeight) || targetWeight <= 0 || targetWeight > 500) {
+      return Response.json(
+        { message: '목표 체중은 0보다 크고 500kg 이하여야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('weight_monthly_goals')
+      .upsert(
+        {
+          goal_month: `${goalMonth}-01`,
+          target_weight: targetWeight,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'goal_month' }
+      )
+      .select('goal_month, target_weight, updated_at')
+      .single();
+
+    if (error) {
+      if (isMissingTable(error)) {
+        return Response.json(
+          { message: 'Supabase에 월별 체중 목표 테이블을 먼저 만들어주세요.' },
+          { status: 503 }
+        );
+      }
+      console.error(error);
+      return Response.json(
+        { message: '월별 체중 목표를 저장하지 못했습니다.' },
+        { status: 500 }
+      );
+    }
+
+    return Response.json({ goal: data });
   }
 
   if (body.type === 'record') {

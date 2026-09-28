@@ -569,7 +569,8 @@ h1 {
 
 .settings-button,
 .logout-button,
-.stock-chart-toggle {
+.stock-chart-toggle,
+.weight-goal-button {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -589,7 +590,8 @@ h1 {
 .settings-button:hover,
 .logout-button:hover,
 .stock-chart-toggle:hover,
-.stock-chart-toggle.is-active {
+.stock-chart-toggle.is-active,
+.weight-goal-button:hover {
   color: #111;
 }
 
@@ -1573,6 +1575,17 @@ h1 {
 
   .weight-dialog {
     padding: 12px 14px;
+  }
+
+  .weight-container .stock-header-actions {
+    gap: 1px;
+  }
+
+  .weight-container .stock-header-actions > button,
+  .weight-container .stock-header-actions > a {
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 11px;
   }
 
   .weight-chart-panel .stock-chart-heading p {
