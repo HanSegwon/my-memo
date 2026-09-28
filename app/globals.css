@@ -289,15 +289,22 @@ h1 {
 }
 
 .home-header .logout-button {
+  display: grid;
+  width: 38px;
   min-height: 38px;
-  padding: 0 14px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
   border-color: #e8e8e8;
   border-radius: 999px;
   color: #666;
-  font-size: 13px;
   flex-shrink: 0;
-  white-space: nowrap;
   transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.home-header .logout-button svg {
+  width: 17px;
+  height: 17px;
 }
 
 .home-header .logout-button:hover {
@@ -307,16 +314,17 @@ h1 {
 
 .home-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 .home-button {
-  min-height: 74px;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 22px;
+  justify-content: center;
+  padding: 16px;
   border: 1px solid #ededed;
   border-radius: 16px;
   background: white;
@@ -326,15 +334,8 @@ h1 {
   letter-spacing: -0.025em;
   text-decoration: none;
   cursor: pointer;
+  text-align: center;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.home-button::after {
-  content: "→";
-  color: #a2a2a2;
-  font-size: 17px;
-  font-weight: 400;
-  transition: color 160ms ease, transform 160ms ease;
 }
 
 .home-button:hover {
@@ -343,19 +344,10 @@ h1 {
   box-shadow: 0 7px 20px rgba(0, 0, 0, 0.045);
 }
 
-.home-button:hover::after {
-  transform: translateX(2px);
-  color: #555;
-}
-
 .home-button:focus-visible,
 .home-header .logout-button:focus-visible {
   outline: 2px solid #555;
   outline-offset: 3px;
-}
-
-.home-button-wide {
-  min-height: 74px;
 }
 
 .feature-placeholder {
@@ -395,19 +387,10 @@ h1 {
     letter-spacing: -0.05em;
   }
 
-  .home-grid {
-    gap: 9px;
-  }
-
   .home-button {
-    min-height: 66px;
-    padding: 0 18px;
+    padding: 12px;
     font-size: 15px;
     border-radius: 14px;
-  }
-
-  .home-button-wide {
-    min-height: 66px;
   }
 }
 

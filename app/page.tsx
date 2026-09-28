@@ -123,14 +123,31 @@ export default function Home() {
             <h1>{greeting}</h1>
           </div>
 
-          <button className="logout-button" onClick={logout}>
-            나가기
+          <button
+            className="logout-button"
+            onClick={logout}
+            aria-label="나가기"
+            title="나가기"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
           </button>
         </header>
 
         <section className="home-grid">
           <Link href="/stocks" className="home-button">
-            주식관리
+            주식성과
           </Link>
 
           <Link href="/overtime" className="home-button">
@@ -147,7 +164,7 @@ export default function Home() {
 
           <Link
             href="/shared-memo"
-            className="home-button home-button-wide"
+            className="home-button"
           >
             메모공유
           </Link>
