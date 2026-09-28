@@ -585,23 +585,23 @@ export default function WeightPage() {
                     <td className="weight-date-cell">
                       <span>{formatDate(date)}</span>
                     </td>
-                    <td>{record?.weight_kg === null || !record ? '—' : formatWeight(record.weight_kg)}</td>
+                    <td>{record?.weight_kg == null ? '' : formatWeight(record.weight_kg)}</td>
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
-                      {record?.exercise === '휴식' ? '-' : record?.exercise ?? '—'}
+                      {record?.exercise === '휴식' ? '-' : record?.exercise ?? ''}
                     </td>
-                    <td className={fasting ? 'weight-fasting-mark' : 'weight-fasting-empty'}>
-                      {fasting ? '●' : '—'}
+                    <td className={fasting ? 'weight-fasting-mark' : undefined}>
+                      {fasting ? '●' : ''}
                     </td>
                     <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
-                      {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? '—'}
+                      {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? ''}
                     </td>
                     <td className={record?.lunch === '미취식' ? 'weight-muted-value' : undefined}>
-                      {record?.lunch === '미취식' ? '-' : record?.lunch ?? '—'}
+                      {record?.lunch === '미취식' ? '-' : record?.lunch ?? ''}
                     </td>
                     <td className={record?.dinner === '미취식' ? 'weight-muted-value' : undefined}>
-                      {record?.dinner === '미취식' ? '-' : record?.dinner ?? '—'}
+                      {record?.dinner === '미취식' ? '-' : record?.dinner ?? ''}
                     </td>
-                    <td className="weight-other-food-cell">{formatOtherFood(record?.other_food)}</td>
+                    <td className="weight-other-food-cell">{record?.other_food ? formatOtherFood(record.other_food) : ''}</td>
                   </tr>
                 );
               })}
