@@ -39,6 +39,7 @@ type MonthlyWeightGoalSummary = {
 
 export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [dashboardReady, setDashboardReady] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
   const passcodeInputs = useRef<Array<HTMLInputElement | null>>([]);
@@ -61,10 +62,20 @@ export default function Home() {
     });
 
     const data = await response.json();
-    setAuthenticated(data.authenticated);
-
     if (data.authenticated) {
-      await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary(), loadTodoMemoSummary()]);
+      setAuthenticated(true);
+      setDashboardReady(false);
+      await Promise.all([
+        loadStockSummary(),
+        loadWeightSummary(),
+        loadFamilyEventSummary(),
+        loadRoutineSummary(),
+        loadTodoMemoSummary(),
+      ]);
+      setDashboardReady(true);
+    } else {
+      setAuthenticated(false);
+      setDashboardReady(true);
     }
   }
 
@@ -170,44 +181,39 @@ export default function Home() {
 
     setPasscode('');
     setAuthenticated(true);
-    await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary(), loadTodoMemoSummary()]);
+    setDashboardReady(false);
+    await Promise.all([
+      loadStockSummary(),
+      loadWeightSummary(),
+      loadFamilyEventSummary(),
+      loadRoutineSummary(),
+      loadTodoMemoSummary(),
+    ]);
+    setDashboardReady(true);
   }
 
   useEffect(() => {
-    if (authenticated !== true) {
+    if (authenticated !== true || !dashboardReady) {
       setRoutineSummary(null);
       return;
     }
-    const refresh = async () => {
-      try {
-        const response = await fetch('/api/routine', { cache: 'no-store' });
-        if (!response.ok) return;
-        const data = await response.json() as { routines: ScheduledRoutine[] };
-        const active = getActiveRoutine(data.routines ?? [], new Date(), getRoutineDayType());
-        setRoutineSummary(active ? `지금은 ${active.title} 시간입니다.` : null);
-      } catch {
-        // 생활루틴 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
-      }
-    };
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), 60_000);
+    const timer = window.setInterval(() => void loadRoutineSummary(), 60_000);
     return () => window.clearInterval(timer);
-  }, [authenticated]);
+  }, [authenticated, dashboardReady]);
 
   useEffect(() => {
-    if (authenticated !== true) {
+    if (authenticated !== true || !dashboardReady) {
       setTodoMemoSummary(null);
       return;
     }
     const refresh = () => void loadTodoMemoSummary();
-    refresh();
     const timer = window.setInterval(refresh, 60_000);
     window.addEventListener('focus', refresh);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener('focus', refresh);
     };
-  }, [authenticated]);
+  }, [authenticated, dashboardReady]);
 
   async function loadWeightSummary() {
     try {
@@ -277,6 +283,18 @@ export default function Home() {
     }
   }
 
+  async function loadRoutineSummary() {
+    try {
+      const response = await fetch('/api/routine', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json() as { routines: ScheduledRoutine[] };
+      const active = getActiveRoutine(data.routines ?? [], new Date(), getRoutineDayType());
+      setRoutineSummary(active ? `지금은 ${active.title} 시간입니다.` : null);
+    } catch {
+      // 생활루틴 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
   function updatePasscode(index: number, value: string) {
     const digits = value.replace(/\D/g, '');
     const next = passcode.padEnd(6, ' ').split('');
@@ -326,6 +344,7 @@ export default function Home() {
     });
 
     setAuthenticated(false);
+    setDashboardReady(true);
     setWeightSummary(null);
     setFamilyEventSummary(null);
     setRoutineSummary(null);
@@ -333,6 +352,10 @@ export default function Home() {
   }
 
   if (authenticated === null) {
+    return <main className="loading-screen"><LoadingDots /></main>;
+  }
+
+  if (authenticated && !dashboardReady) {
     return <main className="loading-screen"><LoadingDots /></main>;
   }
 
