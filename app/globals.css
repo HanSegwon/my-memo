@@ -799,7 +799,8 @@ h1 {
 }
 
 .family-event-form > label,
-.family-event-lunar-date label {
+.family-event-lunar-date label,
+.family-event-solar-date label {
   display: grid;
   gap: 7px;
   color: #444;
@@ -855,7 +856,8 @@ h1 {
   color: #fff;
 }
 
-.family-event-lunar-date {
+.family-event-lunar-date,
+.family-event-solar-date {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr;
   gap: 8px;

@@ -41,7 +41,9 @@ export default function FamilyEventsPage() {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [calendarType, setCalendarType] = useState<'solar' | 'lunar'>('solar');
-  const [solarDate, setSolarDate] = useState(todayString);
+  const [solarYear, setSolarYear] = useState(today.getFullYear());
+  const [solarMonth, setSolarMonth] = useState(today.getMonth() + 1);
+  const [solarDay, setSolarDay] = useState(today.getDate());
   const [referenceYear, setReferenceYear] = useState(today.getFullYear());
   const [eventMonth, setEventMonth] = useState(1);
   const [eventDay, setEventDay] = useState(1);
@@ -49,6 +51,9 @@ export default function FamilyEventsPage() {
   const [repeatYearly, setRepeatYearly] = useState(true);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const minimumYear = Math.max(1940, today.getFullYear() - 80);
+  const yearOptions = Array.from({ length: 2051 - minimumYear }, (_, index) => minimumYear + index);
+  const solarDaysInMonth = new Date(solarYear, solarMonth, 0).getDate();
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
@@ -99,7 +104,7 @@ export default function FamilyEventsPage() {
     setDisplayMonth((month) => new Date(month.getFullYear(), month.getMonth() + amount, 1));
   }
   function openForm() {
-    setError(''); setTitle(''); setSolarDate(todayString); setReferenceYear(today.getFullYear());
+    setError(''); setTitle(''); setSolarYear(today.getFullYear()); setSolarMonth(today.getMonth() + 1); setSolarDay(today.getDate()); setReferenceYear(today.getFullYear());
     setEventMonth(1); setEventDay(1); setIsLeapMonth(false); setCalendarType('solar');
     setRepeatYearly(true); setEditingEventId(null); setShowForm(true);
   }
@@ -108,13 +113,13 @@ export default function FamilyEventsPage() {
     setCalendarType(event.calendar_type); setReferenceYear(event.event_year);
     setEventMonth(event.event_month); setEventDay(event.event_day);
     setIsLeapMonth(event.is_leap_month); setRepeatYearly(event.repeat_yearly);
-    setSolarDate(`${event.event_year}-${String(event.event_month).padStart(2, '0')}-${String(event.event_day).padStart(2, '0')}`);
+    setSolarYear(event.event_year); setSolarMonth(event.event_month); setSolarDay(event.event_day);
     setShowForm(true);
   }
   async function saveEvent(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
     if (!title.trim() || saving) return;
-    const [year, month, day] = calendarType === 'solar' ? solarDate.split('-').map(Number) : [referenceYear, eventMonth, eventDay];
+    const [year, month, day] = calendarType === 'solar' ? [solarYear, solarMonth, solarDay] : [referenceYear, eventMonth, eventDay];
     setSaving(true); setError('');
     try {
       const response = await fetch('/api/family-events', {
@@ -209,9 +214,13 @@ export default function FamilyEventsPage() {
                 <span />
               </button>
             </div>
-            {calendarType === 'solar' ? <label>날짜<input type="date" value={solarDate} onChange={(event) => setSolarDate(event.target.value)} required /></label> : <>
+            {calendarType === 'solar' ? <div className="family-event-solar-date">
+              <label>연도<select value={solarYear} onChange={(event) => { const year = Number(event.target.value); setSolarYear(year); setSolarDay((day) => Math.min(day, new Date(year, solarMonth, 0).getDate())); }}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</select></label>
+              <label>월<select value={solarMonth} onChange={(event) => { const month = Number(event.target.value); setSolarMonth(month); setSolarDay((day) => Math.min(day, new Date(solarYear, month, 0).getDate())); }}>{Array.from({ length: 12 }, (_, index) => index + 1).map((month) => <option key={month} value={month}>{month}월</option>)}</select></label>
+              <label>일<select value={solarDay} onChange={(event) => setSolarDay(Number(event.target.value))}>{Array.from({ length: solarDaysInMonth }, (_, index) => index + 1).map((day) => <option key={day} value={day}>{day}일</option>)}</select></label>
+            </div> : <>
               <div className="family-event-lunar-date">
-                <label>기준 연도<select value={referenceYear} onChange={(event) => setReferenceYear(Number(event.target.value))}>{Array.from({ length: 2051 - Math.max(1940, today.getFullYear() - 80) }, (_, index) => Math.max(1940, today.getFullYear() - 80) + index).map((year) => <option key={year} value={year}>{year}년</option>)}</select></label>
+                <label>기준 연도<select value={referenceYear} onChange={(event) => setReferenceYear(Number(event.target.value))}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</select></label>
                 <label>월<select value={eventMonth} onChange={(event) => { setEventMonth(Number(event.target.value)); setIsLeapMonth(false); }}>{Array.from({ length: 12 }, (_, index) => index + 1).map((month) => <option key={month} value={month}>{month}월</option>)}</select></label>
                 <label>일<select value={eventDay} onChange={(event) => setEventDay(Number(event.target.value))}>{Array.from({ length: 30 }, (_, index) => index + 1).map((day) => <option key={day} value={day}>{day}일</option>)}</select></label>
               </div>
