@@ -703,9 +703,9 @@ h1 {
 
 .family-event-item {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 36px 80px 52px 52px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 42px 80px 52px 52px;
   align-items: center;
-  column-gap: 12px;
+  column-gap: 10px;
   min-height: 64px;
   border-top: 1px solid #f0f1f3;
 }
@@ -725,6 +725,7 @@ h1 {
 }
 
 .family-event-item strong {
+  max-width: 7em;
   overflow: hidden;
   color: #282828;
   font-size: 14px;
@@ -953,8 +954,8 @@ h1 {
   }
 
   .family-event-item {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 30px 60px 38px 38px;
-    column-gap: 8px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 30px 58px 36px 36px;
+    column-gap: 6px;
     min-height: 56px;
   }
 

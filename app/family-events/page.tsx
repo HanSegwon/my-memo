@@ -26,6 +26,10 @@ function formatRegisteredEventDate(event: FamilyEvent) {
   const dateText = new Intl.DateTimeFormat('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit' }).format(fromDateString(registeredDate));
   return `${dateText} (${weekday})`;
 }
+function formatEventTitle(title: string) {
+  const characters = Array.from(title);
+  return characters.length > 7 ? `${characters.slice(0, 7).join('')}…` : title;
+}
 
 export default function FamilyEventsPage() {
   const [today, setToday] = useState(() => new Date());
@@ -176,7 +180,7 @@ export default function FamilyEventsPage() {
             {upcomingEvents.map(({ event, date }) => {
               const daysLeft = daysUntilEvent(date, todayString);
               return <li key={event.id} className="family-event-item">
-                <strong title={`${event.title} · ${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>{event.title}</strong>
+                <strong title={`${event.title} · ${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>{formatEventTitle(event.title)}</strong>
                 <span className="family-event-date" title={`${event.repeat_yearly ? '매년 반복' : '1회 행사'}`}>
                   {formatRegisteredEventDate(event)}
                 </span>
