@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
+import { getActiveRoutine, getRoutineDayType, type ScheduledRoutine } from '../lib/routineSchedule';
 
 const greetings = [
   '한세권님, 오늘도 파이팅!',
@@ -44,6 +45,7 @@ export default function Home() {
   const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
+  const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
@@ -169,6 +171,27 @@ export default function Home() {
     await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary()]);
   }
 
+  useEffect(() => {
+    if (authenticated !== true) {
+      setRoutineSummary(null);
+      return;
+    }
+    const refresh = async () => {
+      try {
+        const response = await fetch('/api/routine', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json() as { routines: ScheduledRoutine[] };
+        const active = getActiveRoutine(data.routines ?? [], new Date(), getRoutineDayType());
+        setRoutineSummary(active ? `지금은 ${active.title} 할 시간입니다.` : null);
+      } catch {
+        // 생활루틴 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 60_000);
+    return () => window.clearInterval(timer);
+  }, [authenticated]);
+
   async function loadWeightSummary() {
     try {
       const response = await fetch('/api/weight', { cache: 'no-store' });
@@ -276,6 +299,7 @@ export default function Home() {
     setAuthenticated(false);
     setWeightSummary(null);
     setFamilyEventSummary(null);
+    setRoutineSummary(null);
   }
 
   if (authenticated === null) {
@@ -430,7 +454,13 @@ export default function Home() {
           </Link>
 
           <Link href="/routine" className="home-button">
-            생활루틴
+            <span className="home-button-title">생활루틴</span>
+            {routineSummary && (
+              <>
+                <span className="home-button-divider" aria-hidden="true">|</span>
+                <span className="home-button-summary">{routineSummary}</span>
+              </>
+            )}
           </Link>
 
           <Link

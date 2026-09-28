@@ -910,6 +910,46 @@ h1 {
   gap: 10px;
 }
 
+.routine-day-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 18px;
+}
+
+.routine-day-switch button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #e7e9ed;
+  border-radius: 999px;
+  background: #fff;
+  color: #737984;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.routine-day-switch button.is-selected {
+  border-color: #252525;
+  background: #252525;
+  color: #fff;
+}
+
+.routine-today-type {
+  margin-left: auto;
+  color: #8b919a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.routine-now {
+  margin: 0 0 14px;
+  color: #4d5968;
+  font-size: 14px;
+}
+
+.routine-now strong { color: #1874df; }
+
 .routine-add-button {
   display: grid;
   width: 40px;
@@ -934,12 +974,22 @@ h1 {
 
 .routine-item {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr) 42px;
+  grid-template-columns: 128px minmax(0, 1fr) auto;
   align-items: center;
   gap: 18px;
   min-height: 94px;
   padding: 18px 20px;
 }
+
+.routine-item.is-current {
+  position: relative;
+  z-index: 1;
+  border: 2px solid #3486f6;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.routine-item.is-current + .routine-item { border-top-color: transparent; }
 
 .routine-item + .routine-item {
   border-top: 1px solid #f0f1f3;
@@ -998,6 +1048,23 @@ h1 {
   cursor: pointer;
 }
 
+.routine-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routine-edit-button {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid #e4e8ee;
+  border-radius: 9px;
+  background: #fff;
+  color: #515b68;
+  font-size: 11px;
+  cursor: pointer;
+}
+
 .routine-empty,
 .routine-empty-state {
   margin: 0;
@@ -1048,11 +1115,17 @@ h1 {
 
 @media (max-width: 520px) {
   .routine-item {
-    grid-template-columns: 108px minmax(0, 1fr) 38px;
-    gap: 10px;
+    grid-template-columns: 94px minmax(0, 1fr) auto;
+    gap: 8px;
     min-height: 84px;
     padding: 15px 12px;
   }
+
+  .routine-item-actions { gap: 4px; }
+  .routine-edit-button, .routine-delete-button { min-height: 32px; padding: 0 6px; font-size: 10px; }
+  .routine-day-switch { gap: 6px; }
+  .routine-day-switch button { padding: 0 10px; font-size: 12px; }
+  .routine-today-type { font-size: 10px; }
 
   .routine-time {
     gap: 4px;
