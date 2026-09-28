@@ -17,6 +17,7 @@ export default function SharedMemoPage() {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -80,6 +81,7 @@ export default function SharedMemoPage() {
 
     setTitle('');
     setContent('');
+    setShowForm(false);
     setSaving(false);
   }
 
@@ -134,42 +136,32 @@ export default function SharedMemoPage() {
         <header className="header">
           <div>
             <p className="eyebrow brand-eyebrow">Master 3.0</p>
-            <h1>할일메모</h1>
+            <h1>할 일 메모</h1>
           </div>
 
-          <Link href="/" className="logout-button">
-            처음으로
-          </Link>
+          <div className="routine-header-actions">
+            <button type="button" className="routine-add-button" onClick={() => setShowForm(true)} aria-label="할 일 메모 추가" title="할 일 메모 추가">+</button>
+            <Link href="/" className="logout-button">처음으로</Link>
+          </div>
         </header>
 
-        <section className="write-card">
-          <input
-            className="title-input"
-            type="text"
-            placeholder="할 일 제목"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-
-          <textarea
-            className="content-input"
-            placeholder="자세한 내용을 작성하세요."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-
-          <button
-            className="save-button"
-            onClick={addMemo}
-            disabled={saving}
-          >
-            {saving ? '저장 중...' : '메모 저장'}
-          </button>
-        </section>
+        {showForm && (
+          <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setShowForm(false); }}>
+            <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="memo-form-title">
+              <div className="family-event-modal-heading">
+                <div><p className="eyebrow">NEW TASK</p><h2 id="memo-form-title">할 일 메모 추가</h2></div>
+                <button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button>
+              </div>
+              <form className="family-event-form routine-form" onSubmit={(event) => { event.preventDefault(); void addMemo(); }}>
+                <label>할 일 제목<input maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="할 일 제목" /></label>
+                <label>자세한 내용<textarea className="routine-detail-input" value={content} onChange={(event) => setContent(event.target.value)} placeholder="자세한 내용을 작성하세요." /></label>
+                <button type="submit" className="family-event-save" disabled={saving}>{saving ? '저장 중...' : '메모 저장'}</button>
+              </form>
+            </section>
+          </div>
+        )}
 
         <section className="memo-section">
-          <h2>내 메모</h2>
-
           {loading ? (
             <div className="empty">
               <p>메모를 불러오는 중...</p>

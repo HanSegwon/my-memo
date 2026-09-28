@@ -46,6 +46,7 @@ export default function Home() {
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
+  const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function Home() {
     setAuthenticated(data.authenticated);
 
     if (data.authenticated) {
-      await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary()]);
+      await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary(), loadTodoMemoSummary()]);
     }
   }
 
@@ -168,7 +169,7 @@ export default function Home() {
 
     setPasscode('');
     setAuthenticated(true);
-    await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary()]);
+    await Promise.all([loadStockSummary(), loadWeightSummary(), loadFamilyEventSummary(), loadTodoMemoSummary()]);
   }
 
   useEffect(() => {
@@ -190,6 +191,21 @@ export default function Home() {
     void refresh();
     const timer = window.setInterval(() => void refresh(), 60_000);
     return () => window.clearInterval(timer);
+  }, [authenticated]);
+
+  useEffect(() => {
+    if (authenticated !== true) {
+      setTodoMemoSummary(null);
+      return;
+    }
+    const refresh = () => void loadTodoMemoSummary();
+    refresh();
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
   }, [authenticated]);
 
   async function loadWeightSummary() {
@@ -248,6 +264,17 @@ export default function Home() {
     }
   }
 
+  async function loadTodoMemoSummary() {
+    try {
+      const response = await fetch('/api/memos', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json() as { memos: Array<{ id: number }> };
+      setTodoMemoSummary(`아직 못한 집안일이 총 ${data.memos?.length ?? 0}건 있습니다.`);
+    } catch {
+      // 할 일 메모 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
   function updatePasscode(index: number, value: string) {
     const digits = value.replace(/\D/g, '');
     const next = passcode.padEnd(6, ' ').split('');
@@ -300,6 +327,7 @@ export default function Home() {
     setWeightSummary(null);
     setFamilyEventSummary(null);
     setRoutineSummary(null);
+    setTodoMemoSummary(null);
   }
 
   if (authenticated === null) {
@@ -467,7 +495,8 @@ export default function Home() {
             href="/shared-memo"
             className="home-button"
           >
-            할일메모
+            <span className="home-button-title">할일메모</span>
+            {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><span className="home-button-summary">{todoMemoSummary}</span></>}
           </Link>
 
           <Link href="/family-events" className="home-button">
