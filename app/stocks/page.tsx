@@ -46,11 +46,11 @@ function formatChartAmount(value: number) {
   if (absolute >= 100_000_000) {
     return `${sign}${(absolute / 100_000_000)
       .toFixed(1)
-      .replace(/\.0$/, '')}억`;
+      .replace(/\.0$/, '')}억원`;
   }
 
   if (absolute >= 10_000) {
-    return `${sign}${Math.round(absolute / 10_000).toLocaleString('ko-KR')}만`;
+    return `${sign}${Math.round(absolute / 10_000).toLocaleString('ko-KR')}만원`;
   }
 
   return formatMoney(value);
@@ -674,7 +674,10 @@ export default function StocksPage() {
     );
   }, [calculatedRows]);
 
-  const chartWidth = Math.max(720, calculatedRows.length * 72 + 82);
+  const chartRows = calculatedRows.filter(
+    (row) => row.roundNo <= currentRoundNo
+  );
+  const chartWidth = Math.max(680, chartRows.length * 44 + 82);
   const chartHeight = 276;
   const chartLeft = 58;
   const chartRight = 22;
@@ -682,17 +685,29 @@ export default function StocksPage() {
   const chartBottom = 56;
   const chartPlotWidth = chartWidth - chartLeft - chartRight;
   const chartPlotHeight = chartHeight - chartTop - chartBottom;
-  const chartMin = Math.min(0, ...calculatedRows.map((row) => row.total));
-  const chartMax = Math.max(0, ...calculatedRows.map((row) => row.total));
-  const chartRange = Math.max(chartMax - chartMin, 1);
+  const chartStep = 10_000_000;
+  const chartDataMin = chartRows.length
+    ? Math.min(...chartRows.map((row) => row.total))
+    : 20_000_000;
+  const chartDataMax = chartRows.length
+    ? Math.max(...chartRows.map((row) => row.total))
+    : 30_000_000;
+  const chartMin = chartDataMin < 20_000_000
+    ? Math.floor(chartDataMin / chartStep) * chartStep
+    : 20_000_000;
+  const chartMax = Math.max(
+    30_000_000,
+    Math.ceil(chartDataMax / chartStep) * chartStep
+  );
+  const chartRange = Math.max(chartMax - chartMin, chartStep);
   const chartY = (value: number) =>
     chartTop + ((chartMax - value) / chartRange) * chartPlotHeight;
-  const chartZeroY = chartY(0);
-  const chartSlotWidth = calculatedRows.length
-    ? chartPlotWidth / calculatedRows.length
+  const chartBaselineY = chartY(chartMin);
+  const chartSlotWidth = chartRows.length
+    ? chartPlotWidth / chartRows.length
     : 0;
-  const chartPoints = calculatedRows.map((row, index) => ({
-    x: chartLeft + chartSlotWidth * (index + 0.5),
+  const chartPoints = chartRows.map((row, index) => ({
+    x: chartSlotWidth * (index + 0.5),
     y: chartY(row.total),
     total: row.total,
     date: row.date,
@@ -783,103 +798,123 @@ export default function StocksPage() {
             </div>
 
             <div className="stock-chart-scroll" aria-label="회차별 총액 차트, 좌우로 스크롤할 수 있습니다">
-              <svg
-                className="stock-chart-svg"
-                role="img"
-                aria-label={`전체 ${calculatedRows.length}회차의 총액 막대 및 추이 그래프`}
-                width={chartWidth}
-                height={chartHeight}
-                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-              >
-                {[0, 1, 2, 3, 4].map((step) => {
-                  const value = chartMax - (chartRange * step) / 4;
-                  const y = chartY(value);
-
-                  return (
-                    <g key={step}>
-                      <line
-                        x1={chartLeft}
-                        x2={chartWidth - chartRight}
-                        y1={y}
-                        y2={y}
-                        stroke="#edf0f4"
-                        strokeWidth="1"
-                      />
-                      <text
-                        x={chartLeft - 10}
-                        y={y + 3}
-                        fill="#8a929e"
-                        fontSize="10"
-                        textAnchor="end"
-                      >
-                        {formatChartAmount(value)}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {chartPoints.map((point) => {
-                  const barWidth = Math.min(30, chartSlotWidth * 0.42);
-                  const barHeight = Math.max(Math.abs(chartZeroY - point.y), 1);
-
-                  return (
-                    <g key={point.roundNo}>
-                      <rect
-                        x={point.x - barWidth / 2}
-                        y={Math.min(point.y, chartZeroY)}
-                        width={barWidth}
-                        height={barHeight}
-                        rx="4"
-                        fill="#9aacc7"
-                        fillOpacity="0.42"
-                      />
-                      <text
-                        x={point.x}
-                        y={chartHeight - 28}
-                        fill="#7d8592"
-                        fontSize="10"
-                        textAnchor="middle"
-                      >
-                        {point.date.slice(2)}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {chartLinePath && (
-                  <>
-                    <path
-                      d={chartLinePath}
-                      fill="none"
-                      stroke="#218b69"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {chartPoints.map((point) => (
-                      <circle
-                        key={`point-${point.roundNo}`}
-                        cx={point.x}
-                        cy={point.y}
-                        r="3.5"
-                        fill="#fff"
-                        stroke="#218b69"
-                        strokeWidth="2"
-                      />
-                    ))}
-                  </>
-                )}
-
-                <text
-                  x={chartLeft + chartPlotWidth / 2}
-                  y={chartHeight - 8}
-                  fill="#9aa1aa"
-                  fontSize="10"
-                  textAnchor="middle"
+              <div className="stock-chart-layout">
+                <svg
+                  className="stock-chart-y-axis"
+                  aria-hidden="true"
+                  width={chartLeft}
+                  height={chartHeight}
+                  viewBox={`0 0 ${chartLeft} ${chartHeight}`}
                 >
-                  회차 날짜
-                </text>
-              </svg>
+                  {Array.from(
+                    { length: Math.floor(chartRange / chartStep) + 1 },
+                    (_, index) => chartMax - index * chartStep
+                  ).map((value) => (
+                    <text
+                      key={value}
+                      x={chartLeft - 8}
+                      y={chartY(value) + 3}
+                      fill="#737d8b"
+                      fontSize="10"
+                      textAnchor="end"
+                    >
+                      {formatChartAmount(value)}
+                    </text>
+                  ))}
+                </svg>
+
+                <div className="stock-chart-scroll" aria-label="회차별 총액 차트, 좌우로 스크롤할 수 있습니다">
+                  <svg
+                    className="stock-chart-svg"
+                    role="img"
+                    aria-label={`오늘의 회차까지 총 ${chartRows.length}회차의 총액 그래프`}
+                    width={chartPlotWidth + chartRight}
+                    height={chartHeight}
+                    viewBox={`0 0 ${chartPlotWidth + chartRight} ${chartHeight}`}
+                  >
+                    {Array.from(
+                      { length: Math.floor(chartRange / chartStep) + 1 },
+                      (_, index) => chartMax - index * chartStep
+                    ).map((value) => {
+                      const y = chartY(value);
+
+                      return (
+                        <line
+                          key={value}
+                          x1="0"
+                          x2={chartPlotWidth}
+                          y1={y}
+                          y2={y}
+                          stroke="#edf0f4"
+                          strokeWidth="1"
+                        />
+                      );
+                    })}
+
+                    {chartPoints.map((point) => {
+                      const barWidth = Math.min(38, chartSlotWidth * 0.86);
+                      const barHeight = Math.max(chartBaselineY - point.y, 1);
+
+                      return (
+                        <g key={point.roundNo}>
+                          <rect
+                            x={point.x - barWidth / 2}
+                            y={point.y}
+                            width={barWidth}
+                            height={barHeight}
+                            rx="4"
+                            fill="#9aacc7"
+                            fillOpacity="0.48"
+                          />
+                          <text
+                            x={point.x}
+                            y={chartHeight - 28}
+                            fill="#7d8592"
+                            fontSize="10"
+                            textAnchor="middle"
+                          >
+                            {point.date.slice(2)}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {chartLinePath && (
+                      <>
+                        <path
+                          d={chartLinePath}
+                          fill="none"
+                          stroke="#218b69"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        {chartPoints.map((point) => (
+                          <circle
+                            key={`point-${point.roundNo}`}
+                            cx={point.x}
+                            cy={point.y}
+                            r="3.5"
+                            fill="#fff"
+                            stroke="#218b69"
+                            strokeWidth="2"
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    <text
+                      x={chartPlotWidth / 2}
+                      y={chartHeight - 8}
+                      fill="#9aa1aa"
+                      fontSize="10"
+                      textAnchor="middle"
+                    >
+                      회차 날짜
+                    </text>
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <p className="stock-chart-hint">좌우로 밀어 전체 회차를 확인할 수 있어요.</p>

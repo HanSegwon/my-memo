@@ -662,8 +662,27 @@ h1 {
   background: #218b69;
 }
 
-.stock-chart-scroll {
+.stock-chart-layout {
+  display: flex;
+  align-items: stretch;
   width: 100%;
+  overflow: hidden;
+}
+
+.stock-chart-y-axis {
+  position: relative;
+  z-index: 1;
+  display: block;
+  flex: 0 0 58px;
+  border-right: 1px solid #eef1f5;
+  background: #fff;
+  box-shadow: 4px 0 10px rgba(32, 42, 58, 0.04);
+}
+
+.stock-chart-scroll {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
