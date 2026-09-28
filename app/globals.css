@@ -230,6 +230,7 @@ h1 {
 .login-container {
   display: grid;
   align-items: center;
+  width: calc(100% - 48px);
   min-height: calc(100svh - 72px);
   max-width: 440px;
 }
