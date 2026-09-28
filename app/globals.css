@@ -32,6 +32,16 @@ textarea {
   margin: 0 auto;
 }
 
+.home-container {
+  max-width: 560px;
+  color: #202124;
+  font-family: var(--font-inter), "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+.home-container .eyebrow {
+  letter-spacing: 0.02em;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -252,52 +262,100 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 30px;
 }
 
 .home-header > div {
   min-width: 0;
 }
 
+.home-header .eyebrow {
+  margin-bottom: 8px;
+  color: #858585;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .home-header h1 {
+  color: #202124;
+  font-size: 30px;
+  font-weight: 650;
   line-height: 1.25;
+  letter-spacing: -0.055em;
   white-space: nowrap;
 }
 
 .home-header .logout-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border-color: #e8e8e8;
+  border-radius: 999px;
+  color: #666;
+  font-size: 13px;
   flex-shrink: 0;
   white-space: nowrap;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.home-header .logout-button:hover {
+  border-color: #d9d9d9;
+  background: #f8f8f8;
 }
 
 .home-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
+  gap: 12px;
 }
 
 .home-button {
-  min-height: 88px;
+  min-height: 74px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid #e5e5e5;
-  border-radius: 20px;
+  justify-content: space-between;
+  padding: 0 22px;
+  border: 1px solid #ededed;
+  border-radius: 16px;
   background: white;
-  color: #222;
-  font-size: 18px;
-  font-weight: 700;
+  color: #262626;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
   text-decoration: none;
   cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.home-button::after {
+  content: "→";
+  color: #a2a2a2;
+  font-size: 17px;
+  font-weight: 400;
+  transition: color 160ms ease, transform 160ms ease;
 }
 
 .home-button:hover {
-  border-color: #ccc;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  border-color: #d8d8d8;
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.045);
+}
+
+.home-button:hover::after {
+  transform: translateX(2px);
+  color: #555;
+}
+
+.home-button:focus-visible,
+.home-header .logout-button:focus-visible {
+  outline: 2px solid #555;
+  outline-offset: 3px;
 }
 
 .home-button-wide {
-  min-height: 88px;
+  min-height: 74px;
 }
 
 .feature-placeholder {
@@ -327,23 +385,29 @@ h1 {
 }
 
 @media (max-width: 480px) {
+  .home-header {
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
   .home-header h1 {
-    font-size: clamp(14px, 4vw, 26px);
-    letter-spacing: -0.04em;
+    font-size: clamp(14px, 4vw, 22px);
+    letter-spacing: -0.05em;
   }
 
   .home-grid {
-    gap: 10px;
+    gap: 9px;
   }
 
   .home-button {
-    min-height: 76px;
-    font-size: 16px;
-    border-radius: 16px;
+    min-height: 66px;
+    padding: 0 18px;
+    font-size: 15px;
+    border-radius: 14px;
   }
 
   .home-button-wide {
-    min-height: 76px;
+    min-height: 66px;
   }
 }
 

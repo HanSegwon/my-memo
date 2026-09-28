@@ -66,7 +66,7 @@ export default function Home() {
   if (authenticated === null) {
     return (
       <main className="app">
-        <section className="container">
+        <section className="container home-container">
           <div className="empty">
             <p>확인 중...</p>
           </div>
@@ -78,7 +78,7 @@ export default function Home() {
   if (!authenticated) {
     return (
       <main className="app">
-        <section className="container">
+        <section className="container home-container">
           <div className="login-card">
             <p className="eyebrow">Master Planner 3.0</p>
 
@@ -116,7 +116,7 @@ export default function Home() {
 
   return (
     <main className="app">
-      <section className="container">
+      <section className="container home-container">
         <header className="home-header">
           <div>
             <p className="eyebrow">Master Planner 3.0</p>
