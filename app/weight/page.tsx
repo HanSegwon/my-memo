@@ -92,9 +92,9 @@ function formatDate(date: string) {
   return `'${year.slice(-2)}.${month}.${day} (${weekday})`;
 }
 
-function formatChartDate(date: string) {
-  const [, month, day] = date.split('-');
-  return `${month}.${day}`;
+function formatChartMonth(month: string) {
+  const [year, monthNumber] = month.split('-');
+  return `'${year.slice(-2)}.${monthNumber}`;
 }
 
 function formatGoalMonth(month: string) {
@@ -452,31 +452,64 @@ export default function WeightPage() {
     );
   }
 
-  const chartWidth = Math.max(680, chartRows.length * 56 + 82);
+  const monthlyActuals = new Map<string, number>();
+  chartRows.forEach((row) => monthlyActuals.set(row.record_date.slice(0, 7), Number(row.weight_kg)));
+  const goalByMonth = new Map(
+    monthlyGoals.map((goal) => [goal.goal_month.slice(0, 7), Number(goal.target_weight)])
+  );
+  const latestGoalMonth = [...goalByMonth.keys()].sort().at(-1);
+  const chartEndMonth = latestGoalMonth ?? today.slice(0, 7);
+  const candidateMonths = [
+    ...monthlyActuals.keys(),
+    ...goalByMonth.keys(),
+  ].filter((month) => month <= chartEndMonth).sort();
+  const chartStartMonth = candidateMonths[0] ?? chartEndMonth;
+  const chartMonths: string[] = [];
+  if (chartStartMonth) {
+    const monthCursor = new Date(`${chartStartMonth}-01T00:00:00.000Z`);
+    const finalMonth = new Date(`${chartEndMonth}-01T00:00:00.000Z`);
+    while (monthCursor <= finalMonth && chartMonths.length < 600) {
+      chartMonths.push(monthCursor.toISOString().slice(0, 7));
+      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1);
+    }
+  }
+
+  const monthlyChartData = chartMonths.map((month, index) => ({
+    month,
+    x: index * 56 + 28,
+    actual: monthlyActuals.get(month),
+    goal: goalByMonth.get(month),
+  }));
+  const chartValues = monthlyChartData.flatMap((item) =>
+    [item.actual, item.goal].filter((value): value is number => value !== undefined)
+  );
+  const chartWidth = chartMonths.length * 56 + 22;
   const chartHeight = 276;
   const axisWidth = 58;
   const chartRight = 22;
   const chartTop = 18;
   const chartBottom = 56;
-  const plotWidth = chartWidth - axisWidth - chartRight;
+  const plotWidth = Math.max(chartWidth - chartRight, 0);
   const plotHeight = chartHeight - chartTop - chartBottom;
-  const minWeight = chartRows.length
-    ? Math.max(0, Math.floor(Math.min(...chartRows.map((item) => Number(item.weight_kg))) - 1))
+  const minWeight = chartValues.length
+    ? Math.max(0, Math.floor(Math.min(...chartValues) - 1))
     : 0;
-  const maxWeight = chartRows.length
-    ? Math.ceil(Math.max(...chartRows.map((item) => Number(item.weight_kg))) + 1)
+  const maxWeight = chartValues.length
+    ? Math.ceil(Math.max(...chartValues) + 1)
     : 1;
   const weightRange = Math.max(maxWeight - minWeight, 1);
   const chartY = (value: number) =>
     chartTop + ((maxWeight - value) / weightRange) * plotHeight;
-  const slotWidth = chartRows.length ? plotWidth / chartRows.length : 0;
-  const chartPoints = chartRows.map((row, index) => ({
-    x: slotWidth * (index + 0.5),
-    y: chartY(Number(row.weight_kg)),
-    weight: Number(row.weight_kg),
-    date: row.record_date,
-  }));
-  const weightLinePath = chartPoints
+  const actualPoints = monthlyChartData
+    .filter((item): item is typeof item & { actual: number } => item.actual !== undefined)
+    .map((item) => ({ x: item.x, y: chartY(item.actual), weight: item.actual, month: item.month }));
+  const goalPoints = monthlyChartData
+    .filter((item): item is typeof item & { goal: number } => item.goal !== undefined)
+    .map((item) => ({ x: item.x, y: chartY(item.goal), weight: item.goal, month: item.month }));
+  const actualLinePath = actualPoints
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+  const goalLinePath = goalPoints
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
     .join(' ');
 
@@ -525,18 +558,19 @@ export default function WeightPage() {
           <section className="stock-chart-panel weight-chart-panel" id="weight-chart">
             <div className="stock-chart-heading">
               <div>
-                <h2>날짜별 체중</h2>
-                <p>기록한 날짜의 체중 변화를 확인하세요.</p>
+                <h2>월별 체중 비교</h2>
+                <p>월별 마지막 체중 기록과 목표 체중을 비교합니다.</p>
               </div>
               <div className="stock-chart-legend" aria-label="차트 범례">
-                <span><i className="chart-legend-bar" />체중</span>
-                <span><i className="chart-legend-line" />변화</span>
+                <span><i className="chart-legend-bar" />실제 체중</span>
+                <span><i className="chart-legend-line" />실제 변화</span>
+                <span><i className="chart-legend-goal" />월 목표</span>
               </div>
             </div>
 
-            {chartRows.length === 0 ? (
+            {chartValues.length === 0 ? (
               <div className="weight-chart-empty">
-                체중을 기록하면 날짜별 차트가 표시됩니다.
+                체중 기록이나 월별 목표를 입력하면 비교 차트가 표시됩니다.
               </div>
             ) : (
               <div className="stock-chart-layout">
@@ -564,11 +598,11 @@ export default function WeightPage() {
                   })}
                 </svg>
 
-                <div className="stock-chart-scroll" aria-label="날짜별 체중 그래프, 좌우로 스크롤할 수 있습니다">
+                <div className="stock-chart-scroll" aria-label="월별 실제 체중과 목표 체중 그래프, 좌우로 스크롤할 수 있습니다">
                   <svg
                     className="stock-chart-svg"
                     role="img"
-                    aria-label={`체중이 기록된 ${chartRows.length}일의 날짜별 체중 그래프`}
+                    aria-label={`${chartMonths.length}개월의 실제 체중과 월별 목표 비교 그래프`}
                     width={plotWidth + chartRight}
                     height={chartHeight}
                     viewBox={`0 0 ${plotWidth + chartRight} ${chartHeight}`}
@@ -589,49 +623,72 @@ export default function WeightPage() {
                       );
                     })}
 
-                    {chartPoints.map((point) => {
-                      const barWidth = Math.min(38, slotWidth * 0.78);
+                    {monthlyChartData.filter((item) => item.actual !== undefined).map((item) => {
+                      const barWidth = 32;
                       const baseline = chartY(minWeight);
+                      const y = chartY(item.actual!);
                       return (
-                        <g key={point.date}>
+                        <g key={item.month}>
                           <rect
-                            x={point.x - barWidth / 2}
-                            y={point.y}
+                            x={item.x - barWidth / 2}
+                            y={y}
                             width={barWidth}
-                            height={Math.max(baseline - point.y, 1)}
+                            height={Math.max(baseline - y, 1)}
                             rx="4"
                             fill="#9aacc7"
                             fillOpacity="0.48"
                           />
-                          <text
-                            x={point.x}
-                            y={chartHeight - 28}
-                            fill="#7d8592"
-                            fontSize="10"
-                            textAnchor="middle"
-                          >
-                            {formatChartDate(point.date)}
-                          </text>
                         </g>
                       );
                     })}
+                    {monthlyChartData.map((item) => (
+                      <text
+                        key={`month-${item.month}`}
+                        x={item.x}
+                        y={chartHeight - 28}
+                        fill="#7d8592"
+                        fontSize="10"
+                        textAnchor="middle"
+                      >
+                        {formatChartMonth(item.month)}
+                      </text>
+                    ))}
 
                     <path
-                      d={weightLinePath}
+                      d={actualLinePath}
                       fill="none"
                       stroke="#218b69"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                    {chartPoints.map((point) => (
+                    {actualPoints.map((point) => (
                       <circle
-                        key={`weight-${point.date}`}
+                        key={`actual-${point.month}`}
                         cx={point.x}
                         cy={point.y}
                         r="3.5"
                         fill="#fff"
                         stroke="#218b69"
+                        strokeWidth="2"
+                      />
+                    ))}
+                    <path
+                      d={goalLinePath}
+                      fill="none"
+                      stroke="#e25353"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {goalPoints.map((point) => (
+                      <circle
+                        key={`goal-${point.month}`}
+                        cx={point.x}
+                        cy={point.y}
+                        r="3.5"
+                        fill="#fff"
+                        stroke="#e25353"
                         strokeWidth="2"
                       />
                     ))}
@@ -642,14 +699,14 @@ export default function WeightPage() {
                       fontSize="10"
                       textAnchor="middle"
                     >
-                      날짜
+                      월
                     </text>
                   </svg>
                 </div>
               </div>
             )}
-            {chartRows.length > 0 && (
-              <p className="stock-chart-hint">좌우로 밀어 전체 기록을 확인할 수 있어요.</p>
+            {chartValues.length > 0 && chartMonths.length > 1 && (
+              <p className="stock-chart-hint">마지막 목표 월까지 월별 체중을 비교합니다. 좌우로 밀어 확인할 수 있어요.</p>
             )}
           </section>
         )}

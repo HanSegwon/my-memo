@@ -664,6 +664,13 @@ h1 {
   background: #218b69;
 }
 
+.chart-legend-goal {
+  width: 13px;
+  height: 2px;
+  border-radius: 2px;
+  background: #e25353;
+}
+
 .stock-chart-layout {
   display: flex;
   align-items: stretch;
@@ -1406,6 +1413,17 @@ h1 {
 
 .weight-chart-panel {
   margin-bottom: 24px;
+}
+
+.weight-chart-panel .stock-chart-heading {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.weight-chart-panel .stock-chart-legend {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px 12px;
 }
 
 .weight-chart-empty {
