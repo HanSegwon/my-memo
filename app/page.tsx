@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 const greetings = [
@@ -28,6 +28,8 @@ export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [passcode, setPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const passcodeInputs = useRef<Array<HTMLInputElement | null>>([]);
+  const isPasscodeComplete = /^\d{6}$/.test(passcode);
   const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
 
@@ -128,6 +130,8 @@ export default function Home() {
   }
 
   async function login() {
+    if (!isPasscodeComplete) return;
+
     setLoginError('');
 
     const response = await fetch('/api/auth', {
@@ -150,6 +154,39 @@ export default function Home() {
     setPasscode('');
     setAuthenticated(true);
     await loadStockSummary();
+  }
+
+  function updatePasscode(index: number, value: string) {
+    const digits = value.replace(/\D/g, '');
+    const next = passcode.padEnd(6, ' ').split('');
+
+    if (!digits) {
+      next[index] = ' ';
+      setPasscode(next.join('').trimEnd());
+      setLoginError('');
+      return;
+    }
+
+    const pastedDigits = digits.slice(0, 6 - index);
+    pastedDigits.split('').forEach((digit, offset) => {
+      next[index + offset] = digit;
+    });
+    setPasscode(next.join('').trimEnd());
+    setLoginError('');
+    passcodeInputs.current[Math.min(index + pastedDigits.length, 5)]?.focus();
+  }
+
+  function pastePasscode(index: number, value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 6 - index);
+    if (!digits) return;
+
+    const next = passcode.padEnd(6, ' ').split('');
+    digits.split('').forEach((digit, offset) => {
+      next[index + offset] = digit;
+    });
+    setPasscode(next.join('').trimEnd());
+    setLoginError('');
+    passcodeInputs.current[Math.min(index + digits.length, 5)]?.focus();
   }
 
   async function logout() {
@@ -175,35 +212,75 @@ export default function Home() {
   if (!authenticated) {
     return (
       <main className="app">
-        <section className="container home-container">
+        <section className="container home-container login-container">
           <div className="login-card">
-            <p className="eyebrow">Master Planner 3.0</p>
+            <div className="login-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="10" width="14" height="11" rx="2.5" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                <path d="M12 14.5v2" />
+              </svg>
+            </div>
 
-            <h1>나의 메모</h1>
+            <h1>Master 3.0</h1>
 
             <p className="login-description">
-              Passcode를 입력하면 사용할 수 있습니다.
+              계속하려면 6자리 비밀번호를 입력해 주세요.
             </p>
 
-            <input
-              className="title-input"
-              type="password"
-              placeholder="Passcode"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  login();
-                }
+            <form
+              className="login-form"
+              autoComplete="off"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void login();
               }}
-            />
+            >
+              <div className="passcode-digits" role="group" aria-label="6자리 비밀번호">
+                {Array.from({ length: 6 }, (_, index) => (
+                  <input
+                    key={index}
+                    ref={(element) => {
+                      passcodeInputs.current[index] = element;
+                    }}
+                    className="passcode-digit"
+                    type="password"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={1}
+                    aria-label={`비밀번호 ${index + 1}번째 숫자`}
+                    value={passcode[index] ?? ''}
+                    onChange={(event) =>
+                      updatePasscode(index, event.target.value)
+                    }
+                    onPaste={(event) => {
+                      event.preventDefault();
+                      pastePasscode(index, event.clipboardData.getData('text'));
+                    }}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === 'Backspace' &&
+                        !passcode[index] &&
+                        index > 0
+                      ) {
+                        passcodeInputs.current[index - 1]?.focus();
+                      }
+                    }}
+                  />
+                ))}
+              </div>
 
-            <button className="save-button" onClick={login}>
-              들어가기
-            </button>
+              <button
+                className="login-submit"
+                type="submit"
+                disabled={!isPasscodeComplete}
+              >
+                계속하기
+              </button>
+            </form>
 
             {loginError && (
-              <p className="login-error">{loginError}</p>
+              <p className="login-error" role="alert">{loginError}</p>
             )}
           </div>
         </section>

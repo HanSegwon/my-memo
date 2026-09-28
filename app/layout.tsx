@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Master Planner 3.0",
+  title: "Master 3.0",
   description: "나의 생활 관리",
 };
 
