@@ -201,8 +201,8 @@ export default function ChildrenAcademyPage() {
           <fieldset className="children-color-fieldset">
             <legend>일정 색상</legend>
             <div className="children-color-picker" role="radiogroup" aria-label="일정 색상 선택">
-              {CHILDREN_ACADEMY_COLORS.map((color) => <button type="button" key={color.id} role="radio" aria-checked={draft.color === color.id} className="children-color-option" onClick={() => setDraft((current) => ({ ...current, color: color.id }))}>
-                <span className="children-color-swatch" style={{ background: color.background, borderColor: color.border }} />{color.label}
+              {CHILDREN_ACADEMY_COLORS.map((color) => <button type="button" key={color.id} role="radio" aria-label={color.label} title={color.label} aria-checked={draft.color === color.id} className="children-color-option" onClick={() => setDraft((current) => ({ ...current, color: color.id }))}>
+                <span className="children-color-swatch" style={{ background: color.background, borderColor: color.border }} />
               </button>)}
             </div>
           </fieldset>

@@ -1416,9 +1416,10 @@ h1 {
 .children-color-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .children-color-fieldset legend { margin-bottom: 8px; color: #454b53; font-size: 13px; font-weight: 600; }
 .children-color-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
-.children-color-option { display: flex; min-width: 0; min-height: 38px; align-items: center; justify-content: center; gap: 5px; padding: 4px 3px; border: 1px solid #e7e9ed; border-radius: 9px; background: #fff; color: #505761; font-size: 11px; cursor: pointer; }
-.children-color-option[aria-checked="true"] { border-color: #555d68; box-shadow: 0 0 0 1px #555d68; color: #252a31; font-weight: 650; }
-.children-color-swatch { width: 13px; height: 13px; flex: 0 0 13px; border: 1px solid; border-radius: 50%; }
+.children-color-option { display: grid; width: 36px; height: 36px; place-items: center; justify-self: center; padding: 0; border: 2px solid transparent; border-radius: 50%; background: transparent; cursor: pointer; }
+.children-color-option[aria-checked="true"] { border-color: #454b53; }
+.children-color-option:focus-visible { outline: 2px solid #454b53; outline-offset: 2px; }
+.children-color-swatch { width: 24px; height: 24px; border: 1px solid; border-radius: 50%; }
 .children-schedule-delete { min-height: 42px; border-color: #eee; font-size: 13px; }
 
 @media (max-width: 520px) {
