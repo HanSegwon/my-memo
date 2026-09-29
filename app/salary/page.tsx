@@ -211,9 +211,9 @@ export default function SalaryPage() {
                   const y = chartTop + plotHeight * (index / 4);
                   return <line key={index} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
                 })}
-                {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 8} y={point.y} width="16" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
+                {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 21} y={point.y} width="42" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
                 <path d={linePath} fill="none" stroke="#426b9a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">{point.year}</text></g>)}
+                {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">’{String(point.year).slice(-2)}</text></g>)}
               </svg>
             </div>
           </div>
