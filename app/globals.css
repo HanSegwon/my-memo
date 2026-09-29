@@ -1687,14 +1687,15 @@ h1 {
 .salary-table .salary-total-row td {
   padding-top: 12px;
   padding-bottom: 12px;
-  border-top: 2px solid #dfe4eb;
-  border-bottom: 0;
-  background: #f8fafc;
+  border-top: 2px solid #8d96a3;
+  border-bottom: 2px solid #8d96a3;
+  background: #fff;
   color: #354255;
   font-weight: 700;
 }
 
-.salary-table .salary-total-row td:first-child { padding-left: 8px; text-align: left; }
+.salary-table .salary-total-row td:first-child { text-align: center; }
+.salary-table .salary-total-row td:not(:first-child) { text-align: right; }
 
 @media (max-width: 380px) {
   .salary-table th { font-size: 8px; }
