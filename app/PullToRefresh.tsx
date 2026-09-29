@@ -11,6 +11,7 @@ export default function PullToRefresh() {
     let startY = 0;
     let pullAmount = 0;
     let tracking = false;
+    let nestedScrollContainer: HTMLElement | null = null;
 
     const getScrollTop = () => window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
@@ -18,6 +19,13 @@ export default function PullToRefresh() {
       if (event.touches.length !== 1 || getScrollTop() > 0) return;
       const target = event.target;
       if (target instanceof Element && target.closest('button, input, textarea, select, [role="dialog"], .family-event-modal-backdrop, [data-no-pull-refresh]')) return;
+      nestedScrollContainer = target instanceof Element
+        ? target.closest<HTMLElement>('[data-pull-refresh-scroll]')
+        : null;
+      if (nestedScrollContainer && nestedScrollContainer.scrollTop > 0) {
+        nestedScrollContainer = null;
+        return;
+      }
       startX = event.touches[0].clientX;
       startY = event.touches[0].clientY;
       pullAmount = 0;
@@ -28,8 +36,9 @@ export default function PullToRefresh() {
       if (!tracking || event.touches.length !== 1) return;
       const deltaX = event.touches[0].clientX - startX;
       const deltaY = event.touches[0].clientY - startY;
-      if (deltaY <= 0 || Math.abs(deltaX) > Math.abs(deltaY) * 0.8 || getScrollTop() > 0) {
+      if (deltaY <= 0 || Math.abs(deltaX) > Math.abs(deltaY) * 0.8 || getScrollTop() > 0 || (nestedScrollContainer?.scrollTop ?? 0) > 0) {
         tracking = false;
+        nestedScrollContainer = null;
         setPullDistance(0);
         return;
       }
@@ -47,10 +56,12 @@ export default function PullToRefresh() {
         setPullDistance(0);
       }
       tracking = false;
+      nestedScrollContainer = null;
     };
 
     const handleTouchCancel = () => {
       tracking = false;
+      nestedScrollContainer = null;
       pullAmount = 0;
       setPullDistance(0);
     };

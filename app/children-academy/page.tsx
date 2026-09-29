@@ -160,7 +160,7 @@ export default function ChildrenAcademyPage() {
         </div>
       </div>
 
-      <section ref={timetableRef} className="children-timetable-scroll" aria-label={`${child} 주간 시간표`}>
+      <section ref={timetableRef} className="children-timetable-scroll" data-pull-refresh-scroll aria-label={`${child} 주간 시간표`}>
         <div className="children-timetable">
           <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day, index) => <span key={day}><span className={todayWeekday === index + 1 ? 'children-today-label' : undefined}>{day}</span></span>)}</div>
           <div className="children-timetable-body">
