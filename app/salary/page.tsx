@@ -120,17 +120,17 @@ export default function SalaryPage() {
     return { year, value };
   }), [years, thisYear, thisMonth, records, chartKind]);
 
-  const chartWidth = Math.max(chartRows.length * 54 + 26, 360);
+  const chartWidth = Math.max(chartRows.length * 54 + 20, 360);
   const chartHeight = 274;
   const chartLeft = 58;
   const chartTop = 18;
   const chartBottom = 42;
-  const plotWidth = chartWidth - chartLeft - 10;
+  const plotWidth = chartWidth;
   const plotHeight = chartHeight - chartTop - chartBottom;
   const step = niceStep(Math.max(...chartRows.map((row) => row.value), 0));
   const chartMax = step * 4;
   const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
-  const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: chartLeft + plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
+  const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
 
   useEffect(() => {
@@ -197,17 +197,25 @@ export default function SalaryPage() {
           <div className="salary-chart-options" role="group" aria-label="차트 종류 선택">
             {CHART_OPTIONS.map((option) => <button key={option.value} type="button" className={chartKind === option.value ? 'is-selected' : ''} aria-pressed={chartKind === option.value} onClick={() => setChartKind(option.value)}>{option.label}</button>)}
           </div>
-          <div ref={chartScrollRef} className="salary-chart-scroll" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 차트`}>
-            <svg className="salary-chart-svg" role="img" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          <div className="stock-chart-layout salary-chart-layout">
+            <svg className="stock-chart-y-axis" aria-hidden="true" width={chartLeft} height={chartHeight} viewBox={`0 0 ${chartLeft} ${chartHeight}`}>
               {[0, 1, 2, 3, 4].map((index) => {
                 const y = chartTop + plotHeight * (index / 4);
                 const value = chartMax * (1 - index / 4);
-                return <g key={index}><line x1={chartLeft} x2={chartWidth - 10} y1={y} y2={y} stroke="#edf0f4" /><text x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value)}</text></g>;
+                return <text key={index} x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value)}</text>;
               })}
-              {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 8} y={point.y} width="16" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
-              <path d={linePath} fill="none" stroke="#426b9a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">{point.year}</text></g>)}
             </svg>
+            <div ref={chartScrollRef} className="stock-chart-scroll salary-chart-scroll" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 차트`}>
+              <svg className="salary-chart-svg" role="img" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+                {[0, 1, 2, 3, 4].map((index) => {
+                  const y = chartTop + plotHeight * (index / 4);
+                  return <line key={index} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
+                })}
+                {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 8} y={point.y} width="16" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
+                <path d={linePath} fill="none" stroke="#426b9a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">{point.year}</text></g>)}
+              </svg>
+            </div>
           </div>
           <div className="salary-chart-legend"><span><i className="chart-legend-bar" />금액</span><span><i className="chart-legend-line" />추이</span></div>
         </section>

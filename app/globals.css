@@ -1634,6 +1634,8 @@ h1 {
   scrollbar-color: #d8dde5 transparent;
 }
 
+.salary-chart-layout .salary-chart-scroll { width: auto; flex: 1 1 0; }
+
 .salary-chart-svg { display: block; max-width: none; }
 
 .salary-chart-legend {
