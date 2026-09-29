@@ -1394,7 +1394,6 @@ h1 {
 .children-time-axis,
 .children-day-column { height: 688.5px; align-self: start; }
 .children-hour-label { position: absolute; right: 4px; color: #68717c; font-size: clamp(8px, 2.4vw, 10px); font-variant-numeric: tabular-nums; transform: translateY(-50%); }
-.children-hour-label:first-child { transform: none; }
 .children-hour-label:last-child { transform: translateY(-100%); }
 .children-day-column { position: relative; min-width: 0; border-right: 1px solid #f0f1f3; }
 .children-slot-lines { position: absolute; inset: 0; pointer-events: none; }

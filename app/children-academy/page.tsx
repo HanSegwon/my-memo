@@ -17,7 +17,6 @@ const SLOT_HEIGHT = 8.5;
 const GRID_TOP_PADDING = 0;
 const SLOT_COUNT = (GRID_END_MINUTES - GRID_START_MINUTES) / 10;
 const TIME_AXIS_LABELS = [
-  { label: '08:30', minutes: GRID_START_MINUTES },
   ...Array.from({ length: 14 }, (_, index) => ({ label: `${String(index + 9).padStart(2, '0')}:00`, minutes: (index + 9) * 60 })),
 ];
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
