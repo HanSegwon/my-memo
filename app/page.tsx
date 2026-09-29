@@ -530,9 +530,9 @@ export default function Home() {
             )}
           </Link>
 
-          <button type="button" className="home-button home-button-upcoming" disabled>
+          <Link href="/children-academy" className="home-button">
             자녀학원
-          </button>
+          </Link>
 
           <Link href="/affair-expenses" className="home-button">
             경조사비
