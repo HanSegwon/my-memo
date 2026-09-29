@@ -19,11 +19,11 @@ type ChartRow = { year: number; value: number };
 type IncomeDraft = { monthlySalary: string; baseBonus: string; extraBonus: string };
 
 const EMPTY_DRAFT: IncomeDraft = { monthlySalary: '', baseBonus: '', extraBonus: '' };
-const CHART_TITLES: Record<ChartKind, string> = {
-  income: '년도별 총 소득 추이',
-  average: '년도별 평균 급여',
-  bonus: '년도별 총 상여금',
-};
+const CHART_OPTIONS: Array<{ value: ChartKind; label: string; title: string }> = [
+  { value: 'income', label: '총 소득', title: '년도별 총 소득 추이' },
+  { value: 'average', label: '평균 급여', title: '년도별 평균 급여' },
+  { value: 'bonus', label: '총 상여금', title: '년도별 총 상여금' },
+];
 
 function currentKoreanYear() {
   return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(new Date()));
@@ -102,12 +102,13 @@ export default function SalaryPage() {
     return { month, record, salary, base, extra, total, past };
   }), [recordsByMonth, selectedYear, thisYear, thisMonth]);
 
-  const summary = useMemo(() => {
+  const totals = useMemo(() => {
     const elapsedMonths = selectedYear < thisYear ? 12 : selectedYear === thisYear ? thisMonth : 0;
     const elapsed = selectedRows.slice(0, elapsedMonths);
     const salaryTotal = elapsed.reduce((sum, row) => sum + Number(row.salary ?? 0), 0);
-    const bonusTotal = elapsed.reduce((sum, row) => sum + Number(row.base ?? 0) + Number(row.extra ?? 0), 0);
-    return { income: salaryTotal + bonusTotal, averageSalary: elapsedMonths ? salaryTotal / elapsedMonths : 0, bonus: bonusTotal };
+    const baseBonusTotal = elapsed.reduce((sum, row) => sum + Number(row.base ?? 0), 0);
+    const extraBonusTotal = elapsed.reduce((sum, row) => sum + Number(row.extra ?? 0), 0);
+    return { salary: salaryTotal, baseBonus: baseBonusTotal, extraBonus: extraBonusTotal, total: salaryTotal + baseBonusTotal + extraBonusTotal };
   }, [selectedRows, selectedYear, thisYear, thisMonth]);
 
   const chartRows = useMemo<ChartRow[]>(() => years.map((year) => {
@@ -191,15 +192,13 @@ export default function SalaryPage() {
 
         <section className="stock-chart-panel salary-chart-panel">
           <div className="stock-chart-heading">
-            <h2>{CHART_TITLES[chartKind]}</h2>
-            <select className="salary-chart-select" aria-label="차트 종류 선택" value={chartKind} onChange={(event) => setChartKind(event.target.value as ChartKind)}>
-              <option value="income">총 소득</option>
-              <option value="average">평균 급여</option>
-              <option value="bonus">총 상여금</option>
-            </select>
+            <h2>{CHART_OPTIONS.find((option) => option.value === chartKind)?.title}</h2>
           </div>
-          <div ref={chartScrollRef} className="salary-chart-scroll" aria-label={`${CHART_TITLES[chartKind]} 차트`}>
-            <svg className="salary-chart-svg" role="img" aria-label={`${CHART_TITLES[chartKind]} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          <div className="salary-chart-options" role="group" aria-label="차트 종류 선택">
+            {CHART_OPTIONS.map((option) => <button key={option.value} type="button" className={chartKind === option.value ? 'is-selected' : ''} aria-pressed={chartKind === option.value} onClick={() => setChartKind(option.value)}>{option.label}</button>)}
+          </div>
+          <div ref={chartScrollRef} className="salary-chart-scroll" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 차트`}>
+            <svg className="salary-chart-svg" role="img" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
               {[0, 1, 2, 3, 4].map((index) => {
                 const y = chartTop + plotHeight * (index / 4);
                 const value = chartMax * (1 - index / 4);
@@ -220,12 +219,6 @@ export default function SalaryPage() {
           </select>
         </div>
 
-        <section className="stock-summary salary-summary" aria-label={`${selectedYear}년 요약`}>
-          <div className="summary-card"><span>연간 총 소득</span><strong>{formatAmount(summary.income)}</strong></div>
-          <div className="summary-card"><span>평균 급여</span><strong>{formatAmount(summary.averageSalary)}</strong></div>
-          <div className="summary-card"><span>총 상여금</span><strong>{formatAmount(summary.bonus)}</strong></div>
-        </section>
-
         {selectedYear <= 2017 && <p className="salary-sample-note">2015~2017년에는 화면 확인용 가상 데이터가 들어 있습니다.</p>}
         <div className="stock-table-wrap salary-table-wrap">
           <table className="stock-table salary-table">
@@ -236,6 +229,7 @@ export default function SalaryPage() {
                 <td>{displayedValue(row.salary, row.past)}</td><td>{displayedValue(row.base, row.past)}</td><td>{displayedValue(row.extra, row.past)}</td><td className="salary-total-cell">{displayedValue(row.total, row.past)}</td>
               </tr>
             ))}</tbody>
+            <tfoot><tr><td colSpan={2}>Total</td><td>{formatAmount(totals.salary)}</td><td>{formatAmount(totals.baseBonus)}</td><td>{formatAmount(totals.extraBonus)}</td><td>{formatAmount(totals.total)}</td></tr></tfoot>
           </table>
         </div>
       </section>

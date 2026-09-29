@@ -1590,7 +1590,6 @@ h1 {
 
 .salary-chart-panel .stock-chart-heading { align-items: center; }
 
-.salary-chart-select,
 .salary-year-select-row select {
   min-height: 34px;
   padding: 0 30px 0 10px;
@@ -1599,6 +1598,30 @@ h1 {
   background: #fff;
   color: #4d5663;
   font-size: 12px;
+}
+
+.salary-chart-options {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.salary-chart-options button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #e7eaf0;
+  border-radius: 9px;
+  background: #fff;
+  color: #77808d;
+  font-size: 11px;
+  font-weight: 550;
+  cursor: pointer;
+}
+
+.salary-chart-options button.is-selected {
+  border-color: #334b6a;
+  background: #334b6a;
+  color: #fff;
 }
 
 .salary-chart-scroll {
@@ -1636,11 +1659,6 @@ h1 {
   font-weight: 600;
 }
 
-.salary-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.salary-summary .summary-card { padding-bottom: 12px; }
-.salary-summary .summary-card span { font-size: 11px; }
-.salary-summary .summary-card strong { font-size: clamp(13px, 3.8vw, 19px); }
-
 .salary-sample-note {
   margin: -12px 0 13px;
   color: #9aa1ab;
@@ -1664,12 +1682,22 @@ h1 {
 .salary-row.is-sample td { color: #9098a3; }
 .salary-error { margin: 0 0 14px; color: #c44444; font-size: 12px; line-height: 1.5; }
 
+.salary-table tfoot td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-top: 2px solid #dfe4eb;
+  border-bottom: 0;
+  background: #f8fafc;
+  color: #354255;
+  font-weight: 700;
+}
+
+.salary-table tfoot td:first-child { padding-left: 8px; text-align: left; }
+
 @media (max-width: 380px) {
   .salary-table th { font-size: 8px; }
   .salary-table td { padding-right: 2px; padding-left: 2px; font-size: 7px; letter-spacing: -0.04em; }
   .salary-year-cell, .salary-month-cell { font-size: 8px !important; }
-  .salary-summary { gap: 7px; }
-  .salary-summary .summary-card span { font-size: 9px; }
 }
 
 /* 상단 누적 정보 */
