@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
 
@@ -10,10 +10,11 @@ type Draft = { weekday: number; title: string; startTime: string; endTime: strin
 
 const CHILDREN: ChildName[] = ['한유준', '한이준'];
 const WEEKDAYS = ['월', '화', '수', '목', '금'];
-const GRID_START_MINUTES = 9 * 60;
-const GRID_END_MINUTES = 20 * 60;
-const SLOT_HEIGHT = 6.5;
-const GRID_TOP_PADDING = 12;
+const GRID_START_MINUTES = 8 * 60;
+const GRID_END_MINUTES = 22 * 60;
+const SLOT_HEIGHT = 8.5;
+const GRID_TOP_PADDING = 0;
+const SLOT_COUNT = (GRID_END_MINUTES - GRID_START_MINUTES) / 10;
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
   const minutes = GRID_START_MINUTES + index * 10;
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -27,6 +28,7 @@ function minutesOf(value: string) {
 function formatTime(value: string) { return value.slice(0, 5); }
 
 export default function ChildrenAcademyPage() {
+  const timetableRef = useRef<HTMLElement>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -66,8 +68,15 @@ export default function ChildrenAcademyPage() {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const timetable = timetableRef.current;
+    if (loading || !authenticated || !timetable) return;
+    const availableHeight = timetable.clientHeight - 44;
+    timetable.scrollTop = Math.max(0, currentTimeTop - availableHeight / 2);
+  }, [loading, authenticated]);
+
   const childSchedules = useMemo(() => schedules.filter((item) => item.child_name === child), [schedules, child]);
-  const hours = useMemo(() => Array.from({ length: 12 }, (_, index) => 9 + index), []);
+  const hours = useMemo(() => Array.from({ length: 14 }, (_, index) => 9 + index), []);
   const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
   const todayWeekday = currentTime.getDay();
   const currentTimeTop = GRID_TOP_PADDING + ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
@@ -89,7 +98,7 @@ export default function ChildrenAcademyPage() {
       ...current,
       startTime,
       endTime: minutesOf(current.endTime) <= minutesOf(startTime)
-        ? timeOptions.find((time) => minutesOf(time) > minutesOf(startTime)) ?? '20:00'
+        ? timeOptions.find((time) => minutesOf(time) > minutesOf(startTime)) ?? '22:00'
         : current.endTime,
     }));
   }
@@ -149,19 +158,19 @@ export default function ChildrenAcademyPage() {
         </div>
       </div>
 
-      <section className="children-timetable-scroll" aria-label={`${child} 주간 시간표`}>
+      <section ref={timetableRef} className="children-timetable-scroll" aria-label={`${child} 주간 시간표`}>
         <div className="children-timetable">
           <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day, index) => <span key={day}><span className={todayWeekday === index + 1 ? 'children-today-label' : undefined}>{day}</span></span>)}</div>
           <div className="children-timetable-body">
             <div className="children-time-axis" aria-hidden="true">
-              {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${GRID_TOP_PADDING + (hour - 9) * 6 * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
+              {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${GRID_TOP_PADDING + ((hour * 60 - GRID_START_MINUTES) / 10) * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
             </div>
             {currentMinutes >= GRID_START_MINUTES && currentMinutes <= GRID_END_MINUTES && <div className="children-current-time-line" style={{ top: currentTimeTop }} aria-hidden="true" />}
             {WEEKDAYS.map((day, index) => {
               const weekday = index + 1;
               const daySchedules = childSchedules.filter((item) => item.weekday === weekday);
               return <div className="children-day-column" key={day}>
-                <div className="children-slot-lines" aria-hidden="true">{Array.from({ length: 66 }, (_, slot) => <i key={slot} className={(slot + 1) % 6 === 0 ? 'is-hour' : ''} />)}</div>
+                <div className="children-slot-lines" aria-hidden="true">{Array.from({ length: SLOT_COUNT }, (_, slot) => <i key={slot} className={(slot + 1) % 6 === 0 ? 'is-hour' : ''} />)}</div>
                 {daySchedules.map((schedule) => {
                   const top = GRID_TOP_PADDING + ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
                   const height = ((minutesOf(formatTime(schedule.end_time)) - minutesOf(formatTime(schedule.start_time))) / 10) * SLOT_HEIGHT;
@@ -185,7 +194,7 @@ export default function ChildrenAcademyPage() {
           <label>요일<select value={draft.weekday} onChange={(event) => setDraft((current) => ({ ...current, weekday: Number(event.target.value) }))}>{WEEKDAYS.map((day, index) => <option value={index + 1} key={day}>{day}요일</option>)}</select></label>
           <div className="routine-time-fields children-time-fields">
             <label>시작 시간<select value={draft.startTime} onChange={(event) => changeStartTime(event.target.value)}>{timeOptions.slice(0, -1).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
-            <label>종료 시간<select value={draft.endTime} onChange={(event) => setDraft((current) => ({ ...current, endTime: event.target.value }))}>{timeOptions.filter((time) => minutesOf(time) > minutesOf(draft.startTime)).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
+          <label>종료 시간<select value={draft.endTime} onChange={(event) => setDraft((current) => ({ ...current, endTime: event.target.value }))}>{timeOptions.filter((time) => minutesOf(time) > minutesOf(draft.startTime)).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
           </div>
           {error && <p className="routine-error" role="alert">{error}</p>}
           {editing && <button type="button" className="routine-delete-button children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving}>일정 삭제</button>}

@@ -33,11 +33,11 @@ function validateSchedule(body: Record<string, unknown>) {
   const title = typeof body.title === 'string' ? body.title.trim() : '';
   const startTime = body.startTime;
   const endTime = body.endTime;
-  const validTime = (value: unknown) => typeof value === 'string' && /^(09|1\d|20):[0-5][0]$/.test(value);
+  const validTime = (value: unknown) => typeof value === 'string' && /^(0[89]|1\d|2[0-2]):[0-5][0]$/.test(value);
   if (!CHILDREN.includes(childName as typeof CHILDREN[number])) return { error: '자녀를 선택해주세요.' };
   if (!WEEKDAYS.includes(weekday as typeof WEEKDAYS[number])) return { error: '월요일부터 금요일 중 요일을 선택해주세요.' };
   if (!title || title.length > 100) return { error: '일정은 1~100자로 입력해주세요.' };
-  if (!validTime(startTime) || !validTime(endTime) || String(startTime) >= String(endTime)) return { error: '09:00~20:00 사이에서 시작·종료 시간을 10분 단위로 선택해주세요.' };
+  if (!validTime(startTime) || !validTime(endTime) || String(startTime) >= String(endTime)) return { error: '08:00~22:00 사이에서 시작·종료 시간을 10분 단위로 선택해주세요.' };
   return { value: { child_name: childName, weekday, title, start_time: startTime, end_time: endTime } };
 }
 
