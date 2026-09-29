@@ -1388,12 +1388,12 @@ h1 {
 .children-timetable-body { position: relative; box-sizing: border-box; height: 465px; padding-top: 12px; }
 .children-time-axis { position: relative; background: #fff; }
 .children-time-axis,
-.children-day-column { height: 429px; align-self: start; }
+.children-day-column { height: 441px; align-self: start; }
 .children-hour-label { position: absolute; right: 4px; color: #68717c; font-size: clamp(8px, 2.4vw, 10px); font-variant-numeric: tabular-nums; transform: translateY(-50%); }
 .children-hour-label:first-child { transform: none; }
 .children-day-column { position: relative; min-width: 0; border-right: 1px solid #f0f1f3; }
-.children-slot-lines { position: absolute; inset: 0; pointer-events: none; }
-.children-slot-lines i { display: block; height: 6.5px; border-bottom: 1px dashed #eaecf0; }
+.children-slot-lines { position: absolute; inset: 12px 0 0; pointer-events: none; }
+.children-slot-lines i { display: block; box-sizing: border-box; height: 6.5px; border-bottom: 1px dashed #eaecf0; }
 .children-slot-lines i.is-hour { border-bottom: 1px solid #d9dde3; }
 .children-current-time-line { position: absolute; z-index: 2; right: 0; left: clamp(34px, 7vw, 58px); height: 2px; background: #7086a4; box-shadow: 0 0 0 1px rgba(112, 134, 164, 0.08); pointer-events: none; }
 .children-schedule-block { position: absolute; z-index: 1; right: 2px; left: 2px; display: flex; min-width: 0; min-height: 6.5px; flex-direction: column; overflow: hidden; padding: 3px 3px 1px; border: 1px solid #d4d8de; border-radius: 5px; background: #f3f4f6; color: #343a42; text-align: left; cursor: pointer; }
