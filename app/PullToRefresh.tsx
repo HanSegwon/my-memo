@@ -17,7 +17,7 @@ export default function PullToRefresh() {
     const handleTouchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1 || getScrollTop() > 0) return;
       const target = event.target;
-      if (target instanceof Element && target.closest('button, a, input, textarea, select, [role="dialog"], .family-event-modal-backdrop, [data-no-pull-refresh]')) return;
+      if (target instanceof Element && target.closest('button, input, textarea, select, [role="dialog"], .family-event-modal-backdrop, [data-no-pull-refresh]')) return;
       startX = event.touches[0].clientX;
       startY = event.touches[0].clientY;
       pullAmount = 0;
@@ -77,10 +77,10 @@ export default function PullToRefresh() {
       aria-label="새로고침 중"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M20 11a8 8 0 0 0-14.8-4L3 10" />
-        <path d="M3 4v6h6" />
-        <path d="M4 13a8 8 0 0 0 14.8 4L21 14" />
-        <path d="M21 20v-6h-6" />
+        <path d="M20 11a8 8 0 0 0-14.6-4.6L3 9" />
+        <path d="M3 4v5h5" />
+        <path d="M4 13a8 8 0 0 0 14.6 4.6L21 15" />
+        <path d="M21 20v-5h-5" />
       </svg>
     </div>
   );

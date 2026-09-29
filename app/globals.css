@@ -304,24 +304,24 @@ h1 {
   top: 0;
   left: 50%;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border: 1px solid #edf0f4;
+  border: 0;
   border-radius: 50%;
   background: #fff;
-  color: #596b84;
-  box-shadow: 0 4px 16px rgba(27, 42, 61, 0.12);
+  color: #75849a;
+  box-shadow: 0 3px 12px rgba(27, 42, 61, 0.1);
   transition: opacity 120ms ease;
   pointer-events: none;
 }
 
 .pull-refresh-indicator svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
