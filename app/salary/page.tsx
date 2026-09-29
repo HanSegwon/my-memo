@@ -132,6 +132,7 @@ export default function SalaryPage() {
   const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
   const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+  const chartLineColor = chartKind === 'income' ? '#218b69' : chartKind === 'average' ? '#426b9a' : '#d1843d';
 
   useEffect(() => {
     const chart = chartScrollRef.current;
@@ -211,13 +212,13 @@ export default function SalaryPage() {
                   const y = chartTop + plotHeight * (index / 4);
                   return <line key={index} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
                 })}
-                {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 5} y={point.y} width="10" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
-                <path d={linePath} fill="none" stroke="#426b9a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">’{String(point.year).slice(-2)}</text></g>)}
+                {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 10} y={point.y} width="20" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
+                <path d={linePath} fill="none" stroke={chartLineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke={chartLineColor} strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">’{String(point.year).slice(-2)}</text></g>)}
               </svg>
             </div>
           </div>
-          <div className="salary-chart-legend"><span><i className="chart-legend-bar" />금액</span><span><i className="chart-legend-line" />추이</span></div>
+          <div className="salary-chart-legend"><span><i className="chart-legend-bar" />금액</span><span><i className="chart-legend-line" style={{ background: chartLineColor }} />추이</span></div>
         </section>
 
         <div className="salary-year-select-row">
