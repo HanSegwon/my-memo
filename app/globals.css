@@ -1236,7 +1236,7 @@ h1 {
   font-size: 13px;
 }
 
-.affair-transaction-editor { display: grid; gap: 10px; }
+.affair-transaction-editor { display: grid; gap: 16px; }
 
 .affair-transaction-editor-heading {
   display: flex;
@@ -1312,17 +1312,20 @@ h1 {
   position: absolute;
   top: 9px;
   right: 9px;
-  width: 30px;
-  height: 30px;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 3px;
   border: 0;
-  border-radius: 50%;
-  background: #f1f1f1;
-  color: #777;
+  border-radius: 0;
+  background: transparent;
+  color: #707780;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
-.affair-remove-transaction:hover { background: #fff1f0; color: #c14e48; }
-.affair-remove-transaction svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.affair-remove-transaction:hover { color: #c14e48; }
 
 @media (max-width: 520px) {
   .affair-contact-card { padding: 15px 12px; }

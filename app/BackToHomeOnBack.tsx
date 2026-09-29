@@ -13,7 +13,13 @@ export default function BackToHomeOnBack() {
     if (window.history.state?.backToHome !== true) {
       window.history.pushState({ ...window.history.state, backToHome: true }, '', pathname);
     }
-    const handleBack = () => router.replace('/');
+    const handleBack = () => {
+      if (pathname === '/affair-expenses' && document.querySelector('.affair-expense-modal')) {
+        window.dispatchEvent(new Event('affair-expense:close-dialog'));
+        return;
+      }
+      router.replace('/');
+    };
     window.addEventListener('popstate', handleBack);
 
     return () => window.removeEventListener('popstate', handleBack);

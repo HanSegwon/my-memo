@@ -71,6 +71,14 @@ export default function AffairExpensesPage() {
     })();
   }, [loadContacts]);
 
+  useEffect(() => {
+    const closeDialog = () => {
+      if (!saving) setShowForm(false);
+    };
+    window.addEventListener('affair-expense:close-dialog', closeDialog);
+    return () => window.removeEventListener('affair-expense:close-dialog', closeDialog);
+  }, [saving]);
+
   const sortedContacts = useMemo(() => sortContacts(contacts), [contacts]);
 
   function openForm(contact?: AffairContact) {
@@ -181,9 +189,7 @@ export default function AffairExpensesPage() {
                   <label>행사명<input maxLength={100} value={item.eventName} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventName: event.target.value } : entry))} placeholder="예: 결혼식" required={Boolean(item.flow || item.eventDate || item.amount)} /></label>
                   <label>금액<input type="text" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: formatAmount(event.target.value) } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
                 </div>
-                <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제" title="항목 삭제">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5.5 7l1 14h11l1-14M9 7V4h6v3" /></svg>
-                </button>
+                <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제" title="항목 삭제">삭제</button>
               </div>)}
             </div>
             {error && <p className="family-event-error" role="alert">{error}</p>}
