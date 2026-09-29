@@ -131,6 +131,7 @@ export default function SalaryPage() {
   const chartMax = step * 4;
   const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
   const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
+  const currentYearX = points.find((point) => point.year === thisYear)?.x;
   const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
   const chartLineColor = chartKind === 'income' ? '#218b69' : chartKind === 'average' ? '#426b9a' : '#d1843d';
 
@@ -212,6 +213,7 @@ export default function SalaryPage() {
                   const y = chartTop + plotHeight * (index / 4);
                   return <line key={index} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
                 })}
+                {currentYearX !== undefined && <line x1={currentYearX} x2={currentYearX} y1={chartTop} y2={chartHeight - chartBottom} stroke="#3478df" strokeDasharray="3 4" strokeWidth="1.5" />}
                 {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 10} y={point.y} width="20" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
                 <path d={linePath} fill="none" stroke={chartLineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke={chartLineColor} strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">’{String(point.year).slice(-2)}</text></g>)}
