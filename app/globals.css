@@ -1682,7 +1682,7 @@ h1 {
 .salary-row.is-sample td { color: #9098a3; }
 .salary-error { margin: 0 0 14px; color: #c44444; font-size: 12px; line-height: 1.5; }
 
-.salary-table tfoot td {
+.salary-table .salary-total-row td {
   padding-top: 12px;
   padding-bottom: 12px;
   border-top: 2px solid #dfe4eb;
@@ -1692,7 +1692,7 @@ h1 {
   font-weight: 700;
 }
 
-.salary-table tfoot td:first-child { padding-left: 8px; text-align: left; }
+.salary-table .salary-total-row td:first-child { padding-left: 8px; text-align: left; }
 
 @media (max-width: 380px) {
   .salary-table th { font-size: 8px; }

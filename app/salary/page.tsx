@@ -223,13 +223,15 @@ export default function SalaryPage() {
         <div className="stock-table-wrap salary-table-wrap">
           <table className="stock-table salary-table">
             <thead><tr><th>년도</th><th>월</th><th>월급여</th><th>기본상여</th><th>추가상여</th><th>총합</th></tr></thead>
-            <tbody>{selectedRows.map((row) => (
+            <tbody>
+              <tr className="salary-total-row"><td colSpan={2}>Total</td><td>{formatAmount(totals.salary)}</td><td>{formatAmount(totals.baseBonus)}</td><td>{formatAmount(totals.extraBonus)}</td><td>{formatAmount(totals.total)}</td></tr>
+              {selectedRows.map((row) => (
               <tr key={row.month} className={`salary-row${row.record?.is_sample ? ' is-sample' : ''}`} onClick={() => openMonth(row.month)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openMonth(row.month); }} aria-label={`${selectedYear}년 ${row.month}월 수입 수정`}>
                 <td className="salary-year-cell">{selectedYear}</td><td className="salary-month-cell">{row.month}월</td>
                 <td>{displayedValue(row.salary, row.past)}</td><td>{displayedValue(row.base, row.past)}</td><td>{displayedValue(row.extra, row.past)}</td><td className="salary-total-cell">{displayedValue(row.total, row.past)}</td>
               </tr>
-            ))}</tbody>
-            <tfoot><tr><td colSpan={2}>Total</td><td>{formatAmount(totals.salary)}</td><td>{formatAmount(totals.baseBonus)}</td><td>{formatAmount(totals.extraBonus)}</td><td>{formatAmount(totals.total)}</td></tr></tfoot>
+              ))}
+            </tbody>
           </table>
         </div>
       </section>
