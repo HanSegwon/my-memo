@@ -298,6 +298,40 @@ h1 {
   background: transparent;
 }
 
+.pull-refresh-indicator {
+  position: fixed;
+  z-index: 120;
+  top: 0;
+  left: 50%;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #edf0f4;
+  border-radius: 50%;
+  background: #fff;
+  color: #596b84;
+  box-shadow: 0 4px 16px rgba(27, 42, 61, 0.12);
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+
+.pull-refresh-indicator svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pull-refresh-indicator.is-refreshing svg {
+  animation: pull-refresh-spin 800ms linear infinite;
+}
+
+@keyframes pull-refresh-spin { to { transform: rotate(360deg); } }
+
 .empty span {
   color: #999;
   font-size: 14px;

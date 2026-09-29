@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import BackToHomeOnBack from "./BackToHomeOnBack";
+import PullToRefresh from "./PullToRefresh";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <BackToHomeOnBack />
+        <PullToRefresh />
         {children}
       </body>
     </html>
