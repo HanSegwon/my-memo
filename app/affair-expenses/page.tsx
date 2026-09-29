@@ -175,12 +175,12 @@ export default function AffairExpensesPage() {
                     <option value="">선택</option><option value="expense">보낸 부조</option><option value="income">받은 부조</option>
                   </select></label>
                   <label>날짜<input type="date" value={item.eventDate} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: event.target.value } : entry))} required={Boolean(item.flow || item.eventName || item.amount)} /></label>
-                  <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제">×</button>
                 </div>
                 <div className="affair-transaction-editor-bottom">
                   <label>행사명<input maxLength={100} value={item.eventName} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventName: event.target.value } : entry))} placeholder="예: 결혼식" required={Boolean(item.flow || item.eventDate || item.amount)} /></label>
                   <label>얼마<input type="text" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: formatAmount(event.target.value) } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
                 </div>
+                <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제">×</button>
               </div>)}
             </div>
             {error && <p className="family-event-error" role="alert">{error}</p>}

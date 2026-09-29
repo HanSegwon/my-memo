@@ -1263,6 +1263,7 @@ h1 {
 .affair-transaction-hint { margin: 0; color: #9297a0; font-size: 12px; }
 
 .affair-transaction-editor-row {
+  position: relative;
   display: grid;
   gap: 9px;
   padding: 12px;
@@ -1275,14 +1276,16 @@ h1 {
 
 .affair-transaction-editor-top {
   display: grid;
-  grid-template-columns: 1fr 1.35fr 30px;
-  align-items: end;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  padding-right: 40px;
   gap: 8px;
 }
 
 .affair-transaction-editor-bottom {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 112px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-right: 40px;
   gap: 8px;
 }
 
@@ -1298,9 +1301,11 @@ h1 {
 }
 
 .affair-remove-transaction {
+  position: absolute;
+  top: 9px;
+  right: 9px;
   width: 30px;
   height: 30px;
-  margin-bottom: 6px;
   border: 0;
   border-radius: 50%;
   background: #f1f1f1;
