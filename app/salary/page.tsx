@@ -1,0 +1,259 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import LoadingDots from '../../components/LoadingDots';
+
+type SalaryRecord = {
+  income_year: number;
+  income_month: number;
+  monthly_salary: number | null;
+  base_bonus: number | null;
+  extra_bonus: number | null;
+  is_sample: boolean;
+  updated_at: string;
+};
+
+type ChartKind = 'income' | 'average' | 'bonus';
+type ChartRow = { year: number; value: number };
+type IncomeDraft = { monthlySalary: string; baseBonus: string; extraBonus: string };
+
+const EMPTY_DRAFT: IncomeDraft = { monthlySalary: '', baseBonus: '', extraBonus: '' };
+const CHART_TITLES: Record<ChartKind, string> = {
+  income: '년도별 총 소득 추이',
+  average: '년도별 평균 급여',
+  bonus: '년도별 총 상여금',
+};
+
+function currentKoreanYear() {
+  return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(new Date()));
+}
+
+function currentKoreanMonth() {
+  return Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', month: 'numeric' }).format(new Date()));
+}
+
+function formatAmount(value: number) { return Math.round(value).toLocaleString('ko-KR'); }
+
+function niceStep(maxValue: number) {
+  if (maxValue <= 0) return 1;
+  const raw = maxValue / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  const normalized = raw / magnitude;
+  const multiplier = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return multiplier * magnitude;
+}
+
+export default function SalaryPage() {
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [records, setRecords] = useState<SalaryRecord[]>([]);
+  const [selectedYear, setSelectedYear] = useState(currentKoreanYear());
+  const [chartKind, setChartKind] = useState<ChartKind>('income');
+  const [editingMonth, setEditingMonth] = useState<number | null>(null);
+  const [draft, setDraft] = useState<IncomeDraft>(EMPTY_DRAFT);
+  const [saving, setSaving] = useState(false);
+  const chartScrollRef = useRef<HTMLDivElement | null>(null);
+  const thisYear = currentKoreanYear();
+  const thisMonth = currentKoreanMonth();
+  const years = useMemo(() => Array.from({ length: thisYear - 2015 + 1 }, (_, index) => 2015 + index), [thisYear]);
+
+  const loadRecords = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/salary-records', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '연봉추이 자료를 불러오지 못했습니다.');
+      setRecords(data.records ?? []);
+      setError('');
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : '연봉추이 자료를 불러오지 못했습니다.');
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch('/api/auth', { cache: 'no-store' });
+        const data = await response.json();
+        if (cancelled) return;
+        setAuthenticated(Boolean(data.authenticated));
+        if (data.authenticated) await loadRecords();
+        else setLoading(false);
+      } catch {
+        if (!cancelled) { setAuthenticated(false); setLoading(false); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [loadRecords]);
+
+  const recordsByMonth = useMemo(() => new Map(records.map((record) => [`${record.income_year}-${record.income_month}`, record])), [records]);
+  const selectedRows = useMemo(() => Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1;
+    const record = recordsByMonth.get(`${selectedYear}-${month}`);
+    const past = selectedYear < thisYear || (selectedYear === thisYear && month < thisMonth);
+    const salary = record?.monthly_salary ?? null;
+    const base = record?.base_bonus ?? null;
+    const extra = record?.extra_bonus ?? null;
+    const hasEntry = salary !== null || base !== null || extra !== null;
+    const total = hasEntry ? Number(salary ?? 0) + Number(base ?? 0) + Number(extra ?? 0) : past ? 0 : null;
+    return { month, record, salary, base, extra, total, past };
+  }), [recordsByMonth, selectedYear, thisYear, thisMonth]);
+
+  const summary = useMemo(() => {
+    const elapsedMonths = selectedYear < thisYear ? 12 : selectedYear === thisYear ? thisMonth : 0;
+    const elapsed = selectedRows.slice(0, elapsedMonths);
+    const salaryTotal = elapsed.reduce((sum, row) => sum + Number(row.salary ?? 0), 0);
+    const bonusTotal = elapsed.reduce((sum, row) => sum + Number(row.base ?? 0) + Number(row.extra ?? 0), 0);
+    return { income: salaryTotal + bonusTotal, averageSalary: elapsedMonths ? salaryTotal / elapsedMonths : 0, bonus: bonusTotal };
+  }, [selectedRows, selectedYear, thisYear, thisMonth]);
+
+  const chartRows = useMemo<ChartRow[]>(() => years.map((year) => {
+    const monthsCount = year < thisYear ? 12 : thisMonth;
+    const yearRecords = records.filter((record) => record.income_year === year);
+    const salary = Array.from({ length: monthsCount }, (_, index) => Number(yearRecords.find((record) => record.income_month === index + 1)?.monthly_salary ?? 0)).reduce((sum, value) => sum + value, 0);
+    const bonus = yearRecords.filter((record) => record.income_month <= monthsCount).reduce((sum, record) => sum + Number(record.base_bonus ?? 0) + Number(record.extra_bonus ?? 0), 0);
+    const value = chartKind === 'income' ? salary + bonus : chartKind === 'average' ? (monthsCount ? salary / monthsCount : 0) : bonus;
+    return { year, value };
+  }), [years, thisYear, thisMonth, records, chartKind]);
+
+  const chartWidth = Math.max(chartRows.length * 54 + 26, 360);
+  const chartHeight = 274;
+  const chartLeft = 58;
+  const chartTop = 18;
+  const chartBottom = 42;
+  const plotWidth = chartWidth - chartLeft - 10;
+  const plotHeight = chartHeight - chartTop - chartBottom;
+  const step = niceStep(Math.max(...chartRows.map((row) => row.value), 0));
+  const chartMax = step * 4;
+  const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
+  const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: chartLeft + plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
+  const linePath = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+
+  useEffect(() => {
+    const chart = chartScrollRef.current;
+    if (!chart || loading || !records.length) return;
+    const frame = requestAnimationFrame(() => { chart.scrollLeft = chart.scrollWidth; });
+    return () => cancelAnimationFrame(frame);
+  }, [chartRows.length, loading, records.length]);
+
+  function openMonth(month: number) {
+    const record = recordsByMonth.get(`${selectedYear}-${month}`);
+    setDraft({
+      monthlySalary: record?.monthly_salary === null || record?.monthly_salary === undefined ? '' : String(record.monthly_salary),
+      baseBonus: record?.base_bonus === null || record?.base_bonus === undefined ? '' : String(record.base_bonus),
+      extraBonus: record?.extra_bonus === null || record?.extra_bonus === undefined ? '' : String(record.extra_bonus),
+    });
+    setEditingMonth(month);
+    setError('');
+  }
+
+  async function saveMonth(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (editingMonth === null || saving) return;
+    setSaving(true);
+    setError('');
+    try {
+      const response = await fetch('/api/salary-records', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year: selectedYear, month: editingMonth, ...draft }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '월별 수입을 저장하지 못했습니다.');
+      setRecords((current) => {
+        const withoutMonth = current.filter((item) => !(item.income_year === selectedYear && item.income_month === editingMonth));
+        return data.record ? [...withoutMonth, data.record] : withoutMonth;
+      });
+      setEditingMonth(null);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : '월별 수입을 저장하지 못했습니다.');
+    } finally { setSaving(false); }
+  }
+
+  function displayedValue(value: number | null, past: boolean) {
+    return value === null ? (past ? '0' : '') : formatAmount(value);
+  }
+
+  if (authenticated === null || loading) return <main className="loading-screen"><LoadingDots /></main>;
+  if (!authenticated) return <main className="app"><section className="container"><div className="feature-placeholder"><h2>접근할 수 없습니다.</h2><p>먼저 Passcode를 입력해주세요.</p><Link href="/" className="back-link">처음으로</Link></div></section></main>;
+
+  return (
+    <main className="app">
+      <section className="container stock-container salary-container">
+        <header className="stock-header">
+          <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>연봉추이</h1></div>
+          <Link href="/" className="logout-button">처음으로</Link>
+        </header>
+
+        {error && <p className="salary-error" role="alert">{error}</p>}
+
+        <section className="stock-chart-panel salary-chart-panel">
+          <div className="stock-chart-heading">
+            <h2>{CHART_TITLES[chartKind]}</h2>
+            <select className="salary-chart-select" aria-label="차트 종류 선택" value={chartKind} onChange={(event) => setChartKind(event.target.value as ChartKind)}>
+              <option value="income">총 소득</option>
+              <option value="average">평균 급여</option>
+              <option value="bonus">총 상여금</option>
+            </select>
+          </div>
+          <div ref={chartScrollRef} className="salary-chart-scroll" aria-label={`${CHART_TITLES[chartKind]} 차트`}>
+            <svg className="salary-chart-svg" role="img" aria-label={`${CHART_TITLES[chartKind]} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+              {[0, 1, 2, 3, 4].map((index) => {
+                const y = chartTop + plotHeight * (index / 4);
+                const value = chartMax * (1 - index / 4);
+                return <g key={index}><line x1={chartLeft} x2={chartWidth - 10} y1={y} y2={y} stroke="#edf0f4" /><text x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value)}</text></g>;
+              })}
+              {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 8} y={point.y} width="16" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
+              <path d={linePath} fill="none" stroke="#426b9a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              {points.map((point) => <g key={`point-${point.year}`}><circle cx={point.x} cy={point.y} r="3.5" fill="#fff" stroke="#426b9a" strokeWidth="2" /><text x={point.x} y={chartHeight - 13} fill="#7d8592" fontSize="9" textAnchor="middle">{point.year}</text></g>)}
+            </svg>
+          </div>
+          <div className="salary-chart-legend"><span><i className="chart-legend-bar" />금액</span><span><i className="chart-legend-line" />추이</span></div>
+        </section>
+
+        <div className="salary-year-select-row">
+          <label htmlFor="salary-year">년도</label>
+          <select id="salary-year" value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
+            {[...years].reverse().map((year) => <option value={year} key={year}>{year}년</option>)}
+          </select>
+        </div>
+
+        <section className="stock-summary salary-summary" aria-label={`${selectedYear}년 요약`}>
+          <div className="summary-card"><span>연간 총 소득</span><strong>{formatAmount(summary.income)}</strong></div>
+          <div className="summary-card"><span>평균 급여</span><strong>{formatAmount(summary.averageSalary)}</strong></div>
+          <div className="summary-card"><span>총 상여금</span><strong>{formatAmount(summary.bonus)}</strong></div>
+        </section>
+
+        {selectedYear <= 2017 && <p className="salary-sample-note">2015~2017년에는 화면 확인용 가상 데이터가 들어 있습니다.</p>}
+        <div className="stock-table-wrap salary-table-wrap">
+          <table className="stock-table salary-table">
+            <thead><tr><th>년도</th><th>월</th><th>월급여</th><th>기본상여</th><th>추가상여</th><th>총합</th></tr></thead>
+            <tbody>{selectedRows.map((row) => (
+              <tr key={row.month} className={`salary-row${row.record?.is_sample ? ' is-sample' : ''}`} onClick={() => openMonth(row.month)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openMonth(row.month); }} aria-label={`${selectedYear}년 ${row.month}월 수입 수정`}>
+                <td className="salary-year-cell">{selectedYear}</td><td className="salary-month-cell">{row.month}월</td>
+                <td>{displayedValue(row.salary, row.past)}</td><td>{displayedValue(row.base, row.past)}</td><td>{displayedValue(row.extra, row.past)}</td><td className="salary-total-cell">{displayedValue(row.total, row.past)}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </section>
+
+      {editingMonth !== null && (
+        <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setEditingMonth(null); }}>
+          <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="salary-form-title">
+            <div className="family-event-modal-heading"><div><p className="eyebrow">MONTHLY INCOME</p><h2 id="salary-form-title">{selectedYear}년 {editingMonth}월 수입</h2></div><button type="button" onClick={() => setEditingMonth(null)} aria-label="닫기">×</button></div>
+            <form className="family-event-form routine-form" onSubmit={(event) => void saveMonth(event)}>
+              <label>월급여<input inputMode="numeric" value={draft.monthlySalary} onChange={(event) => setDraft((current) => ({ ...current, monthlySalary: event.target.value.replace(/[^\d,]/g, '') }))} placeholder="금액 입력" /></label>
+              <label>기본상여<input inputMode="numeric" value={draft.baseBonus} onChange={(event) => setDraft((current) => ({ ...current, baseBonus: event.target.value.replace(/[^\d,]/g, '') }))} placeholder="금액 입력" /></label>
+              <label>추가상여<input inputMode="numeric" value={draft.extraBonus} onChange={(event) => setDraft((current) => ({ ...current, extraBonus: event.target.value.replace(/[^\d,]/g, '') }))} placeholder="금액 입력" /></label>
+              {error && <p className="routine-error" role="alert">{error}</p>}
+              <button type="submit" className="family-event-save" disabled={saving}>{saving ? '저장 중...' : '저장'}</button>
+            </form>
+          </section>
+        </div>
+      )}
+    </main>
+  );
+}

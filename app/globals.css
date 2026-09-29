@@ -1588,6 +1588,90 @@ h1 {
   text-align: right;
 }
 
+.salary-chart-panel .stock-chart-heading { align-items: center; }
+
+.salary-chart-select,
+.salary-year-select-row select {
+  min-height: 34px;
+  padding: 0 30px 0 10px;
+  border: 1px solid #e7eaf0;
+  border-radius: 9px;
+  background: #fff;
+  color: #4d5663;
+  font-size: 12px;
+}
+
+.salary-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #d8dde5 transparent;
+}
+
+.salary-chart-svg { display: block; max-width: none; }
+
+.salary-chart-legend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 4px;
+  color: #858d98;
+  font-size: 10px;
+}
+
+.salary-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.salary-chart-legend .chart-legend-line { background: #426b9a; }
+.salary-chart-legend .chart-legend-bar { background: #c5d1e1; }
+
+.salary-year-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 0 16px;
+  color: #6e7681;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.salary-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.salary-summary .summary-card { padding-bottom: 12px; }
+.salary-summary .summary-card span { font-size: 11px; }
+.salary-summary .summary-card strong { font-size: clamp(13px, 3.8vw, 19px); }
+
+.salary-sample-note {
+  margin: -12px 0 13px;
+  color: #9aa1ab;
+  font-size: 10px;
+}
+
+.salary-table-wrap { overflow: hidden; }
+.salary-table { table-layout: fixed; }
+.salary-table th:nth-child(1), .salary-table td:nth-child(1) { width: 10%; }
+.salary-table th:nth-child(2), .salary-table td:nth-child(2) { width: 9%; }
+.salary-table th:nth-child(3), .salary-table td:nth-child(3) { width: 21%; }
+.salary-table th:nth-child(4), .salary-table td:nth-child(4) { width: 19%; }
+.salary-table th:nth-child(5), .salary-table td:nth-child(5) { width: 19%; }
+.salary-table th:nth-child(6), .salary-table td:nth-child(6) { width: 22%; }
+.salary-table th { font-size: 9px; }
+.salary-table td { padding: 11px 3px; font-size: clamp(7px, 2.15vw, 11px); font-variant-numeric: tabular-nums; }
+.salary-row { cursor: pointer; }
+.salary-row:hover td { background: #f8fafc; }
+.salary-year-cell, .salary-month-cell { color: #7c8490; text-align: center; font-size: 9px !important; }
+.salary-total-cell { color: #202a3a; font-weight: 700; }
+.salary-row.is-sample td { color: #9098a3; }
+.salary-error { margin: 0 0 14px; color: #c44444; font-size: 12px; line-height: 1.5; }
+
+@media (max-width: 380px) {
+  .salary-table th { font-size: 8px; }
+  .salary-table td { padding-right: 2px; padding-left: 2px; font-size: 7px; letter-spacing: -0.04em; }
+  .salary-year-cell, .salary-month-cell { font-size: 8px !important; }
+  .salary-summary { gap: 7px; }
+  .salary-summary .summary-card span { font-size: 9px; }
+}
+
 /* 상단 누적 정보 */
 .stock-summary {
   display: grid;
