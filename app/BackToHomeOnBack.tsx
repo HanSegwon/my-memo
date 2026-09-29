@@ -18,6 +18,10 @@ export default function BackToHomeOnBack() {
         window.dispatchEvent(new Event('affair-expense:close-dialog'));
         return;
       }
+      if (pathname === '/children-academy' && document.querySelector('.children-academy-modal')) {
+        window.dispatchEvent(new Event('children-academy:close-dialog'));
+        return;
+      }
       router.replace('/');
     };
     window.addEventListener('popstate', handleBack);

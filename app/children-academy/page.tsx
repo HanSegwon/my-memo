@@ -73,6 +73,14 @@ export default function ChildrenAcademyPage() {
   }, []);
 
   useEffect(() => {
+    const closeDialog = () => {
+      if (!saving) setShowForm(false);
+    };
+    window.addEventListener('children-academy:close-dialog', closeDialog);
+    return () => window.removeEventListener('children-academy:close-dialog', closeDialog);
+  }, [saving]);
+
+  useEffect(() => {
     const timetable = timetableRef.current;
     if (loading || !authenticated || !timetable) return;
     const availableHeight = timetable.clientHeight - 44;
@@ -85,6 +93,7 @@ export default function ChildrenAcademyPage() {
   const currentTimeTop = GRID_TOP_PADDING + ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
 
   function openForm(schedule?: Schedule) {
+    window.history.pushState({ ...window.history.state, childrenAcademyDialog: true }, '', window.location.pathname);
     setError('');
     setEditing(schedule ?? null);
     setDraft(schedule ? {
@@ -95,6 +104,14 @@ export default function ChildrenAcademyPage() {
       color: schedule.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR,
     } : { weekday: 1, title: '', startTime: '15:00', endTime: '16:00', color: DEFAULT_CHILDREN_ACADEMY_COLOR });
     setShowForm(true);
+  }
+
+  function closeForm() {
+    if (saving) return;
+    setShowForm(false);
+    if (window.history.state?.childrenAcademyDialog === true) {
+      window.history.replaceState({ ...window.history.state, childrenAcademyDialog: false }, '', window.location.pathname);
+    }
   }
 
   function changeStartTime(startTime: string) {
@@ -190,11 +207,11 @@ export default function ChildrenAcademyPage() {
       {childSchedules.length === 0 && <p className="children-timetable-empty">아직 등록된 일정이 없습니다. + 버튼으로 일정을 추가해보세요.</p>}
     </section>
 
-    {showForm && <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setShowForm(false); }}>
-      <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="children-schedule-title">
+    {showForm && <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm(); }}>
+      <section className="family-event-modal children-academy-modal" role="dialog" aria-modal="true" aria-labelledby="children-schedule-title">
         <div className="family-event-modal-heading"><div><p className="eyebrow">{editing ? 'EDIT SCHEDULE' : 'NEW SCHEDULE'}</p><h2 id="children-schedule-title">{child} 일정 {editing ? '수정' : '추가'}</h2></div><div className="children-modal-actions">
           {editing && <button type="button" className="children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving} aria-label="일정 삭제" title="일정 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg></button>}
-          <button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button>
+          <button type="button" onClick={closeForm} aria-label="닫기">×</button>
         </div></div>
         <form className="family-event-form" onSubmit={(event) => void saveSchedule(event)}>
           <label>일정<input autoFocus maxLength={100} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="예: 수학 학원" required /></label>
