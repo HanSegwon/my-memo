@@ -69,6 +69,7 @@ export default function ChildrenAcademyPage() {
   const childSchedules = useMemo(() => schedules.filter((item) => item.child_name === child), [schedules, child]);
   const hours = useMemo(() => Array.from({ length: 12 }, (_, index) => 9 + index), []);
   const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const todayWeekday = currentTime.getDay();
   const currentTimeTop = GRID_TOP_PADDING + ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
 
   function openForm(schedule?: Schedule) {
@@ -150,7 +151,7 @@ export default function ChildrenAcademyPage() {
 
       <section className="children-timetable-scroll" aria-label={`${child} 주간 시간표`}>
         <div className="children-timetable">
-          <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
+          <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day, index) => <span key={day}><span className={todayWeekday === index + 1 ? 'children-today-label' : undefined}>{day}</span></span>)}</div>
           <div className="children-timetable-body">
             <div className="children-time-axis" aria-hidden="true">
               {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${GRID_TOP_PADDING + (hour - 9) * 6 * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}

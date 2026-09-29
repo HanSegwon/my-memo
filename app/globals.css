@@ -1375,10 +1375,7 @@ h1 {
 .children-timetable-scroll {
   width: 100%;
   overflow-x: hidden;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 5px 20px rgba(25, 32, 42, 0.045);
 }
 .children-timetable { width: 100%; min-width: 0; }
 .children-timetable-heading,
@@ -1387,8 +1384,9 @@ h1 {
 .children-timetable-heading > span { display: grid; place-items: center; color: #343a42; font-size: 13px; font-weight: 650; }
 .children-timetable-heading > span:first-child { background: #fafbfc; }
 .children-timetable-heading > span + span { border-left: 1px solid #f0f1f3; }
+.children-timetable-heading > span > .children-today-label { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #202124; color: #fff; }
 .children-timetable-body { position: relative; box-sizing: border-box; height: 465px; padding-top: 12px; }
-.children-time-axis { position: relative; border-right: 1px solid #e8eaed; background: #fafbfc; }
+.children-time-axis { position: relative; background: #fff; }
 .children-time-axis,
 .children-day-column { height: 429px; align-self: start; }
 .children-hour-label { position: absolute; right: 4px; color: #68717c; font-size: clamp(8px, 2.4vw, 10px); font-variant-numeric: tabular-nums; transform: translateY(-50%); }
