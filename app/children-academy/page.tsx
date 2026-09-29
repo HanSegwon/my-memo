@@ -12,7 +12,7 @@ const CHILDREN: ChildName[] = ['한유준', '한이준'];
 const WEEKDAYS = ['월', '화', '수', '목', '금'];
 const GRID_START_MINUTES = 9 * 60;
 const GRID_END_MINUTES = 20 * 60;
-const SLOT_HEIGHT = 15;
+const SLOT_HEIGHT = 5;
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
   const minutes = GRID_START_MINUTES + index * 10;
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -155,7 +155,7 @@ export default function ChildrenAcademyPage() {
                   const top = ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
                   const height = ((minutesOf(formatTime(schedule.end_time)) - minutesOf(formatTime(schedule.start_time))) / 10) * SLOT_HEIGHT;
                   return <button type="button" className="children-schedule-block" key={schedule.id} style={{ top, height: Math.max(height, SLOT_HEIGHT) }} onClick={() => openForm(schedule)} aria-label={`${schedule.title}, ${formatTime(schedule.start_time)}부터 ${formatTime(schedule.end_time)}까지, 수정`}>
-                    <strong>{schedule.title}</strong><span>{formatTime(schedule.start_time)}–{formatTime(schedule.end_time)}</span>
+                    <strong>{schedule.title}</strong>{height >= SLOT_HEIGHT * 6 && <span>{formatTime(schedule.start_time)}–{formatTime(schedule.end_time)}</span>}
                   </button>;
                 })}
               </div>;
