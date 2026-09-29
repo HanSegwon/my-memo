@@ -181,16 +181,18 @@ export default function AffairExpensesPage() {
               {transactions.map((item, index) => <div className="affair-transaction-editor-row" key={index}>
                 <div className="affair-transaction-editor-top">
                   <div className="affair-flow-options" role="group" aria-label="구분">
-                    <button type="button" className={item.flow === 'expense' ? 'is-selected' : ''} aria-pressed={item.flow === 'expense'} onClick={() => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: 'expense' as const } : entry))}>보낸 부조</button>
-                    <button type="button" className={item.flow === 'income' ? 'is-selected' : ''} aria-pressed={item.flow === 'income'} onClick={() => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: 'income' as const } : entry))}>받은 부조</button>
+                    <button type="button" className={item.flow === 'expense' ? 'is-selected is-expense' : ''} aria-pressed={item.flow === 'expense'} onClick={() => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: 'expense' as const } : entry))}>보낸 부조</button>
+                    <button type="button" className={item.flow === 'income' ? 'is-selected is-income' : ''} aria-pressed={item.flow === 'income'} onClick={() => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: 'income' as const } : entry))}>받은 부조</button>
                   </div>
+                  <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제" title="항목 삭제">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5.5 7l1 14h11l1-14M9 7V4h6v3" /></svg>
+                  </button>
                 </div>
                 <div className="affair-transaction-editor-bottom">
                   <label className="affair-inline-field"><span>날짜</span><input type="date" value={item.eventDate} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: event.target.value } : entry))} required={Boolean(item.flow || item.eventName || item.amount)} /></label>
                   <label className="affair-inline-field"><span>행사명</span><input maxLength={100} value={item.eventName} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventName: event.target.value } : entry))} placeholder="예: 결혼식" required={Boolean(item.flow || item.eventDate || item.amount)} /></label>
                   <label className="affair-inline-field"><span>금액</span><input type="text" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: formatAmount(event.target.value) } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
                 </div>
-                <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제" title="항목 삭제">삭제</button>
               </div>)}
             </div>
             {error && <p className="family-event-error" role="alert">{error}</p>}

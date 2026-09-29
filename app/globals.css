@@ -1273,21 +1273,20 @@ h1 {
 }
 
 .affair-transaction-editor-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  padding-right: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .affair-flow-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 7px;
 }
 
 .affair-flow-options button {
-  min-height: 34px;
-  padding: 0 10px;
+  min-height: 32px;
+  padding: 0 9px;
   border: 1px solid #e7e9ed;
   border-radius: 999px;
   background: #fff;
@@ -1298,9 +1297,28 @@ h1 {
 }
 
 .affair-flow-options button.is-selected {
-  border-color: #252525;
-  background: #252525;
-  color: #fff;
+  border-color: #e7e9ed;
+  background: #f7f7f8;
+  color: #737984;
+  font-weight: 650;
+}
+
+.affair-flow-options button.is-selected.is-expense {
+  border-color: #f0c9c6;
+  background: #fff1f0;
+  color: #c14e48;
+}
+
+.affair-flow-options button.is-selected.is-income {
+  border-color: #c9e4d5;
+  background: #edf7f1;
+  color: #39815b;
+}
+
+.affair-flow-options button:focus-visible,
+.affair-remove-transaction:focus-visible {
+  outline: 2px solid #9aa5b4;
+  outline-offset: 2px;
 }
 
 .affair-transaction-editor-bottom {
@@ -1334,21 +1352,20 @@ h1 {
 }
 
 .affair-remove-transaction {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  min-width: 34px;
-  height: 28px;
-  padding: 0 3px;
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   background: transparent;
   color: #707780;
-  font-size: 12px;
   cursor: pointer;
 }
 
 .affair-remove-transaction:hover { color: #c14e48; }
+.affair-remove-transaction svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 
 @media (max-width: 520px) {
   .affair-contact-card { padding: 15px 12px; }
