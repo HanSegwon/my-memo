@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import { CHILDREN_ACADEMY_COLORS, DEFAULT_CHILDREN_ACADEMY_COLOR, type ChildrenAcademyColor } from '../../lib/childrenAcademyColors';
 
 type ChildName = '한유준' | '한이준';
-type Schedule = { id: string; child_name: ChildName; weekday: number; title: string; start_time: string; end_time: string };
-type Draft = { weekday: number; title: string; startTime: string; endTime: string };
+type Schedule = { id: string; child_name: ChildName; weekday: number; title: string; start_time: string; end_time: string; color?: ChildrenAcademyColor | null };
+type Draft = { weekday: number; title: string; startTime: string; endTime: string; color: ChildrenAcademyColor };
 
 const CHILDREN: ChildName[] = ['한유준', '한이준'];
 const WEEKDAYS = ['월', '화', '수', '목', '금'];
@@ -36,7 +37,7 @@ export default function ChildrenAcademyPage() {
   const [child, setChild] = useState<ChildName>('한유준');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Schedule | null>(null);
-  const [draft, setDraft] = useState<Draft>({ weekday: 1, title: '', startTime: '15:00', endTime: '16:00' });
+  const [draft, setDraft] = useState<Draft>({ weekday: 1, title: '', startTime: '15:00', endTime: '16:00', color: DEFAULT_CHILDREN_ACADEMY_COLOR });
   const [saving, setSaving] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
@@ -89,7 +90,8 @@ export default function ChildrenAcademyPage() {
       title: schedule.title,
       startTime: formatTime(schedule.start_time),
       endTime: formatTime(schedule.end_time),
-    } : { weekday: 1, title: '', startTime: '15:00', endTime: '16:00' });
+      color: schedule.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR,
+    } : { weekday: 1, title: '', startTime: '15:00', endTime: '16:00', color: DEFAULT_CHILDREN_ACADEMY_COLOR });
     setShowForm(true);
   }
 
@@ -174,7 +176,7 @@ export default function ChildrenAcademyPage() {
                 {daySchedules.map((schedule) => {
                   const top = GRID_TOP_PADDING + ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
                   const height = ((minutesOf(formatTime(schedule.end_time)) - minutesOf(formatTime(schedule.start_time))) / 10) * SLOT_HEIGHT;
-                  return <button type="button" className="children-schedule-block" key={schedule.id} style={{ top, height: Math.max(height, SLOT_HEIGHT) }} onClick={() => openForm(schedule)} aria-label={`${schedule.title}, ${formatTime(schedule.start_time)}부터 ${formatTime(schedule.end_time)}까지, 수정`}>
+                  return <button type="button" className="children-schedule-block" data-color={schedule.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR} key={schedule.id} style={{ top, height: Math.max(height, SLOT_HEIGHT) }} onClick={() => openForm(schedule)} aria-label={`${schedule.title}, ${formatTime(schedule.start_time)}부터 ${formatTime(schedule.end_time)}까지, 수정`}>
                     <strong>{schedule.title}</strong>{height >= SLOT_HEIGHT * 6 && <span>{formatTime(schedule.start_time)}–{formatTime(schedule.end_time)}</span>}
                   </button>;
                 })}
@@ -196,6 +198,14 @@ export default function ChildrenAcademyPage() {
             <label>시작 시간<select value={draft.startTime} onChange={(event) => changeStartTime(event.target.value)}>{timeOptions.slice(0, -1).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
           <label>종료 시간<select value={draft.endTime} onChange={(event) => setDraft((current) => ({ ...current, endTime: event.target.value }))}>{timeOptions.filter((time) => minutesOf(time) > minutesOf(draft.startTime)).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
           </div>
+          <fieldset className="children-color-fieldset">
+            <legend>일정 색상</legend>
+            <div className="children-color-picker" role="radiogroup" aria-label="일정 색상 선택">
+              {CHILDREN_ACADEMY_COLORS.map((color) => <button type="button" key={color.id} role="radio" aria-checked={draft.color === color.id} className="children-color-option" onClick={() => setDraft((current) => ({ ...current, color: color.id }))}>
+                <span className="children-color-swatch" style={{ background: color.background, borderColor: color.border }} />{color.label}
+              </button>)}
+            </div>
+          </fieldset>
           {error && <p className="routine-error" role="alert">{error}</p>}
           {editing && <button type="button" className="routine-delete-button children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving}>일정 삭제</button>}
           <button type="submit" className="family-event-save" disabled={saving || !draft.title.trim()}>{saving ? '저장 중...' : editing ? '수정 완료' : '일정 등록'}</button>

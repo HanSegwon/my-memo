@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
+import { CHILDREN_ACADEMY_COLORS, DEFAULT_CHILDREN_ACADEMY_COLOR, type ChildrenAcademyColor } from '../../../lib/childrenAcademyColors';
 
 const COOKIE_NAME = 'memo_auth';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -24,7 +25,7 @@ function isMissingSchema(error: { code?: string; message?: string }) {
 }
 
 function schemaRequired() {
-  return Response.json({ message: 'Supabase에서 자녀학원 시간표 SQL을 실행해주세요. supabase/migrations/20260930_create_children_academy.sql 파일이 필요합니다.' }, { status: 503 });
+  return Response.json({ message: 'Supabase에서 자녀학원 최신 SQL을 실행해주세요. supabase/migrations/20260930120000_add_academy_card_colors.sql 파일을 확인해주세요.' }, { status: 503 });
 }
 
 function validateSchedule(body: Record<string, unknown>) {
@@ -33,25 +34,27 @@ function validateSchedule(body: Record<string, unknown>) {
   const title = typeof body.title === 'string' ? body.title.trim() : '';
   const startTime = body.startTime;
   const endTime = body.endTime;
+  const color = body.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR;
   const validTime = (value: unknown) => typeof value === 'string' && /^(0[89]|1\d|2[0-2]):[0-5][0]$/.test(value);
   if (!CHILDREN.includes(childName as typeof CHILDREN[number])) return { error: '자녀를 선택해주세요.' };
   if (!WEEKDAYS.includes(weekday as typeof WEEKDAYS[number])) return { error: '월요일부터 금요일 중 요일을 선택해주세요.' };
   if (!title || title.length > 100) return { error: '일정은 1~100자로 입력해주세요.' };
+  if (typeof color !== 'string' || !CHILDREN_ACADEMY_COLORS.some((option) => option.id === color)) return { error: '일정 색상을 선택해주세요.' };
   if (!validTime(startTime) || !validTime(endTime) || String(startTime) >= String(endTime)) return { error: '08:00~22:00 사이에서 시작·종료 시간을 10분 단위로 선택해주세요.' };
-  return { value: { child_name: childName, weekday, title, start_time: startTime, end_time: endTime } };
+  return { value: { child_name: childName, weekday, title, start_time: startTime, end_time: endTime, color: color as ChildrenAcademyColor } };
 }
 
 export async function GET() {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   const { data, error } = await supabaseAdmin.from('children_academy_schedules')
-    .select('id, child_name, weekday, title, start_time, end_time, created_at, updated_at')
+    .select('*')
     .order('weekday', { ascending: true }).order('start_time', { ascending: true });
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
     console.error(error);
     return Response.json({ message: '자녀학원 시간표를 불러오지 못했습니다.' }, { status: 500 });
   }
-  return Response.json({ schedules: data ?? [] });
+  return Response.json({ schedules: (data ?? []).map((schedule) => ({ ...schedule, color: schedule.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR })) });
 }
 
 export async function POST(request: Request) {
@@ -59,13 +62,13 @@ export async function POST(request: Request) {
   const validated = validateSchedule(await request.json() as Record<string, unknown>);
   if (validated.error || !validated.value) return Response.json({ message: validated.error }, { status: 400 });
   const { data, error } = await supabaseAdmin.from('children_academy_schedules').insert(validated.value)
-    .select('id, child_name, weekday, title, start_time, end_time, created_at, updated_at').single();
+    .select('*').single();
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
     console.error(error);
     return Response.json({ message: '일정을 저장하지 못했습니다.' }, { status: 500 });
   }
-  return Response.json({ schedule: data });
+  return Response.json({ schedule: { ...data, color: data.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR } });
 }
 
 export async function PATCH(request: Request) {
@@ -75,13 +78,13 @@ export async function PATCH(request: Request) {
   const validated = validateSchedule(body);
   if (validated.error || !validated.value) return Response.json({ message: validated.error }, { status: 400 });
   const { data, error } = await supabaseAdmin.from('children_academy_schedules').update(validated.value).eq('id', body.id)
-    .select('id, child_name, weekday, title, start_time, end_time, created_at, updated_at').single();
+    .select('*').single();
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
     console.error(error);
     return Response.json({ message: '일정을 수정하지 못했습니다.' }, { status: 500 });
   }
-  return Response.json({ schedule: data });
+  return Response.json({ schedule: { ...data, color: data.color ?? DEFAULT_CHILDREN_ACADEMY_COLOR } });
 }
 
 export async function DELETE(request: Request) {
