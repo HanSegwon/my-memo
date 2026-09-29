@@ -3,6 +3,9 @@ alter table public.children_academy_schedules
   add column if not exists color text not null default 'blue';
 
 alter table public.children_academy_schedules
+  alter column color set default 'gray';
+
+alter table public.children_academy_schedules
   drop constraint if exists children_academy_schedules_color_check;
 
 alter table public.children_academy_schedules

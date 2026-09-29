@@ -14,4 +14,4 @@ export const CHILDREN_ACADEMY_COLORS = [
 ] as const;
 
 export type ChildrenAcademyColor = typeof CHILDREN_ACADEMY_COLORS[number]['id'];
-export const DEFAULT_CHILDREN_ACADEMY_COLOR: ChildrenAcademyColor = 'blue';
+export const DEFAULT_CHILDREN_ACADEMY_COLOR: ChildrenAcademyColor = 'gray';

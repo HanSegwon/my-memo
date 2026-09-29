@@ -193,7 +193,10 @@ export default function ChildrenAcademyPage() {
 
     {showForm && <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setShowForm(false); }}>
       <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="children-schedule-title">
-        <div className="family-event-modal-heading"><div><p className="eyebrow">{editing ? 'EDIT SCHEDULE' : 'NEW SCHEDULE'}</p><h2 id="children-schedule-title">{child} 일정 {editing ? '수정' : '추가'}</h2></div><button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button></div>
+        <div className="family-event-modal-heading"><div><p className="eyebrow">{editing ? 'EDIT SCHEDULE' : 'NEW SCHEDULE'}</p><h2 id="children-schedule-title">{child} 일정 {editing ? '수정' : '추가'}</h2></div><div className="children-modal-actions">
+          {editing && <button type="button" className="children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving} aria-label="일정 삭제" title="일정 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg></button>}
+          <button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button>
+        </div></div>
         <form className="family-event-form" onSubmit={(event) => void saveSchedule(event)}>
           <label>일정<input autoFocus maxLength={100} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="예: 수학 학원" required /></label>
           <label>요일<select value={draft.weekday} onChange={(event) => setDraft((current) => ({ ...current, weekday: Number(event.target.value) }))}>{WEEKDAYS.map((day, index) => <option value={index + 1} key={day}>{day}요일</option>)}</select></label>
@@ -210,7 +213,6 @@ export default function ChildrenAcademyPage() {
             </div>
           </fieldset>
           {error && <p className="routine-error" role="alert">{error}</p>}
-          {editing && <button type="button" className="routine-delete-button children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving}>일정 삭제</button>}
           <button type="submit" className="family-event-save" disabled={saving || !draft.title.trim()}>{saving ? '저장 중...' : editing ? '수정 완료' : '일정 등록'}</button>
         </form>
       </section>

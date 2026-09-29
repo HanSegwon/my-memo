@@ -691,7 +691,8 @@ h1 {
 }
 
 .family-calendar-nav button,
-.family-event-modal-heading > button {
+.family-event-modal-heading > button,
+.family-event-modal-heading .children-modal-actions > button {
   display: grid;
   min-width: 36px;
   height: 36px;
@@ -923,7 +924,8 @@ h1 {
   font-size: 10px;
 }
 
-.family-event-modal-heading > button {
+.family-event-modal-heading > button,
+.family-event-modal-heading .children-modal-actions > button:last-child {
   font-size: 23px;
 }
 
@@ -1425,7 +1427,10 @@ h1 {
 .children-color-option[aria-checked="true"] { border-color: #454b53; }
 .children-color-option:focus-visible { outline: 2px solid #454b53; outline-offset: 2px; }
 .children-color-swatch { width: 24px; height: 24px; border: 1px solid; border-radius: 50%; }
-.children-schedule-delete { min-height: 42px; border-color: #eee; font-size: 13px; }
+.children-modal-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+.family-event-modal-heading .children-modal-actions > .children-schedule-delete { color: #747b85; }
+.family-event-modal-heading .children-modal-actions > .children-schedule-delete:hover { border-color: #ead2d2; background: #fffafa; color: #a84949; }
+.children-schedule-delete svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 
 @media (max-width: 520px) {
   .affair-contact-card { padding: 15px 12px; }
