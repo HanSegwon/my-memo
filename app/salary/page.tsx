@@ -195,7 +195,7 @@ export default function SalaryPage() {
           <div className="stock-chart-heading">
             <h2>{CHART_OPTIONS.find((option) => option.value === chartKind)?.title}</h2>
           </div>
-          <div className="salary-chart-options" role="group" aria-label="차트 종류 선택">
+          <div className="routine-day-switch salary-chart-options" role="group" aria-label="차트 종류 선택">
             {CHART_OPTIONS.map((option) => <button key={option.value} type="button" className={chartKind === option.value ? 'is-selected' : ''} aria-pressed={chartKind === option.value} onClick={() => setChartKind(option.value)}>{option.label}</button>)}
           </div>
           <div className="stock-chart-layout salary-chart-layout">
