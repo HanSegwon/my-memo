@@ -40,7 +40,7 @@ function validateSchedule(body: Record<string, unknown>) {
   if (!WEEKDAYS.includes(weekday as typeof WEEKDAYS[number])) return { error: '월요일부터 금요일 중 요일을 선택해주세요.' };
   if (!title || title.length > 100) return { error: '일정은 1~100자로 입력해주세요.' };
   if (typeof color !== 'string' || !CHILDREN_ACADEMY_COLORS.some((option) => option.id === color)) return { error: '일정 색상을 선택해주세요.' };
-  if (!validTime(startTime) || !validTime(endTime) || String(startTime) >= String(endTime)) return { error: '08:00~22:00 사이에서 시작·종료 시간을 10분 단위로 선택해주세요.' };
+  if (!validTime(startTime) || String(startTime) < '08:30' || !validTime(endTime) || String(startTime) >= String(endTime)) return { error: '08:30~22:00 사이에서 시작·종료 시간을 10분 단위로 선택해주세요.' };
   return { value: { child_name: childName, weekday, title, start_time: startTime, end_time: endTime, color: color as ChildrenAcademyColor } };
 }
 

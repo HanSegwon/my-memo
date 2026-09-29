@@ -1387,11 +1387,12 @@ h1 {
 .children-timetable-heading > span:first-child { background: #fff; }
 .children-timetable-heading > span + span { border-left: 1px solid #f0f1f3; }
 .children-timetable-heading > span > .children-today-label { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #202124; color: #fff; }
-.children-timetable-body { position: relative; box-sizing: border-box; height: 730px; }
+.children-timetable-body { position: relative; box-sizing: border-box; height: 704.5px; }
 .children-time-axis { position: relative; background: #fff; }
 .children-time-axis,
-.children-day-column { height: 714px; align-self: start; }
+.children-day-column { height: 688.5px; align-self: start; }
 .children-hour-label { position: absolute; right: 4px; color: #68717c; font-size: clamp(8px, 2.4vw, 10px); font-variant-numeric: tabular-nums; transform: translateY(-50%); }
+.children-hour-label:first-child { transform: none; }
 .children-hour-label:last-child { transform: translateY(-100%); }
 .children-day-column { position: relative; min-width: 0; border-right: 1px solid #f0f1f3; }
 .children-slot-lines { position: absolute; inset: 0; pointer-events: none; }
@@ -1407,6 +1408,10 @@ h1 {
 .children-schedule-block[data-color="rose"] { --schedule-bg: #fcebf0; --schedule-border: #e8c1ce; --schedule-text: #743a4d; }
 .children-schedule-block[data-color="sky"] { --schedule-bg: #e8f5fa; --schedule-border: #b8dce8; --schedule-text: #28586b; }
 .children-schedule-block[data-color="sage"] { --schedule-bg: #eef2e6; --schedule-border: #cbd5b8; --schedule-text: #48543a; }
+.children-schedule-block[data-color="gray"] { --schedule-bg: #f1f2f4; --schedule-border: #d2d5da; --schedule-text: #444b54; }
+.children-schedule-block[data-color="cream"] { --schedule-bg: #f7f1e6; --schedule-border: #e3d3b4; --schedule-text: #61513a; }
+.children-schedule-block[data-color="coral"] { --schedule-bg: #fde9e4; --schedule-border: #edc1b7; --schedule-text: #7b4138; }
+.children-schedule-block[data-color="periwinkle"] { --schedule-bg: #e9ecfb; --schedule-border: #c3c9e8; --schedule-text: #404d78; }
 .children-schedule-block strong { overflow: hidden; font-size: clamp(8px, 2.5vw, 11px); font-weight: 650; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .children-schedule-block span { overflow: hidden; margin-top: 2px; color: inherit; font-size: clamp(7px, 2vw, 9px); line-height: 1.15; opacity: 0.72; text-overflow: ellipsis; white-space: nowrap; }
 .children-schedule-block:hover { filter: brightness(0.97); }

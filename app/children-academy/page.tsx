@@ -11,11 +11,15 @@ type Draft = { weekday: number; title: string; startTime: string; endTime: strin
 
 const CHILDREN: ChildName[] = ['한유준', '한이준'];
 const WEEKDAYS = ['월', '화', '수', '목', '금'];
-const GRID_START_MINUTES = 8 * 60;
+const GRID_START_MINUTES = 8 * 60 + 30;
 const GRID_END_MINUTES = 22 * 60;
 const SLOT_HEIGHT = 8.5;
 const GRID_TOP_PADDING = 0;
 const SLOT_COUNT = (GRID_END_MINUTES - GRID_START_MINUTES) / 10;
+const TIME_AXIS_LABELS = [
+  { label: '08:30', minutes: GRID_START_MINUTES },
+  ...Array.from({ length: 14 }, (_, index) => ({ label: `${String(index + 9).padStart(2, '0')}:00`, minutes: (index + 9) * 60 })),
+];
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
   const minutes = GRID_START_MINUTES + index * 10;
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -77,7 +81,6 @@ export default function ChildrenAcademyPage() {
   }, [loading, authenticated]);
 
   const childSchedules = useMemo(() => schedules.filter((item) => item.child_name === child), [schedules, child]);
-  const hours = useMemo(() => Array.from({ length: 14 }, (_, index) => 9 + index), []);
   const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
   const todayWeekday = currentTime.getDay();
   const currentTimeTop = GRID_TOP_PADDING + ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
@@ -165,7 +168,7 @@ export default function ChildrenAcademyPage() {
           <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day, index) => <span key={day}><span className={todayWeekday === index + 1 ? 'children-today-label' : undefined}>{day}</span></span>)}</div>
           <div className="children-timetable-body">
             <div className="children-time-axis" aria-hidden="true">
-              {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${GRID_TOP_PADDING + ((hour * 60 - GRID_START_MINUTES) / 10) * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
+              {TIME_AXIS_LABELS.map(({ label, minutes }) => <span className="children-hour-label" key={label} style={{ top: `${GRID_TOP_PADDING + ((minutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT}px` }}>{label}</span>)}
             </div>
             {currentMinutes >= GRID_START_MINUTES && currentMinutes <= GRID_END_MINUTES && <div className="children-current-time-line" style={{ top: currentTimeTop }} aria-hidden="true" />}
             {WEEKDAYS.map((day, index) => {
