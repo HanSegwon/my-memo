@@ -1265,57 +1265,61 @@ h1 {
 .affair-transaction-editor-row {
   position: relative;
   display: grid;
-  gap: 12px;
-  padding: 48px 14px 14px;
+  gap: 11px;
+  padding: 14px;
   border: 1px solid #e9eaec;
-  border-radius: 14px;
+  border-radius: 13px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(20, 25, 35, 0.035);
-}
-
-.affair-transaction-index {
-  position: absolute;
-  top: 15px;
-  left: 13px;
-  color: #858b94;
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.affair-transaction-editor-row > div > label { align-content: start; }
-
-.affair-transaction-editor-row .affair-flow-field {
-  display: flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.affair-flow-field > span {
-  flex: 0 0 auto;
-  color: #525862;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.affair-expense-form .affair-flow-field select {
-  width: min(65%, 240px);
-  background-color: #fff;
 }
 
 .affair-transaction-editor-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 8px;
+  padding-right: 44px;
+}
+
+.affair-flow-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.affair-flow-options button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #e7e9ed;
+  border-radius: 999px;
+  background: #fff;
+  color: #737984;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.affair-flow-options button.is-selected {
+  border-color: #252525;
+  background: #252525;
+  color: #fff;
 }
 
 .affair-transaction-editor-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
+  gap: 9px;
+}
+
+.affair-transaction-editor-bottom .affair-inline-field {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.affair-inline-field > span {
+  color: #626873;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .affair-expense-form .affair-transaction-editor-row input,
@@ -1341,8 +1345,6 @@ h1 {
   background: transparent;
   color: #707780;
   font-size: 12px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
   cursor: pointer;
 }
 
