@@ -1272,6 +1272,16 @@ h1 {
   background: #fcfcfc;
 }
 
+.affair-transaction-index {
+  position: absolute;
+  top: 15px;
+  left: 13px;
+  color: #858b94;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .affair-transaction-editor-row > div > label { align-content: start; }
 
 .affair-transaction-editor-top {

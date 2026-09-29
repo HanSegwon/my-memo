@@ -170,6 +170,7 @@ export default function AffairExpensesPage() {
               <div className="affair-transaction-editor-heading"><strong>행사 내역</strong><button type="button" className="affair-add-transaction" onClick={() => setTransactions((current) => [...current, emptyTransaction()])} aria-label="행사 내역 추가">+</button></div>
               {transactions.length === 0 && <p className="affair-transaction-hint">필요한 경우 + 버튼으로 입출금 내역을 추가하세요.</p>}
               {transactions.map((item, index) => <div className="affair-transaction-editor-row" key={index}>
+                <span className="affair-transaction-index">{index + 1} / {transactions.length}</span>
                 <div className="affair-transaction-editor-top">
                   <label>구분<select value={item.flow} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: event.target.value as TransactionDraft['flow'] } : entry))} required={Boolean(item.eventDate || item.eventName || item.amount)}>
                     <option value="">선택</option><option value="expense">보낸 부조</option><option value="income">받은 부조</option>
