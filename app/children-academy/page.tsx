@@ -13,6 +13,7 @@ const WEEKDAYS = ['월', '화', '수', '목', '금'];
 const GRID_START_MINUTES = 9 * 60;
 const GRID_END_MINUTES = 20 * 60;
 const SLOT_HEIGHT = 6.5;
+const GRID_TOP_PADDING = 12;
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
   const minutes = GRID_START_MINUTES + index * 10;
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -68,7 +69,7 @@ export default function ChildrenAcademyPage() {
   const childSchedules = useMemo(() => schedules.filter((item) => item.child_name === child), [schedules, child]);
   const hours = useMemo(() => Array.from({ length: 12 }, (_, index) => 9 + index), []);
   const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-  const currentTimeTop = ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
+  const currentTimeTop = GRID_TOP_PADDING + ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
 
   function openForm(schedule?: Schedule) {
     setError('');
@@ -152,7 +153,7 @@ export default function ChildrenAcademyPage() {
           <div className="children-timetable-heading"><span aria-hidden="true" />{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
           <div className="children-timetable-body">
             <div className="children-time-axis" aria-hidden="true">
-              {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${(hour - 9) * 6 * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
+              {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${GRID_TOP_PADDING + (hour - 9) * 6 * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
             </div>
             {currentMinutes >= GRID_START_MINUTES && currentMinutes <= GRID_END_MINUTES && <div className="children-current-time-line" style={{ top: currentTimeTop }} aria-hidden="true" />}
             {WEEKDAYS.map((day, index) => {
@@ -161,7 +162,7 @@ export default function ChildrenAcademyPage() {
               return <div className="children-day-column" key={day}>
                 <div className="children-slot-lines" aria-hidden="true">{Array.from({ length: 66 }, (_, slot) => <i key={slot} className={(slot + 1) % 6 === 0 ? 'is-hour' : ''} />)}</div>
                 {daySchedules.map((schedule) => {
-                  const top = ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
+                  const top = GRID_TOP_PADDING + ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
                   const height = ((minutesOf(formatTime(schedule.end_time)) - minutesOf(formatTime(schedule.start_time))) / 10) * SLOT_HEIGHT;
                   return <button type="button" className="children-schedule-block" key={schedule.id} style={{ top, height: Math.max(height, SLOT_HEIGHT) }} onClick={() => openForm(schedule)} aria-label={`${schedule.title}, ${formatTime(schedule.start_time)}부터 ${formatTime(schedule.end_time)}까지, 수정`}>
                     <strong>{schedule.title}</strong>{height >= SLOT_HEIGHT * 6 && <span>{formatTime(schedule.start_time)}–{formatTime(schedule.end_time)}</span>}

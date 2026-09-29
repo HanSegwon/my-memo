@@ -1379,7 +1379,7 @@ h1 {
 .children-timetable-heading { position: sticky; z-index: 3; top: 0; min-height: 44px; border-bottom: 1px solid #e9ebef; background: #fff; }
 .children-timetable-heading > span { display: grid; place-items: center; color: #626873; font-size: 13px; font-weight: 600; }
 .children-timetable-heading > span + span { border-left: 1px solid #f0f1f3; }
-.children-timetable-body { position: relative; height: 453px; }
+.children-timetable-body { position: relative; box-sizing: border-box; height: 465px; padding-top: 12px; }
 .children-time-axis { position: relative; border-right: 1px solid #eceef1; background: #fff; }
 .children-time-axis,
 .children-day-column { height: 429px; align-self: start; }
