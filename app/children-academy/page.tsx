@@ -12,7 +12,7 @@ const CHILDREN: ChildName[] = ['한유준', '한이준'];
 const WEEKDAYS = ['월', '화', '수', '목', '금'];
 const GRID_START_MINUTES = 9 * 60;
 const GRID_END_MINUTES = 20 * 60;
-const SLOT_HEIGHT = 5;
+const SLOT_HEIGHT = 6.5;
 const timeOptions = Array.from({ length: (GRID_END_MINUTES - GRID_START_MINUTES) / 10 + 1 }, (_, index) => {
   const minutes = GRID_START_MINUTES + index * 10;
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -35,6 +35,7 @@ export default function ChildrenAcademyPage() {
   const [editing, setEditing] = useState<Schedule | null>(null);
   const [draft, setDraft] = useState<Draft>({ weekday: 1, title: '', startTime: '15:00', endTime: '16:00' });
   const [saving, setSaving] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const loadSchedules = useCallback(async () => {
     const response = await fetch('/api/children-academy', { cache: 'no-store' });
@@ -59,8 +60,15 @@ export default function ChildrenAcademyPage() {
     return () => { cancelled = true; };
   }, [loadSchedules]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const childSchedules = useMemo(() => schedules.filter((item) => item.child_name === child), [schedules, child]);
   const hours = useMemo(() => Array.from({ length: 12 }, (_, index) => 9 + index), []);
+  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const currentTimeTop = ((currentMinutes - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
 
   function openForm(schedule?: Schedule) {
     setError('');
@@ -146,6 +154,7 @@ export default function ChildrenAcademyPage() {
             <div className="children-time-axis" aria-hidden="true">
               {hours.map((hour) => <span className="children-hour-label" key={hour} style={{ top: `${(hour - 9) * 6 * SLOT_HEIGHT}px` }}>{String(hour).padStart(2, '0')}:00</span>)}
             </div>
+            {currentMinutes >= GRID_START_MINUTES && currentMinutes <= GRID_END_MINUTES && <div className="children-current-time-line" style={{ top: currentTimeTop }} aria-hidden="true" />}
             {WEEKDAYS.map((day, index) => {
               const weekday = index + 1;
               const daySchedules = childSchedules.filter((item) => item.weekday === weekday);
