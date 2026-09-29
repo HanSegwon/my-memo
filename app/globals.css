@@ -1109,10 +1109,10 @@ h1 {
 }
 
 .affair-contact-card {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
   padding: 18px 16px;
   border: 1px solid #ededed;
   border-radius: 16px;
@@ -1121,9 +1121,10 @@ h1 {
 
 .affair-contact-open {
   display: grid;
+  width: 100%;
   min-width: 0;
   gap: 14px;
-  padding: 0;
+  padding: 0 36px 0 0;
   border: 0;
   background: transparent;
   color: inherit;
@@ -1185,15 +1186,22 @@ h1 {
 .affair-transaction-amount { color: #30343a; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
 
 .affair-contact-delete {
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid #ececec;
+  position: absolute;
+  top: 13px;
+  right: 12px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
   border-radius: 9px;
-  background: #fff;
-  color: #888;
-  font-size: 12px;
+  background: transparent;
+  color: #969ba3;
   cursor: pointer;
 }
+
+.affair-contact-delete:hover { background: #f5f5f5; color: #c14e48; }
+.affair-contact-delete svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 
 .affair-expenses-empty { padding: 56px 12px; }
 .affair-expense-modal { max-height: calc(100dvh - 32px); overflow-y: auto; }
@@ -1213,6 +1221,19 @@ h1 {
   color: #444;
   font-size: 12px;
   font-weight: 600;
+}
+
+.affair-expense-form .affair-contact-fields input,
+.affair-expense-form .affair-contact-fields select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 9px;
+  border: 1px solid #e6e7e9;
+  border-radius: 11px;
+  background: #fff;
+  color: #222;
+  font-size: 13px;
 }
 
 .affair-transaction-editor { display: grid; gap: 10px; }
@@ -1250,6 +1271,8 @@ h1 {
   background: #fcfcfc;
 }
 
+.affair-transaction-editor-row > div > label { align-content: start; }
+
 .affair-transaction-editor-top {
   display: grid;
   grid-template-columns: 1fr 1.35fr 30px;
@@ -1266,6 +1289,8 @@ h1 {
 .affair-expense-form .affair-transaction-editor-row input,
 .affair-expense-form .affair-transaction-editor-row select,
 .affair-contact-fields input {
+  width: 100%;
+  box-sizing: border-box;
   min-width: 0;
   min-height: 42px;
   padding: 0 9px;
@@ -1286,11 +1311,7 @@ h1 {
 
 @media (max-width: 520px) {
   .affair-contact-card { padding: 15px 12px; }
-  .affair-transaction-row { grid-template-columns: 42px 76px minmax(0, 1fr); gap: 6px; }
-  .affair-transaction-amount { grid-column: 3; justify-self: end; }
-  .affair-transaction-event { grid-column: 3; grid-row: 1; }
-  .affair-transaction-date { grid-column: 2; grid-row: 1; }
-  .affair-flow-badge { grid-column: 1; grid-row: 1; }
+  .affair-transaction-row { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 6px; }
 }
 
 .routine-list {

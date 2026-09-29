@@ -5,6 +5,7 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 const COOKIE_NAME = 'memo_auth';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FLOWS = ['expense', 'income'] as const;
+const RELATIONS = ['가족', '직장', '친구', '기타'] as const;
 
 type TransactionInput = { flow: 'expense' | 'income'; event_date: string; event_name: string; amount: number };
 
@@ -33,8 +34,8 @@ function validateContact(body: Record<string, unknown>) {
   const relation = typeof body.relation === 'string' ? body.relation.trim() : '';
   const phone = typeof body.phone === 'string' ? body.phone.trim() : '';
   if (!name || name.length > 80) return { error: '이름은 1~80자로 입력해주세요.' };
-  if (relation.length > 80) return { error: '관계는 80자 이내로 입력해주세요.' };
-  if (phone.length > 40) return { error: '전화번호를 확인해주세요.' };
+  if (!RELATIONS.includes(relation as typeof RELATIONS[number])) return { error: '관계를 선택해주세요.' };
+  if (!/^\d{11}$/.test(phone)) return { error: '전화번호 11자리를 입력해주세요.' };
   if (!Array.isArray(body.transactions)) return { error: '입출금 항목을 확인해주세요.' };
 
   const transactions: TransactionInput[] = [];

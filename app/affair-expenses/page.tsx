@@ -22,6 +22,18 @@ function sortContacts(items: AffairContact[]) {
   return [...items].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }
 
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
+function formatAmount(value: string | number) {
+  const digits = String(value).replace(/\D/g, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function emptyTransaction(): TransactionDraft {
   return { flow: '', eventDate: todayString(), eventName: '', amount: '' };
 }
@@ -66,8 +78,8 @@ export default function AffairExpensesPage() {
     setEditing(contact ?? null);
     setName(contact?.name ?? '');
     setRelation(contact?.relation ?? '');
-    setPhone(contact?.phone ?? '');
-    setTransactions(contact?.transactions.map((item) => ({ flow: item.flow, eventDate: item.event_date, eventName: item.event_name, amount: String(item.amount) })) ?? []);
+    setPhone(formatPhone(contact?.phone ?? ''));
+    setTransactions(contact?.transactions.map((item) => ({ flow: item.flow, eventDate: item.event_date, eventName: item.event_name, amount: formatAmount(item.amount) })) ?? []);
     setShowForm(true);
   }
 
@@ -80,7 +92,7 @@ export default function AffairExpensesPage() {
       const response = await fetch('/api/affair-expenses', {
         method: editing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editing?.id, name, relation, phone, transactions }),
+        body: JSON.stringify({ id: editing?.id, name, relation, phone: phone.replace(/\D/g, ''), transactions: transactions.map((item) => ({ ...item, amount: item.amount.replace(/\D/g, '') })) }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || '저장하지 못했습니다.');
@@ -126,18 +138,20 @@ export default function AffairExpensesPage() {
                 <span className="affair-contact-identity">
                   <strong>{contact.name}</strong>
                   {contact.relation && <span>{contact.relation}</span>}
-                  {contact.phone && <span className="affair-contact-phone">{contact.phone}</span>}
+                  {contact.phone && <span className="affair-contact-phone">{formatPhone(contact.phone)}</span>}
                 </span>
                 {contact.transactions.length > 0 && <span className="affair-transaction-list">
                   {contact.transactions.map((item) => <span className="affair-transaction-row" key={item.id}>
-                    <span className={`affair-flow-badge ${item.flow}`}>{item.flow === 'expense' ? '출금' : '입금'}</span>
+                    <span className={`affair-flow-badge ${item.flow}`}>{item.flow === 'expense' ? '보낸 부조' : '받은 부조'}</span>
                     <span className="affair-transaction-date">{formatDate(item.event_date)}</span>
                     <span className="affair-transaction-event">{item.event_name}</span>
                     <strong className="affair-transaction-amount">{Number(item.amount).toLocaleString('ko-KR')}원</strong>
                   </span>)}
                 </span>}
               </button>
-              <button type="button" className="affair-contact-delete" onClick={() => void deleteContact(contact)} aria-label={`${contact.name} 삭제`}>삭제</button>
+              <button type="button" className="affair-contact-delete" onClick={() => void deleteContact(contact)} aria-label={`${contact.name} 삭제`} title="삭제">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5.5 7l1 14h11l1-14M9 7V4h6v3" /></svg>
+              </button>
             </article>)}
           </section>
         )}
@@ -149,23 +163,23 @@ export default function AffairExpensesPage() {
           <form className="family-event-form affair-expense-form" onSubmit={(event) => void saveContact(event)}>
             <label>이름<input autoFocus maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="이름" required /></label>
             <div className="affair-contact-fields">
-              <label>관계<input maxLength={80} value={relation} onChange={(event) => setRelation(event.target.value)} placeholder="예: 친구, 직장 동료" /></label>
-              <label>전화번호<input type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="전화번호" /></label>
+              <label>관계<select value={relation} onChange={(event) => setRelation(event.target.value)} required><option value="">선택</option><option value="가족">가족</option><option value="직장">직장</option><option value="친구">친구</option><option value="기타">기타</option></select></label>
+              <label>전화번호<input type="tel" inputMode="numeric" maxLength={13} value={phone} onChange={(event) => setPhone(formatPhone(event.target.value))} placeholder="010-1234-5678" pattern="\d{3}-\d{4}-\d{4}" title="전화번호 11자리를 입력해주세요." required /></label>
             </div>
             <div className="affair-transaction-editor">
               <div className="affair-transaction-editor-heading"><strong>행사 내역</strong><button type="button" className="affair-add-transaction" onClick={() => setTransactions((current) => [...current, emptyTransaction()])} aria-label="행사 내역 추가">+</button></div>
               {transactions.length === 0 && <p className="affair-transaction-hint">필요한 경우 + 버튼으로 입출금 내역을 추가하세요.</p>}
               {transactions.map((item, index) => <div className="affair-transaction-editor-row" key={index}>
                 <div className="affair-transaction-editor-top">
-                  <label>출금 / 입금<select value={item.flow} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: event.target.value as TransactionDraft['flow'] } : entry))} required={Boolean(item.eventDate || item.eventName || item.amount)}>
-                    <option value="">선택</option><option value="expense">출금</option><option value="income">입금</option>
+                  <label>구분<select value={item.flow} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: event.target.value as TransactionDraft['flow'] } : entry))} required={Boolean(item.eventDate || item.eventName || item.amount)}>
+                    <option value="">선택</option><option value="expense">보낸 부조</option><option value="income">받은 부조</option>
                   </select></label>
                   <label>날짜<input type="date" value={item.eventDate} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: event.target.value } : entry))} required={Boolean(item.flow || item.eventName || item.amount)} /></label>
                   <button type="button" className="affair-remove-transaction" onClick={() => setTransactions((current) => current.filter((_, i) => i !== index))} aria-label="항목 삭제">×</button>
                 </div>
                 <div className="affair-transaction-editor-bottom">
                   <label>행사명<input maxLength={100} value={item.eventName} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventName: event.target.value } : entry))} placeholder="예: 결혼식" required={Boolean(item.flow || item.eventDate || item.amount)} /></label>
-                  <label>얼마<input type="number" min="0" step="1" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: event.target.value } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
+                  <label>얼마<input type="text" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: formatAmount(event.target.value) } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
                 </div>
               </div>)}
             </div>
