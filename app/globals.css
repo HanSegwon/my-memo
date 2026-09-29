@@ -1124,7 +1124,7 @@ h1 {
   width: 100%;
   min-width: 0;
   gap: 14px;
-  padding: 0 36px 0 0;
+  padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
@@ -1138,6 +1138,7 @@ h1 {
   align-items: baseline;
   flex-wrap: wrap;
   gap: 6px 12px;
+  padding-right: 36px;
 }
 
 .affair-contact-identity strong {
@@ -1165,7 +1166,7 @@ h1 {
   display: grid;
   grid-template-columns: 44px 86px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   min-width: 0;
   color: #515862;
   font-size: 12px;
@@ -1332,6 +1333,7 @@ h1 {
   grid-template-columns: 52px minmax(0, 1fr);
   align-items: center;
   gap: 9px;
+  padding-left: 6px;
 }
 
 .affair-inline-field > span {
@@ -1369,7 +1371,7 @@ h1 {
 
 @media (max-width: 520px) {
   .affair-contact-card { padding: 15px 12px; }
-  .affair-transaction-row { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 6px; }
+  .affair-transaction-row { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 12px; }
 }
 
 .routine-list {
