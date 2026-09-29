@@ -180,7 +180,7 @@ export default function AffairExpensesPage() {
               {transactions.map((item, index) => <div className="affair-transaction-editor-row" key={index}>
                 <span className="affair-transaction-index">{index + 1} / {transactions.length}</span>
                 <div className="affair-transaction-editor-top">
-                  <label>구분<select value={item.flow} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: event.target.value as TransactionDraft['flow'] } : entry))} required={Boolean(item.eventDate || item.eventName || item.amount)}>
+                  <label className="affair-flow-field"><span>구분</span><select value={item.flow} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, flow: event.target.value as TransactionDraft['flow'] } : entry))} required={Boolean(item.eventDate || item.eventName || item.amount)}>
                     <option value="">선택</option><option value="expense">보낸 부조</option><option value="income">받은 부조</option>
                   </select></label>
                   <label>날짜<input type="date" value={item.eventDate} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: event.target.value } : entry))} required={Boolean(item.flow || item.eventName || item.amount)} /></label>
