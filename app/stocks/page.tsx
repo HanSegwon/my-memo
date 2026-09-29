@@ -848,9 +848,9 @@ export default function StocksPage() {
                         x2={currentRoundX}
                         y1={chartTop}
                         y2={chartHeight - chartBottom}
-                        stroke="#aeb8c5"
+                        stroke="#3478df"
                         strokeDasharray="3 4"
-                        strokeWidth="1"
+                        strokeWidth="1.5"
                       />
                     )}
 
