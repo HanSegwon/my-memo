@@ -85,12 +85,13 @@ export default function SalaryPage() {
     const month = index + 1;
     const record = recordsByMonth.get(`${selectedYear}-${month}`);
     const past = selectedYear < thisYear || (selectedYear === thisYear && month < thisMonth);
-    const salary = record?.monthly_salary ?? null;
-    const base = record?.base_bonus ?? null;
-    const extra = record?.extra_bonus ?? null;
+    const preEmployment = selectedYear === 2015 && month <= 8;
+    const salary = preEmployment ? null : record?.monthly_salary ?? null;
+    const base = preEmployment ? null : record?.base_bonus ?? null;
+    const extra = preEmployment ? null : record?.extra_bonus ?? null;
     const hasEntry = salary !== null || base !== null || extra !== null;
-    const total = hasEntry ? Number(salary ?? 0) + Number(base ?? 0) + Number(extra ?? 0) : past ? 0 : null;
-    return { month, record, salary, base, extra, total, past };
+    const total = preEmployment ? null : hasEntry ? Number(salary ?? 0) + Number(base ?? 0) + Number(extra ?? 0) : past ? 0 : null;
+    return { month, record, salary, base, extra, total, past, preEmployment };
   }), [recordsByMonth, selectedYear, thisYear, thisMonth]);
 
   const totals = useMemo(() => {
@@ -104,10 +105,12 @@ export default function SalaryPage() {
 
   const chartRows = useMemo<ChartRow[]>(() => years.map((year) => {
     const monthsCount = year < thisYear ? 12 : thisMonth;
+    const firstIncomeMonth = year === 2015 ? 9 : 1;
+    const incomeMonthsCount = Math.max(0, monthsCount - firstIncomeMonth + 1);
     const yearRecords = records.filter((record) => record.income_year === year);
-    const salary = Array.from({ length: monthsCount }, (_, index) => Number(yearRecords.find((record) => record.income_month === index + 1)?.monthly_salary ?? 0)).reduce((sum, value) => sum + value, 0);
-    const bonus = yearRecords.filter((record) => record.income_month <= monthsCount).reduce((sum, record) => sum + Number(record.base_bonus ?? 0) + Number(record.extra_bonus ?? 0), 0);
-    const value = chartKind === 'income' ? salary + bonus : chartKind === 'average' ? (monthsCount ? salary / monthsCount : 0) : bonus;
+    const salary = Array.from({ length: incomeMonthsCount }, (_, index) => Number(yearRecords.find((record) => record.income_month === firstIncomeMonth + index)?.monthly_salary ?? 0)).reduce((sum, value) => sum + value, 0);
+    const bonus = yearRecords.filter((record) => record.income_month >= firstIncomeMonth && record.income_month <= monthsCount).reduce((sum, record) => sum + Number(record.base_bonus ?? 0) + Number(record.extra_bonus ?? 0), 0);
+    const value = chartKind === 'income' ? salary + bonus : chartKind === 'average' ? (incomeMonthsCount ? salary / incomeMonthsCount : 0) : bonus;
     return { year, value };
   }), [years, thisYear, thisMonth, records, chartKind]);
 
@@ -166,8 +169,8 @@ export default function SalaryPage() {
     } finally { setSaving(false); }
   }
 
-  function displayedValue(value: number | null, past: boolean) {
-    return value === null ? (past ? '0' : '') : formatAmount(value);
+  function displayedValue(value: number | null, past: boolean, preEmployment = false) {
+    return preEmployment ? '' : value === null ? (past ? '0' : '') : formatAmount(value);
   }
 
   if (authenticated === null || loading) return <main className="loading-screen"><LoadingDots /></main>;
@@ -195,8 +198,9 @@ export default function SalaryPage() {
               {[0, 1, 2, 3, 4].map((index) => {
                 const y = chartTop + plotHeight * (index / 4);
                 const value = chartMax * (1 - index / 4);
-                return <text key={index} x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value)}</text>;
+                return <text key={index} x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value / 1000)}</text>;
               })}
+              <text x={chartLeft - 8} y="10" fill="#737d8b" fontSize="8" textAnchor="end">천원</text>
             </svg>
             <div ref={chartScrollRef} className="stock-chart-scroll salary-chart-scroll" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 차트`}>
               <svg className="salary-chart-svg" role="img" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
@@ -228,9 +232,9 @@ export default function SalaryPage() {
             <tbody>
               <tr className="salary-total-row"><td colSpan={2}>Total</td><td>{formatAmount(totals.salary)}</td><td>{formatAmount(totals.baseBonus)}</td><td>{formatAmount(totals.extraBonus)}</td><td>{formatAmount(totals.total)}</td></tr>
               {selectedRows.map((row) => (
-              <tr key={row.month} className={`salary-row${row.record?.is_sample ? ' is-sample' : ''}`} onClick={() => openMonth(row.month)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openMonth(row.month); }} aria-label={`${selectedYear}년 ${row.month}월 수입 수정`}>
+              <tr key={row.month} className={`salary-row${row.record?.is_sample ? ' is-sample' : ''}${row.preEmployment ? ' is-pre-employment' : ''}`} onClick={() => { if (!row.preEmployment) openMonth(row.month); }} tabIndex={row.preEmployment ? -1 : 0} onKeyDown={(event) => { if (!row.preEmployment && (event.key === 'Enter' || event.key === ' ')) openMonth(row.month); }} aria-disabled={row.preEmployment} aria-label={`${selectedYear}년 ${row.month}월 수입${row.preEmployment ? '' : ' 수정'}`}>
                 <td className="salary-year-cell">{selectedYear}</td><td className="salary-month-cell">{row.month}월</td>
-                <td>{displayedValue(row.salary, row.past)}</td><td>{displayedValue(row.base, row.past)}</td><td>{displayedValue(row.extra, row.past)}</td><td className="salary-total-cell">{displayedValue(row.total, row.past)}</td>
+                <td>{displayedValue(row.salary, row.past, row.preEmployment)}</td><td>{displayedValue(row.base, row.past, row.preEmployment)}</td><td>{displayedValue(row.extra, row.past, row.preEmployment)}</td><td className="salary-total-cell">{displayedValue(row.total, row.past, row.preEmployment)}</td>
               </tr>
               ))}
             </tbody>

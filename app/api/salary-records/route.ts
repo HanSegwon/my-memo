@@ -59,6 +59,9 @@ export async function POST(request: Request) {
   if (!Number.isInteger(year) || year < 2015 || year > currentYear || !Number.isInteger(month) || month < 1 || month > 12) {
     return Response.json({ message: '년도와 월을 확인해주세요.' }, { status: 400 });
   }
+  if (year === 2015 && month <= 8) {
+    return Response.json({ message: '2015년 1월부터 8월까지는 입사 전 기간이라 입력할 수 없습니다.' }, { status: 400 });
+  }
   const monthlySalary = parseAmount(body.monthlySalary);
   const baseBonus = parseAmount(body.baseBonus);
   const extraBonus = parseAmount(body.extraBonus);

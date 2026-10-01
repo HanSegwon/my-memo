@@ -1996,6 +1996,8 @@ h1 {
 .salary-table td { padding: 11px 3px; font-size: clamp(7px, 2.15vw, 11px); font-variant-numeric: tabular-nums; }
 .salary-row { cursor: pointer; }
 .salary-row:hover td { background: #f8fafc; }
+.salary-row.is-pre-employment { cursor: default; }
+.salary-row.is-pre-employment:hover td { background: transparent; }
 .salary-year-cell, .salary-month-cell { color: #7c8490; text-align: center; font-size: 9px !important; }
 .salary-total-cell { color: #202a3a; font-weight: 700; }
 .salary-row.is-sample td { color: #9098a3; }
