@@ -122,7 +122,9 @@ export default function SalaryPage() {
   const plotWidth = chartWidth;
   const plotHeight = chartHeight - chartTop - chartBottom;
   const maxDataValue = Math.max(...chartRows.map((row) => row.value), 0);
-  const chartMax = maxDataValue > 0 ? maxDataValue * 1.1 : 1;
+  const chartStep = 10_000_000;
+  const chartMax = maxDataValue > 0 ? Math.ceil((maxDataValue * 1.1) / chartStep) * chartStep : chartStep;
+  const chartTicks = Array.from({ length: Math.ceil(chartMax / chartStep) + 1 }, (_, index) => chartMax - index * chartStep);
   const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
   const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
   const currentYearX = points.find((point) => point.year === thisYear)?.x;
@@ -195,18 +197,16 @@ export default function SalaryPage() {
           </div>
           <div className="stock-chart-layout salary-chart-layout">
             <svg className="stock-chart-y-axis" aria-hidden="true" width={chartLeft} height={chartHeight} viewBox={`0 0 ${chartLeft} ${chartHeight}`}>
-              {[0, 1, 2, 3, 4].map((index) => {
-                const y = chartTop + plotHeight * (index / 4);
-                const value = chartMax * (1 - index / 4);
-                return <text key={index} x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value / 1000)}</text>;
+              {chartTicks.map((value) => {
+                const y = chartTop + plotHeight * (1 - value / chartMax);
+                return <text key={value} x={chartLeft - 8} y={y + 3} fill="#737d8b" fontSize="9" textAnchor="end">{formatAmount(value)}</text>;
               })}
-              <text x={chartLeft - 8} y="10" fill="#737d8b" fontSize="8" textAnchor="end">천원</text>
             </svg>
             <div ref={chartScrollRef} className="stock-chart-scroll salary-chart-scroll" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 차트`}>
               <svg className="salary-chart-svg" role="img" aria-label={`${CHART_OPTIONS.find((option) => option.value === chartKind)?.title} 막대 및 꺾은선 그래프`} width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-                {[0, 1, 2, 3, 4].map((index) => {
-                  const y = chartTop + plotHeight * (index / 4);
-                  return <line key={index} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
+                {chartTicks.map((value) => {
+                  const y = chartTop + plotHeight * (1 - value / chartMax);
+                  return <line key={value} x1="0" x2={chartWidth} y1={y} y2={y} stroke="#edf0f4" />;
                 })}
                 {currentYearX !== undefined && <line x1={currentYearX} x2={currentYearX} y1={chartTop} y2={chartHeight - chartBottom} stroke="#3478df" strokeDasharray="3 4" strokeWidth="1.5" />}
                 {points.map((point) => <rect key={`bar-${point.year}`} x={point.x - 10} y={point.y} width="20" height={chartTop + plotHeight - point.y} rx="3" fill="#c5d1e1" />)}
