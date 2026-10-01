@@ -35,6 +35,14 @@ function currentKoreanMonth() {
 
 function formatAmount(value: number) { return Math.round(value).toLocaleString('ko-KR'); }
 
+function niceChartStep(targetMax: number) {
+  const rawStep = targetMax / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const multiplier = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return multiplier * magnitude;
+}
+
 export default function SalaryPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,9 +130,10 @@ export default function SalaryPage() {
   const plotWidth = chartWidth;
   const plotHeight = chartHeight - chartTop - chartBottom;
   const maxDataValue = Math.max(...chartRows.map((row) => row.value), 0);
-  const chartStep = 10_000_000;
-  const chartMax = maxDataValue > 0 ? Math.ceil((maxDataValue * 1.1) / chartStep) * chartStep : chartStep;
-  const chartTicks = Array.from({ length: Math.ceil(chartMax / chartStep) + 1 }, (_, index) => chartMax - index * chartStep);
+  const targetChartMax = maxDataValue > 0 ? maxDataValue * 1.1 : 1;
+  const chartStep = niceChartStep(targetChartMax);
+  const chartMax = Math.ceil(targetChartMax / chartStep) * chartStep;
+  const chartTicks = Array.from({ length: Math.round(chartMax / chartStep) + 1 }, (_, index) => chartMax - index * chartStep);
   const chartY = (value: number) => chartTop + (1 - value / chartMax) * plotHeight;
   const points = chartRows.map((row, index) => ({ year: row.year, value: row.value, x: plotWidth * ((index + 0.5) / chartRows.length), y: chartY(row.value) }));
   const currentYearX = points.find((point) => point.year === thisYear)?.x;
