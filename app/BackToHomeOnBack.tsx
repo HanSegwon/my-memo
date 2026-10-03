@@ -22,6 +22,10 @@ export default function BackToHomeOnBack() {
         window.dispatchEvent(new Event('children-academy:close-dialog'));
         return;
       }
+      if (pathname === '/smoking' && document.querySelector('.smoking-record-dialog')) {
+        window.dispatchEvent(new Event('smoking:close-dialog'));
+        return;
+      }
       router.replace('/');
     };
     window.addEventListener('popstate', handleBack);

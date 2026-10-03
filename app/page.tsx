@@ -502,6 +502,10 @@ export default function Home() {
             )}
           </Link>
 
+          <Link href="/smoking" className="home-button">
+            금연관리
+          </Link>
+
           <Link href="/routine" className="home-button">
             <span className="home-button-title">생활루틴</span>
             {routineSummary && (
