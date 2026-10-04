@@ -16,6 +16,7 @@ type SmokingDraft = { regularCount: string; electronicCount: string };
 
 const emptyDraft: SmokingDraft = { regularCount: '', electronicCount: '' };
 const BAR_COLORS = { regular: '#8194ae', electronic: '#78aa98' };
+const TOTAL_LINE_COLOR = '#d28b45';
 
 function koreanToday() {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -133,6 +134,13 @@ export default function SmokingPage() {
     }
   }
 
+  function adjustCount(field: keyof SmokingDraft, amount: number) {
+    setDraft((current) => {
+      const value = Number(current[field]) || 0;
+      return { ...current, [field]: String(Math.min(9999, Math.max(0, value + amount))) };
+    });
+  }
+
   async function saveRecord(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeDate || saving) return;
@@ -174,6 +182,10 @@ export default function SmokingPage() {
   const currentDateX = chartRows.findIndex((record) => record.record_date === today) >= 0
     ? chartRows.findIndex((record) => record.record_date === today) * 48 + 24
     : undefined;
+  const totalPoints = chartRows.map((record, index) => {
+    const total = Number(record.regular_count ?? 0) + Number(record.electronic_count ?? 0);
+    return `${index * 48 + 24},${chartBaseline - (total / chartMax) * plotHeight}`;
+  }).join(' ');
 
   if (authenticated === null || loading) return <main className="loading-screen"><LoadingDots /></main>;
 
@@ -193,6 +205,7 @@ export default function SmokingPage() {
             <div className="stock-chart-legend" aria-label="차트 범례">
               <span><i className="smoking-legend-regular" />연초</span>
               <span><i className="smoking-legend-electronic" />전자담배</span>
+              <span><i className="smoking-legend-total" />하루 총량 추이</span>
             </div>
           </div>
           {chartRows.length === 0 ? (
@@ -226,6 +239,13 @@ export default function SmokingPage() {
                       <title>{`${formatTableDate(record.record_date)} · 연초 ${formatCount(regular)}개 · 전자담배 ${formatCount(electronic)}개 · 하루 총 ${formatCount(total)}개`}</title>
                     </g>;
                   })}
+                  {chartRows.length > 1 && <polyline points={totalPoints} fill="none" stroke={TOTAL_LINE_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+                  {chartRows.map((record, index) => {
+                    const total = Number(record.regular_count ?? 0) + Number(record.electronic_count ?? 0);
+                    const x = index * 48 + 24;
+                    const y = chartBaseline - (total / chartMax) * plotHeight;
+                    return <circle key={`total-${record.record_date}`} cx={x} cy={y} r="3.5" fill="#fff" stroke={TOTAL_LINE_COLOR} strokeWidth="2" />;
+                  })}
                 </svg>
               </div>
             </div>
@@ -250,8 +270,8 @@ export default function SmokingPage() {
       {activeDate && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeRecord(); }}>
         <form className="settings-modal weight-dialog smoking-dialog smoking-record-dialog" onSubmit={(event) => void saveRecord(event)} onMouseDown={(event) => event.stopPropagation()}>
           <div className="settings-modal-header"><div><p className="eyebrow">DAILY RECORD</p><h2>{formatTableDate(activeDate)} 흡연량</h2></div><button className="modal-close" type="button" onClick={closeRecord}>닫기</button></div>
-          <label className="weight-form-field"><span>연초</span><div className="smoking-input-with-unit"><input type="text" inputMode="numeric" maxLength={4} placeholder="개수" value={draft.regularCount} onChange={(event) => { const value = event.target.value; if (/^\d{0,4}$/.test(value)) setDraft((current) => ({ ...current, regularCount: value })); }} /><span>개</span></div></label>
-          <label className="weight-form-field"><span>전자담배</span><div className="smoking-input-with-unit"><input type="text" inputMode="numeric" maxLength={4} placeholder="개수" value={draft.electronicCount} onChange={(event) => { const value = event.target.value; if (/^\d{0,4}$/.test(value)) setDraft((current) => ({ ...current, electronicCount: value })); }} /><span>개</span></div></label>
+          <label className="weight-form-field"><span>연초</span><div className="smoking-input-with-unit"><button type="button" aria-label="연초 수량 줄이기" onClick={() => adjustCount('regularCount', -1)}>−</button><input type="text" inputMode="numeric" maxLength={4} placeholder="0" value={draft.regularCount} onChange={(event) => { const value = event.target.value; if (/^\d{0,4}$/.test(value)) setDraft((current) => ({ ...current, regularCount: value })); }} /><button type="button" aria-label="연초 수량 늘리기" onClick={() => adjustCount('regularCount', 1)}>+</button><span>개</span></div></label>
+          <label className="weight-form-field"><span>전자담배</span><div className="smoking-input-with-unit"><button type="button" aria-label="전자담배 수량 줄이기" onClick={() => adjustCount('electronicCount', -1)}>−</button><input type="text" inputMode="numeric" maxLength={4} placeholder="0" value={draft.electronicCount} onChange={(event) => { const value = event.target.value; if (/^\d{0,4}$/.test(value)) setDraft((current) => ({ ...current, electronicCount: value })); }} /><button type="button" aria-label="전자담배 수량 늘리기" onClick={() => adjustCount('electronicCount', 1)}>+</button><span>개</span></div></label>
           <div className="smoking-total-preview"><span>하루 총 흡연량</span><strong>{formatCount((Number(draft.regularCount) || 0) + (Number(draft.electronicCount) || 0))}개</strong></div>
           {recordError && <p className="weight-dialog-error" role="alert">{recordError}</p>}
           <button className="settings-save-button weight-save-button" type="submit" disabled={saving}>{saving ? '저장 중...' : '기록 저장'}</button>

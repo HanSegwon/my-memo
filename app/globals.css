@@ -3008,13 +3008,18 @@ h1 {
 }
 
 .stock-chart-legend .smoking-legend-regular,
-.stock-chart-legend .smoking-legend-electronic {
+.stock-chart-legend .smoking-legend-electronic,
+.stock-chart-legend .smoking-legend-total {
   display: inline-block;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.stock-chart-legend .smoking-legend-regular,
+.stock-chart-legend .smoking-legend-electronic {
   width: 9px;
   height: 9px;
-  margin-right: 6px;
   border-radius: 3px;
-  vertical-align: -1px;
 }
 
 .smoking-legend-regular {
@@ -3023,6 +3028,25 @@ h1 {
 
 .smoking-legend-electronic {
   background: #78aa98;
+}
+
+.stock-chart-legend .smoking-legend-total {
+  position: relative;
+  width: 13px;
+  height: 9px;
+  border-top: 2px solid #d28b45;
+}
+
+.smoking-legend-total::after {
+  position: absolute;
+  top: -4px;
+  left: 5px;
+  width: 5px;
+  height: 5px;
+  border: 1.5px solid #d28b45;
+  border-radius: 50%;
+  background: #fff;
+  content: '';
 }
 
 .smoking-chart-scroll {
@@ -3121,12 +3145,16 @@ h1 {
 
 .smoking-input-with-unit {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .smoking-input-with-unit input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 40px;
-  padding: 0 42px 0 12px;
+  padding: 0 34px 0 12px;
   border: 1px solid #e1e5eb;
   border-radius: 11px;
   outline: none;
@@ -3134,6 +3162,26 @@ h1 {
   color: #202a3a;
   font-size: 14px;
   font-variant-numeric: tabular-nums;
+}
+
+.smoking-input-with-unit button {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e1e5eb;
+  border-radius: 11px;
+  background: #fff;
+  color: #34445d;
+  font-size: 21px;
+  font-weight: 450;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.smoking-input-with-unit button:hover {
+  border-color: #cbd3df;
+  background: #f6f8fb;
 }
 
 .smoking-input-with-unit input:focus {
@@ -3144,7 +3192,7 @@ h1 {
 .smoking-input-with-unit > span {
   position: absolute;
   top: 50%;
-  right: 13px;
+  right: 58px;
   color: #8d96a3;
   font-size: 12px;
   transform: translateY(-50%);
