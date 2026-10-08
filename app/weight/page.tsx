@@ -227,8 +227,20 @@ export default function WeightPage() {
   }
 
   const visibleDates = useMemo(
-    () => (today ? Array.from({ length: 6 }, (_, index) => addDays(today, -index)) : []),
-    [today]
+    () => {
+      if (!today) return [];
+
+      const firstDateWithRecord = records.reduce(
+        (earliest, record) => record.record_date < earliest ? record.record_date : earliest,
+        addDays(today, -5)
+      );
+      const dates: string[] = [];
+      for (let date = today; date >= firstDateWithRecord; date = addDays(date, -1)) {
+        dates.push(date);
+      }
+      return dates;
+    },
+    [today, records]
   );
 
   const recordMap = useMemo(

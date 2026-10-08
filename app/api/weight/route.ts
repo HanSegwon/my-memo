@@ -69,26 +69,39 @@ export async function GET() {
     return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const [settingsResult, recordsResult, goalsResult] = await Promise.all([
+  const [settingsResult, goalsResult] = await Promise.all([
     supabaseAdmin
       .from('weight_settings')
       .select('id, fasting_frequency, fasting_weekdays, fasting_anchor_date')
       .eq('id', 1)
       .maybeSingle(),
     supabaseAdmin
-      .from('weight_records')
-      .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
-      )
-      .order('record_date', { ascending: true }),
-    supabaseAdmin
       .from('weight_monthly_goals')
       .select('goal_month, target_weight, updated_at')
       .order('goal_month', { ascending: true }),
   ]);
 
-  if (settingsResult.error || recordsResult.error) {
-    const error = settingsResult.error ?? recordsResult.error!;
+  const records: unknown[] = [];
+  let recordsError: { code?: string; message?: string } | null = null;
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await supabaseAdmin
+      .from('weight_records')
+      .select(
+        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
+      )
+      .order('record_date', { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (page.error) {
+      recordsError = page.error;
+      break;
+    }
+    records.push(...(page.data ?? []));
+    if ((page.data?.length ?? 0) < pageSize) break;
+  }
+
+  if (settingsResult.error || recordsError) {
+    const error = settingsResult.error ?? recordsError!;
     if (isMissingTable(error)) return missingSchemaResponse();
     console.error(error);
     return Response.json(
@@ -113,7 +126,7 @@ export async function GET() {
       fasting_weekdays: [],
       fasting_anchor_date: anchorDate,
     },
-    records: recordsResult.data ?? [],
+    records,
     monthlyGoals: goalsResult.data ?? [],
     goalTableReady: !goalsResult.error,
   });
