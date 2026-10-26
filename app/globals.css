@@ -1524,7 +1524,8 @@ h1 {
   display: grid;
   grid-template-columns: 128px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 18px;
+  column-gap: 21.6px;
+  row-gap: 18px;
   min-height: 94px;
   padding: 18px 20px;
 }
@@ -1704,7 +1705,8 @@ h1 {
 @media (max-width: 520px) {
   .routine-item {
     grid-template-columns: 94px minmax(0, 1fr) auto;
-    gap: 8px;
+    column-gap: 9.6px;
+    row-gap: 8px;
     min-height: 84px;
     padding: 15px 12px;
   }
