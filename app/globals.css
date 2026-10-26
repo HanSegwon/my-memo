@@ -2980,6 +2980,14 @@ h1 {
   white-space: nowrap;
 }
 
+.weight-table .weight-no-records {
+  padding: 28px 8px;
+  color: #9aa1ab;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: normal;
+}
+
 .weight-day-row {
   cursor: pointer;
   transition: background-color 140ms ease;

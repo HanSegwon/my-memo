@@ -93,6 +93,17 @@ function formatTableDate(date: string) {
   return `${Number(month)}/${Number(day)} (${weekday})`;
 }
 
+function hasRecordedWeightData(record: WeightRecord) {
+  return record.weight_kg !== null ||
+    record.exercise !== null ||
+    record.aerobic_exercise !== null ||
+    record.breakfast !== null ||
+    record.lunch !== null ||
+    record.dinner !== null ||
+    Boolean(record.snack?.trim()) ||
+    Boolean(record.late_snack?.trim());
+}
+
 function formatChartMonth(month: string) {
   const [year, monthNumber] = month.split('-');
   return `'${year.slice(-2)}.${monthNumber}`;
@@ -215,14 +226,21 @@ export default function WeightPage() {
 
   const visibleDates = useMemo(() => {
     if (!today || currentYear === null || selectedYear === null) return [];
-    const firstDate = `${selectedYear}-01-01`;
+    const firstRecordedDate = records
+      .filter((record) => record.record_date.startsWith(`${selectedYear}-`) && hasRecordedWeightData(record))
+      .reduce<string | null>((earliest, record) =>
+        earliest === null || record.record_date < earliest ? record.record_date : earliest,
+      null);
+    const firstDate = firstRecordedDate ?? (selectedYear === currentYear ? addDays(today, -5) : null);
+    if (!firstDate) return [];
     const lastDate = selectedYear === currentYear ? today : `${selectedYear}-12-31`;
+    if (firstDate > lastDate) return [];
     const dates: string[] = [];
     for (let date = lastDate; date >= firstDate; date = addDays(date, -1)) {
       dates.push(date);
     }
     return dates;
-  }, [today, currentYear, selectedYear]);
+  }, [today, currentYear, selectedYear, records]);
   const displayedDates = showAllRecords ? visibleDates : visibleDates.slice(0, 14);
 
   const recordMap = useMemo(
@@ -663,6 +681,9 @@ export default function WeightPage() {
               </tr>
             </thead>
             <tbody>
+              {displayedDates.length === 0 && (
+                <tr><td colSpan={9} className="weight-no-records">선택한 연도에 저장된 체중 기록이 없습니다.</td></tr>
+              )}
               {displayedDates.map((date) => {
                 const record = recordMap.get(date);
                 return (
