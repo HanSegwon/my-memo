@@ -1,4 +1,4 @@
-export type RoutineDayType = 'weekday' | 'holiday';
+export type RoutineDayType = 'weekday' | 'holiday' | 'custom';
 export type ScheduledRoutine = {
   id: string;
   start_time: string;

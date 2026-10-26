@@ -1049,6 +1049,7 @@ h1 {
 .routine-day-switch {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 4px 0 18px;
 }
@@ -1069,6 +1070,45 @@ h1 {
   border-color: #252525;
   background: #252525;
   color: #fff;
+}
+
+.routine-day-switch .routine-tab-button {
+  flex: 0 1 auto;
+  max-width: 112px;
+  min-width: 84px;
+  padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.routine-day-switch .routine-tab-add {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  min-height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px dashed #aeb5bf;
+  border-radius: 999px;
+  background: #fff;
+  color: #687386;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.routine-day-switch .routine-tab-add:hover {
+  border-color: #69788e;
+  background: #f8f9fb;
+  color: #34445d;
+}
+
+.routine-rename-modal {
+  width: min(100%, 420px);
 }
 
 .routine-today-type {
