@@ -821,31 +821,33 @@ export default function WeightPage() {
               }
             />
 
-            <label className="weight-form-field">
-              <span>간식</span>
-              <input
-                type="text"
-                maxLength={100}
-                placeholder="간식 내용을 입력하세요"
-                value={recordDraft.snack}
-                onChange={(event) =>
-                  setRecordDraft((current) => ({ ...current, snack: event.target.value }))
-                }
-              />
-            </label>
+            <div className="weight-snack-fields">
+              <label className="weight-form-field">
+                <span>간식</span>
+                <input
+                  type="text"
+                  maxLength={100}
+                  placeholder="간식 내용을 입력하세요"
+                  value={recordDraft.snack}
+                  onChange={(event) =>
+                    setRecordDraft((current) => ({ ...current, snack: event.target.value }))
+                  }
+                />
+              </label>
 
-            <label className="weight-form-field">
-              <span>야식</span>
-              <input
-                type="text"
-                maxLength={100}
-                placeholder="야식 내용을 입력하세요"
-                value={recordDraft.lateSnack}
-                onChange={(event) =>
-                  setRecordDraft((current) => ({ ...current, lateSnack: event.target.value }))
-                }
-              />
-            </label>
+              <label className="weight-form-field">
+                <span>야식</span>
+                <input
+                  type="text"
+                  maxLength={100}
+                  placeholder="야식 내용을 입력하세요"
+                  value={recordDraft.lateSnack}
+                  onChange={(event) =>
+                    setRecordDraft((current) => ({ ...current, lateSnack: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
 
             {recordError && <p className="weight-dialog-error" role="alert">{recordError}</p>}
 

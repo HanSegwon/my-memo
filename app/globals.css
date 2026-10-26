@@ -3130,6 +3130,30 @@ h1 {
   margin-bottom: 10px;
 }
 
+.weight-record-dialog .settings-modal-header {
+  margin-bottom: 20px;
+}
+
+.weight-record-dialog .weight-form-field {
+  margin-bottom: 20px;
+}
+
+.weight-record-dialog .weight-choice-field {
+  margin-bottom: 18px;
+}
+
+.weight-snack-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.weight-snack-fields .weight-form-field {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
 .weight-goal-description {
   margin: 0 0 8px;
   color: #858d99;
@@ -3291,10 +3315,6 @@ h1 {
 
 .weight-choice-options {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.weight-aerobic-field .weight-choice-options {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .weight-frequency-options {
