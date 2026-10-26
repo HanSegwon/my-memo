@@ -6,6 +6,7 @@ import LoadingDots from '../../components/LoadingDots';
 import { useRouter } from 'next/navigation';
 
 type Exercise = '상체' | '하체' | '코어' | '휴식';
+type AerobicChoice = 'O' | 'X';
 type MealAmount = '미취식' | '소식' | '보통' | '과식';
 
 type WeightRecord = {
@@ -15,7 +16,9 @@ type WeightRecord = {
   breakfast: MealAmount | null;
   lunch: MealAmount | null;
   dinner: MealAmount | null;
-  other_food: string | null;
+  snack: string | null;
+  late_snack: string | null;
+  aerobic_exercise: boolean | null;
   updated_at: string;
 };
 
@@ -31,7 +34,9 @@ type RecordDraft = {
   breakfast: MealAmount | '';
   lunch: MealAmount | '';
   dinner: MealAmount | '';
-  otherFood: string;
+  aerobicExercise: AerobicChoice | '';
+  snack: string;
+  lateSnack: string;
 };
 
 const weekdays = [
@@ -45,6 +50,7 @@ const weekdays = [
 ];
 
 const exercises: Exercise[] = ['상체', '하체', '코어', '휴식'];
+const aerobicChoices: AerobicChoice[] = ['O', 'X'];
 const mealAmounts: MealAmount[] = ['미취식', '소식', '보통', '과식'];
 
 const emptyRecordDraft: RecordDraft = {
@@ -53,7 +59,9 @@ const emptyRecordDraft: RecordDraft = {
   breakfast: '',
   lunch: '',
   dinner: '',
-  otherFood: '',
+  aerobicExercise: '',
+  snack: '',
+  lateSnack: '',
 };
 
 function getKoreanToday() {
@@ -240,7 +248,9 @@ export default function WeightPage() {
             breakfast: record.breakfast ?? '',
             lunch: record.lunch ?? '',
             dinner: record.dinner ?? '',
-            otherFood: record.other_food ?? '',
+            aerobicExercise: record.aerobic_exercise === true ? 'O' : record.aerobic_exercise === false ? 'X' : '',
+            snack: record.snack ?? '',
+            lateSnack: record.late_snack ?? '',
           }
         : { ...emptyRecordDraft }
     );
@@ -617,11 +627,13 @@ export default function WeightPage() {
               <tr>
                 <th>날짜</th>
                 <th>체중</th>
-                <th>운동</th>
+                <th>고강도</th>
+                <th>유산소</th>
                 <th>조식</th>
                 <th>중식</th>
                 <th>석식</th>
-                <th>기타 취식</th>
+                <th>간식</th>
+                <th>야식</th>
               </tr>
             </thead>
             <tbody>
@@ -647,12 +659,9 @@ export default function WeightPage() {
                     </td>
                     <td>{record?.weight_kg == null ? '' : formatWeight(record.weight_kg)}</td>
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
-                      {record?.exercise === '휴식'
-                        ? '-'
-                        : record?.exercise === '코어'
-                          ? '유산소'
-                          : record?.exercise ?? ''}
+                      {record?.exercise === '휴식' ? '-' : record?.exercise ?? ''}
                     </td>
+                    <td>{record?.aerobic_exercise === true ? 'O' : ''}</td>
                     <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? ''}
                     </td>
@@ -662,7 +671,8 @@ export default function WeightPage() {
                     <td className={record?.dinner === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.dinner === '미취식' ? '-' : record?.dinner ?? ''}
                     </td>
-                    <td className="weight-other-food-cell">{record?.other_food ?? ''}</td>
+                    <td className="weight-other-food-cell">{record?.snack ? 'O' : ''}</td>
+                    <td className="weight-other-food-cell">{record?.late_snack ? 'O' : ''}</td>
                   </tr>
                 );
               })}
@@ -685,7 +695,7 @@ export default function WeightPage() {
       {activeDate && (
         <div className="modal-backdrop" onMouseDown={() => setActiveDate(null)}>
           <form
-            className="settings-modal weight-dialog"
+            className="settings-modal weight-dialog weight-record-dialog"
             onSubmit={saveRecord}
             onMouseDown={(event) => event.stopPropagation()}
           >
@@ -719,11 +729,21 @@ export default function WeightPage() {
             </label>
 
             <ChoiceField<Exercise>
-              title="운동"
+              title="고강도"
               values={exercises}
               selected={recordDraft.exercise}
               onSelect={(value) =>
                 setRecordDraft((current) => ({ ...current, exercise: value }))
+              }
+            />
+
+            <ChoiceField<AerobicChoice>
+              className="weight-aerobic-field"
+              title="유산소"
+              values={aerobicChoices}
+              selected={recordDraft.aerobicExercise}
+              onSelect={(value) =>
+                setRecordDraft((current) => ({ ...current, aerobicExercise: value }))
               }
             />
 
@@ -753,14 +773,27 @@ export default function WeightPage() {
             />
 
             <label className="weight-form-field">
-              <span>기타 취식</span>
+              <span>간식</span>
               <input
                 type="text"
                 maxLength={100}
-                placeholder="예: 간식, 야식 등"
-                value={recordDraft.otherFood}
+                placeholder="간식 내용을 입력하세요"
+                value={recordDraft.snack}
                 onChange={(event) =>
-                  setRecordDraft((current) => ({ ...current, otherFood: event.target.value }))
+                  setRecordDraft((current) => ({ ...current, snack: event.target.value }))
+                }
+              />
+            </label>
+
+            <label className="weight-form-field">
+              <span>야식</span>
+              <input
+                type="text"
+                maxLength={100}
+                placeholder="야식 내용을 입력하세요"
+                value={recordDraft.lateSnack}
+                onChange={(event) =>
+                  setRecordDraft((current) => ({ ...current, lateSnack: event.target.value }))
                 }
               />
             </label>
@@ -863,14 +896,16 @@ function ChoiceField<T extends string>({
   values,
   selected,
   onSelect,
+  className,
 }: {
   title: string;
   values: T[];
   selected: T | '';
   onSelect: (value: T | '') => void;
+  className?: string;
 }) {
   return (
-    <fieldset className="weight-choice-field">
+    <fieldset className={`weight-choice-field${className ? ` ${className}` : ''}`}>
       <legend>{title}</legend>
       <div className="weight-choice-options">
         {values.map((value) => (
@@ -881,7 +916,7 @@ function ChoiceField<T extends string>({
             aria-pressed={selected === value}
             onClick={() => onSelect(selected === value ? '' : value)}
           >
-            {value === '코어' ? '유산소' : value}
+            {value}
           </button>
         ))}
       </div>

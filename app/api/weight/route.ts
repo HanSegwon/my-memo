@@ -6,7 +6,7 @@ const COOKIE_NAME = 'memo_auth';
 const VALID_EXERCISES = ['상체', '하체', '코어', '휴식'];
 const VALID_MEALS = ['미취식', '소식', '보통', '과식'];
 const SCHEMA_MESSAGE =
-  '체중관리 데이터베이스가 아직 준비되지 않았습니다. Supabase에서 체중관리 테이블을 먼저 만들어주세요.';
+  '체중관리 기록 구조가 업데이트되지 않았습니다. Supabase SQL Editor에서 supabase/migrations/20261026_update_weight_record_fields.sql을 실행해주세요.';
 
 function createSessionToken() {
   return createHmac('sha256', process.env.SUPABASE_SECRET_KEY!)
@@ -59,7 +59,9 @@ function missingSchemaResponse() {
 function isMissingTable(error: { code?: string; message?: string }) {
   return (
     error.code === 'PGRST205' ||
+    error.code === 'PGRST204' ||
     error.code === '42P01' ||
+    error.code === '42703' ||
     error.message?.includes('schema cache') === true
   );
 }
@@ -88,7 +90,7 @@ export async function GET() {
     const page = await supabaseAdmin
       .from('weight_records')
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
+        'record_date, weight_kg, exercise, aerobic_exercise, breakfast, lunch, dinner, snack, late_snack, updated_at'
       )
       .order('record_date', { ascending: true })
       .range(offset, offset + pageSize - 1);
@@ -314,16 +316,24 @@ export async function POST(request: Request) {
     const breakfast = validateChoice(body.breakfast, VALID_MEALS);
     const lunch = validateChoice(body.lunch, VALID_MEALS);
     const dinner = validateChoice(body.dinner, VALID_MEALS);
-    const otherFood =
-      typeof body.otherFood === 'string' ? body.otherFood.trim() : '';
-    if (otherFood.length > 100) {
+    const aerobicExercise = body.aerobicExercise === 'O'
+      ? { valid: true, value: true }
+      : body.aerobicExercise === 'X'
+        ? { valid: true, value: false }
+        : body.aerobicExercise === '' || body.aerobicExercise === null || body.aerobicExercise === undefined
+          ? { valid: true, value: null }
+          : { valid: false, value: null };
+    const snack = typeof body.snack === 'string' ? body.snack.trim() : '';
+    const lateSnack = typeof body.lateSnack === 'string' ? body.lateSnack.trim() : '';
+    if (snack.length > 100 || lateSnack.length > 100) {
       return Response.json(
-        { message: '기타 취식은 100자 이내로 입력해주세요.' },
+        { message: '간식과 야식은 각각 100자 이내로 입력해주세요.' },
         { status: 400 }
       );
     }
     if (
       !exercise.valid ||
+      !aerobicExercise.valid ||
       !breakfast.valid ||
       !lunch.valid ||
       !dinner.valid
@@ -341,16 +351,18 @@ export async function POST(request: Request) {
           record_date: recordDate,
           weight_kg: weightKg,
           exercise: exercise.value,
+          aerobic_exercise: aerobicExercise.value,
           breakfast: breakfast.value,
           lunch: lunch.value,
           dinner: dinner.value,
-          other_food: otherFood || null,
+          snack: snack || null,
+          late_snack: lateSnack || null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'record_date' }
       )
       .select(
-        'record_date, weight_kg, exercise, breakfast, lunch, dinner, other_food, updated_at'
+        'record_date, weight_kg, exercise, aerobic_exercise, breakfast, lunch, dinner, snack, late_snack, updated_at'
       )
       .single();
 

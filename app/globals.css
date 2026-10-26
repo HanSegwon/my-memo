@@ -2932,14 +2932,16 @@ h1 {
   white-space: nowrap;
 }
 
-.weight-table th:nth-child(1) { width: 24%; }
-.weight-table th:nth-child(2) { width: 10%; }
+.weight-table th:nth-child(1) { width: 21%; }
+.weight-table th:nth-child(2) { width: 8%; }
 .weight-table th:nth-child(3) { width: 11%; }
-.weight-table th:nth-child(4),
+.weight-table th:nth-child(4) { width: 8%; }
 .weight-table th:nth-child(5),
-.weight-table th:nth-child(6) { width: 9%; }
-.weight-table th:nth-child(7) {
-  width: 28%;
+.weight-table th:nth-child(6),
+.weight-table th:nth-child(7) { width: 8%; }
+.weight-table th:nth-child(8),
+.weight-table th:nth-child(9) {
+  width: 14%;
   white-space: normal;
   line-height: 1.15;
 }
@@ -3095,6 +3097,10 @@ h1 {
 .weight-dialog {
   overflow-y: hidden;
   padding: 15px 18px;
+}
+
+.weight-record-dialog {
+  overflow-y: auto;
 }
 
 .weight-dialog .settings-modal-header {
@@ -3262,6 +3268,10 @@ h1 {
 
 .weight-choice-options {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.weight-aerobic-field .weight-choice-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .weight-frequency-options {
