@@ -2938,10 +2938,10 @@ h1 {
 .weight-table th:nth-child(4) { width: 9%; }
 .weight-table th:nth-child(5),
 .weight-table th:nth-child(6),
-.weight-table th:nth-child(7) { width: 8%; }
+.weight-table th:nth-child(7),
 .weight-table th:nth-child(8),
 .weight-table th:nth-child(9) {
-  width: 11.5%;
+  width: 9.4%;
   white-space: normal;
   line-height: 1.15;
 }
@@ -2996,18 +2996,6 @@ h1 {
 .weight-date-cell > span {
   color: #6e7784;
   font-variant-numeric: tabular-nums;
-}
-
-.weight-other-food-cell {
-  overflow: hidden;
-  color: #6e7784 !important;
-  font-size: 13px !important;
-  text-overflow: ellipsis;
-}
-
-.weight-aerobic-mark {
-  color: #6e7784 !important;
-  font-size: clamp(7px, 2.2vw, 9px) !important;
 }
 
 .weight-fasting-mark {
