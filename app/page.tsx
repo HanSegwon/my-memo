@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
@@ -150,6 +150,54 @@ function getPayrollMonth(date = new Date()) {
   const day = Number(parts.find((part) => part.type === 'day')?.value);
   const payrollDate = new Date(Date.UTC(year, month - 1 - (day < 21 ? 1 : 0), 1));
   return { year: payrollDate.getUTCFullYear(), month: payrollDate.getUTCMonth() + 1 };
+}
+
+function SlidingSummary({ text }: { text: string }) {
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+  const textRef = useRef<HTMLSpanElement | null>(null);
+  const [motion, setMotion] = useState({ overflows: false, distance: 0, duration: 0 });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const content = textRef.current;
+    if (!container || !content) return;
+
+    const measure = () => {
+      const contentWidth = content.getBoundingClientRect().width;
+      const overflows = contentWidth > container.clientWidth + 2;
+      const distance = contentWidth + 32;
+      setMotion({
+        overflows,
+        distance,
+        duration: Math.max(7, distance / 32),
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [text]);
+
+  const style = {
+    '--summary-distance': `${motion.distance}px`,
+    '--summary-duration': `${motion.duration}s`,
+  } as CSSProperties;
+
+  return (
+    <span
+      ref={containerRef}
+      className={`home-button-summary${motion.overflows ? ' is-sliding' : ''}`}
+      style={style}
+      aria-label={text}
+    >
+      <span className="home-button-summary-track">
+        <span ref={textRef}>{text}</span>
+        {motion.overflows && <span aria-hidden="true">{text}</span>}
+      </span>
+    </span>
+  );
 }
 
 export default function Home() {
@@ -642,9 +690,7 @@ export default function Home() {
                 <span className="home-button-divider" aria-hidden="true">
                   |
                 </span>
-                <span className="home-button-summary">
-                  {stockSummary}
-                </span>
+                <SlidingSummary text={stockSummary} />
               </>
             )}
           </Link>
@@ -654,7 +700,7 @@ export default function Home() {
             {salarySummary && (
               <>
                 <span className="home-button-divider" aria-hidden="true">|</span>
-                <span className="home-button-summary">{salarySummary}</span>
+                <SlidingSummary text={salarySummary} />
               </>
             )}
           </Link>
@@ -668,7 +714,7 @@ export default function Home() {
             {weightSummary && (
               <>
                 <span className="home-button-divider" aria-hidden="true">|</span>
-                <span className="home-button-summary">{weightSummary}</span>
+                <SlidingSummary text={weightSummary} />
               </>
             )}
           </Link>
@@ -682,7 +728,7 @@ export default function Home() {
             {routineSummary && (
               <>
                 <span className="home-button-divider" aria-hidden="true">|</span>
-                <span className="home-button-summary">{routineSummary}</span>
+                <SlidingSummary text={routineSummary} />
               </>
             )}
           </Link>
@@ -692,7 +738,7 @@ export default function Home() {
             className="home-button"
           >
             <span className="home-button-title">할일메모</span>
-            {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><span className="home-button-summary">{todoMemoSummary}</span></>}
+            {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
           </Link>
 
           <Link href="/family-events" className="home-button">
@@ -700,7 +746,7 @@ export default function Home() {
             {familyEventSummary && (
               <>
                 <span className="home-button-divider" aria-hidden="true">|</span>
-                <span className="home-button-summary">{familyEventSummary}</span>
+                <SlidingSummary text={familyEventSummary} />
               </>
             )}
           </Link>

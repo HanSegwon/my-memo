@@ -600,6 +600,8 @@ h1 {
 }
 
 .home-button-summary {
+  display: block;
+  flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
   color: #858585;
@@ -608,6 +610,35 @@ h1 {
   letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.home-button-summary-track {
+  display: inline-flex;
+  width: max-content;
+  gap: 32px;
+}
+
+.home-button-summary.is-sliding .home-button-summary-track {
+  animation: home-summary-marquee var(--summary-duration) linear infinite;
+}
+
+.home-button-summary.is-sliding:hover .home-button-summary-track,
+.home-button-summary.is-sliding:focus-within .home-button-summary-track {
+  animation-play-state: paused;
+}
+
+@keyframes home-summary-marquee {
+  to { transform: translateX(calc(0px - var(--summary-distance))); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-button-summary.is-sliding {
+    overflow-x: auto;
+  }
+
+  .home-button-summary.is-sliding .home-button-summary-track {
+    animation: none;
+  }
 }
 
 .home-button:hover {
