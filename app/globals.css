@@ -1253,7 +1253,7 @@ h1 {
 .affair-flow-badge.income { background: #edf7f1; color: #39815b; }
 .affair-transaction-date { color: #8b9098; font-variant-numeric: tabular-nums; }
 .affair-transaction-event { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.affair-transaction-amount { color: #30343a; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
+.affair-transaction-amount { margin-right: 12px; color: #30343a; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
 
 .affair-contact-delete {
   position: absolute;
@@ -1532,13 +1532,28 @@ h1 {
 .routine-time {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   color: #626a73;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.routine-time-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.routine-duration {
+  color: #969da7;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .routine-time i {
@@ -1689,6 +1704,9 @@ h1 {
   .routine-time i {
     width: 7px;
   }
+
+  .routine-time-range { gap: 4px; }
+  .routine-duration { font-size: 9px; }
 
   .routine-description h2 {
     font-size: 14px;
