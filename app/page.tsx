@@ -705,9 +705,17 @@ export default function Home() {
             )}
           </Link>
 
+          <button type="button" className="home-button" disabled>
+            고정지출
+          </button>
+
           <Link href="/overtime" className="home-button">
             초과수당
           </Link>
+
+          <button type="button" className="home-button" disabled>
+            퇴근시간
+          </button>
 
           <Link href="/weight" className="home-button">
             <span className="home-button-title">체중관리</span>
@@ -722,6 +730,10 @@ export default function Home() {
           <Link href="/smoking" className="home-button">
             금연관리
           </Link>
+
+          <button type="button" className="home-button" disabled>
+            헬스루틴
+          </button>
 
           <Link href="/routine" className="home-button">
             <span className="home-button-title">생활루틴</span>
