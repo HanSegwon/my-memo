@@ -93,6 +93,48 @@ export async function POST(request: Request) {
     }
     return Response.json({ tab: data });
   }
+  if (body.type === 'clone-tab') {
+    const sourceTabId = body.sourceTabId;
+    const targetTabId = body.targetTabId;
+    const isValidTabId = (id: unknown): id is string => typeof id === 'string' && (['weekday', 'holiday'].includes(id) || UUID_PATTERN.test(id));
+    if (!isValidTabId(sourceTabId) || !isValidTabId(targetTabId) || sourceTabId === targetTabId) {
+      return Response.json({ message: '복제할 루틴을 확인해주세요.' }, { status: 400 });
+    }
+    const [sourceTab, targetTab] = await Promise.all([
+      getRoutineTab(sourceTabId),
+      getRoutineTab(targetTabId),
+    ]);
+    const tabError = sourceTab.error ?? targetTab.error;
+    if (tabError) {
+      if (isMissingSchema(tabError)) return schemaRequired();
+      console.error(tabError);
+      return Response.json({ message: '루틴 정보를 확인하지 못했습니다.' }, { status: 500 });
+    }
+    if (!sourceTab.data || !targetTab.data) return Response.json({ message: '선택한 루틴을 찾을 수 없습니다.' }, { status: 404 });
+
+    const { data: sourceRoutines, error: sourceError } = await supabaseAdmin
+      .from('routine_items')
+      .select('start_time, end_time, title, details')
+      .eq('routine_tab_id', sourceTabId)
+      .order('start_time', { ascending: true });
+    if (sourceError) {
+      if (isMissingSchema(sourceError)) return schemaRequired();
+      console.error(sourceError);
+      return Response.json({ message: '복제할 일정을 불러오지 못했습니다.' }, { status: 500 });
+    }
+    if (!sourceRoutines?.length) return Response.json({ message: '선택한 루틴에 복제할 일정이 없습니다.' }, { status: 400 });
+
+    const { data, error } = await supabaseAdmin
+      .from('routine_items')
+      .insert(sourceRoutines.map((routine) => ({ ...routine, routine_tab_id: targetTabId, day_type: targetTab.data!.day_type })))
+      .select('id, start_time, end_time, title, details, day_type, routine_tab_id, created_at');
+    if (error) {
+      if (isMissingSchema(error)) return schemaRequired();
+      console.error(error);
+      return Response.json({ message: '일정을 복제하지 못했습니다.' }, { status: 500 });
+    }
+    return Response.json({ routines: data ?? [], sourceTab: sourceTab.data, targetTab: targetTab.data });
+  }
   const validated = validateRoutine(body);
   if (validated.error || !validated.value) return Response.json({ message: validated.error }, { status: 400 });
 

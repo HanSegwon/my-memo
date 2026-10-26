@@ -1117,6 +1117,88 @@ h1 {
   gap: 10px;
 }
 
+.routine-tab-copy-trigger {
+  min-height: 42px;
+  border: 1px solid #e2e6eb;
+  border-radius: 11px;
+  background: #fff;
+  color: #4e5b6d;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.routine-tab-copy-trigger:hover {
+  background: #f7f9fc;
+}
+
+.routine-copy-backdrop {
+  z-index: 60;
+}
+
+.routine-copy-modal {
+  width: min(100%, 420px);
+}
+
+.routine-copy-help {
+  margin: 0 0 14px;
+  color: #7c8490;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.routine-copy-options {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.routine-copy-options > button {
+  display: flex;
+  min-width: 0;
+  min-height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid #e4e7ec;
+  border-radius: 11px;
+  background: #fff;
+  color: #454e5a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.routine-copy-options > button.is-selected {
+  border-color: #53647c;
+  background: #f6f8fb;
+  color: #27384f;
+}
+
+.routine-copy-options > button span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routine-copy-options > button small {
+  flex: 0 0 auto;
+  color: #8b929c;
+  font-size: 11px;
+}
+
+.routine-copy-options > p {
+  margin: 0;
+}
+
+.routine-copy-message {
+  margin: -6px 0 0;
+  color: #357255;
+  font-size: 12px;
+}
+
 .routine-tab-delete {
   min-height: 48px;
   padding: 0 16px;

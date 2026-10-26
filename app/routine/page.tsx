@@ -59,6 +59,11 @@ export default function RoutinePage() {
   const [tabNameDraft, setTabNameDraft] = useState('');
   const [savingTabName, setSavingTabName] = useState(false);
   const [deletingTab, setDeletingTab] = useState(false);
+  const [showCopyPicker, setShowCopyPicker] = useState(false);
+  const [copySourceTabId, setCopySourceTabId] = useState('');
+  const [copyingRoutines, setCopyingRoutines] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
+  const [copyError, setCopyError] = useState('');
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
 
@@ -153,6 +158,36 @@ export default function RoutinePage() {
       setError(renameError instanceof Error ? renameError.message : '루틴 이름을 변경하지 못했습니다.');
     } finally {
       setSavingTabName(false);
+    }
+  }
+
+  function openCopyPicker() {
+    const source = tabs.find((tab) => tab.id !== renamingTab?.id);
+    setCopySourceTabId(source?.id ?? '');
+    setCopyMessage('');
+    setCopyError('');
+    setShowCopyPicker(true);
+  }
+
+  async function copyRoutinesFromTab() {
+    if (!renamingTab || !copySourceTabId || copyingRoutines) return;
+    setCopyingRoutines(true);
+    setCopyError('');
+    try {
+      const response = await fetch('/api/routine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'clone-tab', sourceTabId: copySourceTabId, targetTabId: renamingTab.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '루틴을 가져오지 못했습니다.');
+      setRoutines((current) => [...current, ...(data.routines ?? [])].sort((a, b) => a.routine_tab_id.localeCompare(b.routine_tab_id) || a.start_time.localeCompare(b.start_time) || a.created_at.localeCompare(b.created_at)));
+      setCopyMessage(`${data.routines.length}개 일정을 가져왔습니다.`);
+      setShowCopyPicker(false);
+    } catch (error) {
+      setCopyError(error instanceof Error ? error.message : '루틴을 가져오지 못했습니다.');
+    } finally {
+      setCopyingRoutines(false);
     }
   }
 
@@ -298,11 +333,31 @@ export default function RoutinePage() {
             <form className="family-event-form" onSubmit={(event) => void saveTabName(event)}>
               <label>루틴 이름<input autoFocus maxLength={30} value={tabNameDraft} onChange={(event) => setTabNameDraft(event.target.value)} placeholder="최대 30자" required /></label>
               {error && <p className="routine-error" role="alert">{error}</p>}
+              <button type="button" className="routine-tab-copy-trigger" onClick={openCopyPicker}>다른 루틴에서 일정 가져오기</button>
+              {copyMessage && <p className="routine-copy-message" role="status">{copyMessage}</p>}
               <div className="routine-tab-dialog-actions">
                 <button type="button" className="routine-tab-delete" onClick={() => void deleteRoutineTab()} disabled={deletingTab}>{deletingTab ? '삭제 중...' : '루틴 삭제'}</button>
                 <button type="submit" className="family-event-save" disabled={savingTabName || !tabNameDraft.trim()}>{savingTabName ? '저장 중...' : '이름 저장'}</button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {showCopyPicker && renamingTab && (
+        <div className="family-event-modal-backdrop routine-copy-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowCopyPicker(false); }}>
+          <section className="family-event-modal routine-copy-modal" role="dialog" aria-modal="true" aria-labelledby="routine-copy-title">
+            <div className="family-event-modal-heading"><div><p className="eyebrow">COPY ROUTINES</p><h2 id="routine-copy-title">가져올 루틴 선택</h2></div><button type="button" onClick={() => setShowCopyPicker(false)} aria-label="닫기">×</button></div>
+            <p className="routine-copy-help">선택한 루틴의 일정이 현재 루틴에 추가됩니다. 기존 일정은 유지됩니다.</p>
+            <div className="routine-copy-options" role="group" aria-label="복제할 루틴">
+              {tabs.filter((tab) => tab.id !== renamingTab.id).map((tab) => {
+                const count = routines.filter((routine) => routine.routine_tab_id === tab.id).length;
+                return <button key={tab.id} type="button" className={copySourceTabId === tab.id ? 'is-selected' : ''} aria-pressed={copySourceTabId === tab.id} onClick={() => { setCopySourceTabId(tab.id); setCopyError(''); }}><span>{tab.title}</span><small>{count}개 일정</small></button>;
+              })}
+              {tabs.filter((tab) => tab.id !== renamingTab.id).length === 0 && <p className="routine-copy-help">복제할 다른 루틴이 없습니다.</p>}
+            </div>
+            {copyError && <p className="routine-error" role="alert">{copyError}</p>}
+            <button type="button" className="family-event-save" onClick={() => void copyRoutinesFromTab()} disabled={copyingRoutines || !copySourceTabId || !routines.some((routine) => routine.routine_tab_id === copySourceTabId)}>{copyingRoutines ? '가져오는 중...' : '선택한 루틴 가져오기'}</button>
           </section>
         </div>
       )}
