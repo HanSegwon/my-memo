@@ -3124,6 +3124,7 @@ h1 {
 
 .weight-record-dialog {
   overflow-y: auto;
+  max-height: calc(100dvh - 20px);
 }
 
 .weight-dialog .settings-modal-header {

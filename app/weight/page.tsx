@@ -135,6 +135,7 @@ export default function WeightPage() {
   const [pageError, setPageError] = useState('');
   const [schemaRequired, setSchemaRequired] = useState(false);
   const weightChartScrollRef = useRef<HTMLDivElement | null>(null);
+  const snackFocusScrollRef = useRef<AbortController | null>(null);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [recordDraft, setRecordDraft] =
     useState<RecordDraft>(emptyRecordDraft);
@@ -156,6 +157,8 @@ export default function WeightPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => () => snackFocusScrollRef.current?.abort(), [activeDate]);
 
   useEffect(() => {
     const chart = weightChartScrollRef.current;
@@ -291,28 +294,42 @@ export default function WeightPage() {
 
   function keepSnackInputVisible(event: React.FocusEvent<HTMLInputElement>) {
     const input = event.currentTarget;
+    snackFocusScrollRef.current?.abort();
+    const controller = new AbortController();
+    snackFocusScrollRef.current = controller;
+    const backdrop = input.closest<HTMLElement>('.weight-record-backdrop');
+    const dialog = input.closest<HTMLElement>('.weight-record-dialog');
+    if (!dialog) return;
+
+    controller.signal.addEventListener('abort', () => {
+      backdrop?.style.removeProperty('top');
+      backdrop?.style.removeProperty('height');
+      backdrop?.style.removeProperty('bottom');
+      dialog.style.removeProperty('max-height');
+    }, { once: true });
+
     const adjustScroll = () => {
-      if (document.activeElement !== input) return;
-      const dialog = input.closest<HTMLElement>('.weight-record-dialog');
-      if (!dialog) return;
-
-      const inputRect = input.getBoundingClientRect();
-      const dialogRect = dialog.getBoundingClientRect();
-      const viewport = window.visualViewport;
-      const viewportTop = viewport?.offsetTop ?? 0;
-      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
-      const visibleTop = Math.max(dialogRect.top, viewportTop) + 16;
-      const visibleBottom = Math.min(dialogRect.bottom, viewportBottom) - 16;
-
-      if (inputRect.bottom > visibleBottom) {
-        dialog.scrollBy({ top: inputRect.bottom - visibleBottom, behavior: 'smooth' });
-      } else if (inputRect.top < visibleTop) {
-        dialog.scrollBy({ top: inputRect.top - visibleTop, behavior: 'smooth' });
+      if (document.activeElement !== input) {
+        controller.abort();
+        return;
       }
+      const viewport = window.visualViewport;
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      if (viewport) {
+        if (backdrop) {
+          backdrop.style.top = `${viewport.offsetTop}px`;
+          backdrop.style.height = `${viewportHeight}px`;
+          backdrop.style.bottom = 'auto';
+        }
+        dialog.style.maxHeight = `${Math.max(180, viewportHeight - 20)}px`;
+      }
+      dialog.scrollTo({ top: dialog.scrollHeight, behavior: 'smooth' });
     };
 
-    window.setTimeout(adjustScroll, 180);
-    window.setTimeout(adjustScroll, 420);
+    window.visualViewport?.addEventListener('resize', adjustScroll, { signal: controller.signal });
+    window.addEventListener('resize', adjustScroll, { signal: controller.signal });
+    input.addEventListener('blur', () => controller.abort(), { once: true, signal: controller.signal });
+    [100, 300, 550].forEach((delay) => window.setTimeout(adjustScroll, delay));
   }
 
   async function saveRecord(event: React.FormEvent<HTMLFormElement>) {
@@ -768,7 +785,7 @@ export default function WeightPage() {
       </section>
 
       {activeDate && (
-        <div className="modal-backdrop" onMouseDown={() => setActiveDate(null)}>
+        <div className="modal-backdrop weight-record-backdrop" onMouseDown={() => setActiveDate(null)}>
           <form
             className="settings-modal weight-dialog weight-record-dialog"
             onSubmit={saveRecord}
