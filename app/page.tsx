@@ -138,6 +138,26 @@ type SalaryRecordSummary = {
   monthly_salary: number | null;
 };
 
+type HomeTab = 'health' | 'asset' | 'family';
+let hasStartedHomeTabSession = false;
+
+function getInitialHomeTab(): HomeTab {
+  if (typeof window === 'undefined') return 'health';
+  if (!hasStartedHomeTabSession) {
+    hasStartedHomeTabSession = true;
+    try {
+      window.sessionStorage.setItem('master-home-tab', 'health');
+    } catch {}
+    return 'health';
+  }
+
+  try {
+    const savedTab = window.sessionStorage.getItem('master-home-tab');
+    if (savedTab === 'asset' || savedTab === 'family') return savedTab;
+  } catch {}
+  return 'health';
+}
+
 function getPayrollMonth(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Seoul',
@@ -214,12 +234,19 @@ export default function Home() {
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
-  const [activeHomeTab, setActiveHomeTab] = useState<'health' | 'asset' | 'family'>('health');
+  const [activeHomeTab, setActiveHomeTab] = useState<HomeTab>(getInitialHomeTab);
 
   useEffect(() => {
     setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
     checkAuth();
   }, []);
+
+  function selectHomeTab(tab: HomeTab) {
+    setActiveHomeTab(tab);
+    try {
+      window.sessionStorage.setItem('master-home-tab', tab);
+    } catch {}
+  }
 
   async function checkAuth() {
     const response = await fetch('/api/auth', {
@@ -684,9 +711,9 @@ export default function Home() {
         </header>
 
         <div className="home-category-tabs" role="tablist" aria-label="생활 관리 분류">
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'health'} className={activeHomeTab === 'health' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('health')}>건강관리</button>
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'asset'} className={activeHomeTab === 'asset' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('asset')}>자산관리</button>
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'family'} className={activeHomeTab === 'family' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('family')}>가족관리</button>
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'health'} className={activeHomeTab === 'health' ? 'is-selected' : ''} onClick={() => selectHomeTab('health')}>건강관리</button>
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'asset'} className={activeHomeTab === 'asset' ? 'is-selected' : ''} onClick={() => selectHomeTab('asset')}>자산관리</button>
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'family'} className={activeHomeTab === 'family' ? 'is-selected' : ''} onClick={() => selectHomeTab('family')}>가족관리</button>
         </div>
 
         <section className="home-grid" role="tabpanel" aria-label={activeHomeTab === 'health' ? '건강관리' : activeHomeTab === 'asset' ? '자산관리' : '가족관리'}>
