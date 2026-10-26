@@ -1,9 +1,9 @@
--- 생활루틴 탭을 최대 3개까지 관리하고 이름을 저장합니다.
+-- 생활루틴 탭을 최대 4개까지 관리하고 이름을 저장합니다.
 create table if not exists public.routine_tabs (
   id text primary key,
   title text not null check (char_length(trim(title)) between 1 and 30),
   day_type text not null check (day_type in ('weekday', 'holiday', 'custom')),
-  sort_order integer not null unique check (sort_order between 0 and 2),
+  sort_order integer not null unique check (sort_order between 0 and 3),
   created_at timestamptz not null default now()
 );
 

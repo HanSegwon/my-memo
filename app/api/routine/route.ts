@@ -76,15 +76,17 @@ export async function POST(request: Request) {
   }
   const body = await request.json() as Record<string, unknown>;
   if (body.type === 'new-tab') {
-    const { count, error: countError } = await supabaseAdmin.from('routine_tabs').select('id', { count: 'exact', head: true });
+    const { data: existingTabs, error: countError } = await supabaseAdmin.from('routine_tabs').select('id, sort_order').order('sort_order', { ascending: true });
     if (countError) {
       if (isMissingSchema(countError)) return schemaRequired();
       console.error(countError);
       return Response.json({ message: '루틴 탭을 확인하지 못했습니다.' }, { status: 500 });
     }
-    if ((count ?? 0) >= 3) return Response.json({ message: '루틴은 최대 3개까지 만들 수 있습니다.' }, { status: 409 });
+    if ((existingTabs?.length ?? 0) >= 4) return Response.json({ message: '루틴은 최대 4개까지 만들 수 있습니다.' }, { status: 409 });
+    const sortOrder = [0, 1, 2, 3].find((order) => !existingTabs?.some((tab) => tab.sort_order === order));
+    if (sortOrder === undefined) return Response.json({ message: '루틴을 추가할 수 없습니다.' }, { status: 409 });
     const id = randomUUID();
-    const { data, error } = await supabaseAdmin.from('routine_tabs').insert({ id, title: '새 루틴', day_type: 'custom', sort_order: count ?? 2 })
+    const { data, error } = await supabaseAdmin.from('routine_tabs').insert({ id, title: '새 루틴', day_type: 'custom', sort_order: sortOrder })
       .select('id, title, day_type, sort_order').single();
     if (error) {
       if (isMissingSchema(error)) return schemaRequired();

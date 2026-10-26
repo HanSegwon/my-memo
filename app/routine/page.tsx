@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
-import { getActiveRoutine, getKoreanDate, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
+import { getActiveRoutine, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
 
 type RoutineItem = {
   id: string;
@@ -122,7 +122,7 @@ export default function RoutinePage() {
   }
 
   async function addRoutineTab() {
-    if (tabs.length >= 3) return;
+    if (tabs.length >= 4) return;
     setError('');
     try {
       const response = await fetch('/api/routine', {
@@ -248,7 +248,6 @@ export default function RoutinePage() {
 
   const selectedTab = tabs.find((tab) => tab.id === selectedTabId) ?? null;
   const visibleRoutines = routines.filter((item) => item.routine_tab_id === selectedTabId);
-  const todayLabel = getKoreanDate(clock);
   const activeRoutine = selectedTab ? getActiveRoutine(visibleRoutines, clock, selectedTab.day_type) : null;
 
   if (loading) return <main className="loading-screen"><LoadingDots /></main>;
@@ -284,8 +283,7 @@ export default function RoutinePage() {
               {formatTabTitle(tab.title)}
             </button>
           ))}
-          {tabs.length < 3 && <button type="button" className="routine-tab-add" onClick={() => void addRoutineTab()} aria-label="루틴 추가" title="루틴 추가">+</button>}
-          <span className="routine-today-type">오늘 {todayLabel.slice(5).replace('-', '.')} · {todayType === 'weekday' ? '평일' : '휴일'}</span>
+          {tabs.length < 4 && <button type="button" className="routine-tab-add" onClick={() => void addRoutineTab()} aria-label="루틴 추가" title="루틴 추가">+</button>}
         </div>
 
         {activeRoutine && <p className="routine-now">지금은 <strong>{activeRoutine.title}</strong> 시간입니다.</p>}
