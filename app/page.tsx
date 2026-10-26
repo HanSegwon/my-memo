@@ -132,6 +132,26 @@ type MonthlyWeightGoalSummary = {
   target_weight: number;
 };
 
+type SalaryRecordSummary = {
+  income_year: number;
+  income_month: number;
+  monthly_salary: number | null;
+};
+
+function getPayrollMonth(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const year = Number(parts.find((part) => part.type === 'year')?.value);
+  const month = Number(parts.find((part) => part.type === 'month')?.value);
+  const day = Number(parts.find((part) => part.type === 'day')?.value);
+  const payrollDate = new Date(Date.UTC(year, month - 1 - (day < 21 ? 1 : 0), 1));
+  return { year: payrollDate.getUTCFullYear(), month: payrollDate.getUTCMonth() + 1 };
+}
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [dashboardReady, setDashboardReady] = useState(false);
@@ -140,6 +160,7 @@ export default function Home() {
   const passcodeInputs = useRef<Array<HTMLInputElement | null>>([]);
   const isPasscodeComplete = /^\d{6}$/.test(passcode);
   const [stockSummary, setStockSummary] = useState<string | null>(null);
+  const [salarySummary, setSalarySummary] = useState<string | null>(null);
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
@@ -162,6 +183,7 @@ export default function Home() {
       setDashboardReady(false);
       await Promise.all([
         loadStockSummary(),
+        loadSalarySummary(),
         loadWeightSummary(),
         loadFamilyEventSummary(),
         loadRoutineSummary(),
@@ -279,6 +301,7 @@ export default function Home() {
     setDashboardReady(false);
     await Promise.all([
       loadStockSummary(),
+      loadSalarySummary(),
       loadWeightSummary(),
       loadFamilyEventSummary(),
       loadRoutineSummary(),
@@ -341,6 +364,44 @@ export default function Home() {
       }
     } catch {
       // 체중 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
+  async function loadSalarySummary() {
+    try {
+      const response = await fetch('/api/salary-records', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = (await response.json()) as { records: SalaryRecordSummary[] };
+      const { year, month } = getPayrollMonth();
+      const previousDate = new Date(Date.UTC(year, month - 2, 1));
+      const previousYear = previousDate.getUTCFullYear();
+      const previousMonth = previousDate.getUTCMonth() + 1;
+      const currentRecord = data.records?.find(
+        (record) => record.income_year === year && record.income_month === month
+      );
+      if (currentRecord?.monthly_salary == null) {
+        setSalarySummary(`${month}월 급여 기록을 입력해주세요.`);
+        return;
+      }
+
+      const previousRecord = data.records?.find(
+        (record) => record.income_year === previousYear && record.income_month === previousMonth
+      );
+      const currentSalary = Number(currentRecord.monthly_salary);
+      const formatAmount = (amount: number) => Math.round(amount).toLocaleString('ko-KR');
+      const monthLabel = `${month}월 급여는 ${formatAmount(currentSalary)}원이며`;
+      if (previousRecord?.monthly_salary == null) {
+        setSalarySummary(`${monthLabel}, 지난달 기록이 없어 비교할 수 없어요.`);
+        return;
+      }
+
+      const difference = currentSalary - Number(previousRecord.monthly_salary);
+      const comparison = difference === 0
+        ? '지난달과 차이가 없어요.'
+        : `지난달보다 ${formatAmount(Math.abs(difference))}원 ${difference > 0 ? '증가' : '감소'}했어요.`;
+      setSalarySummary(`${monthLabel}, ${comparison}`);
+    } catch {
+      // 급여 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
     }
   }
 
@@ -589,7 +650,13 @@ export default function Home() {
           </Link>
 
           <Link href="/salary" className="home-button">
-            급여추이
+            <span className="home-button-title">급여추이</span>
+            {salarySummary && (
+              <>
+                <span className="home-button-divider" aria-hidden="true">|</span>
+                <span className="home-button-summary">{salarySummary}</span>
+              </>
+            )}
           </Link>
 
           <Link href="/overtime" className="home-button">
