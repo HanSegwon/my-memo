@@ -1111,6 +1111,33 @@ h1 {
   width: min(100%, 420px);
 }
 
+.routine-tab-dialog-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.routine-tab-delete {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #eadada;
+  border-radius: 12px;
+  background: #fff;
+  color: #a34f4f;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.routine-tab-delete:hover {
+  background: #fff8f8;
+}
+
+.routine-tab-delete:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .routine-today-type {
   margin-left: auto;
   color: #8b919a;

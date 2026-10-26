@@ -156,7 +156,20 @@ export async function DELETE(request: Request) {
   if (!(await isAuthenticated())) {
     return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   }
-  const id = new URL(request.url).searchParams.get('id');
+  const searchParams = new URL(request.url).searchParams;
+  const id = searchParams.get('id');
+  if (searchParams.get('type') === 'tab') {
+    if (!id || !UUID_PATTERN.test(id)) {
+      return Response.json({ message: '삭제할 사용자 루틴을 확인해주세요.' }, { status: 400 });
+    }
+    const { error } = await supabaseAdmin.from('routine_tabs').delete().eq('id', id).eq('day_type', 'custom');
+    if (error) {
+      if (isMissingSchema(error)) return schemaRequired();
+      console.error(error);
+      return Response.json({ message: '루틴을 삭제하지 못했습니다.' }, { status: 500 });
+    }
+    return Response.json({ success: true });
+  }
   if (!id || !UUID_PATTERN.test(id)) {
     return Response.json({ message: '삭제할 생활루틴을 확인해주세요.' }, { status: 400 });
   }

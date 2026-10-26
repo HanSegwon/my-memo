@@ -47,6 +47,7 @@ export default function RoutinePage() {
   const [renamingTab, setRenamingTab] = useState<RoutineTab | null>(null);
   const [tabNameDraft, setTabNameDraft] = useState('');
   const [savingTabName, setSavingTabName] = useState(false);
+  const [deletingTab, setDeletingTab] = useState(false);
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
 
@@ -141,6 +142,26 @@ export default function RoutinePage() {
       setError(renameError instanceof Error ? renameError.message : '루틴 이름을 변경하지 못했습니다.');
     } finally {
       setSavingTabName(false);
+    }
+  }
+
+  async function deleteRoutineTab() {
+    if (!renamingTab || renamingTab.day_type !== 'custom' || deletingTab) return;
+    if (!window.confirm(`“${renamingTab.title}” 루틴과 그 안의 일정을 모두 삭제할까요?`)) return;
+    setDeletingTab(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/routine?type=tab&id=${encodeURIComponent(renamingTab.id)}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '루틴을 삭제하지 못했습니다.');
+      setTabs((current) => current.filter((tab) => tab.id !== renamingTab.id));
+      setRoutines((current) => current.filter((routine) => routine.routine_tab_id !== renamingTab.id));
+      setSelectedTabId(todayType);
+      setRenamingTab(null);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : '루틴을 삭제하지 못했습니다.');
+    } finally {
+      setDeletingTab(false);
     }
   }
 
@@ -262,7 +283,10 @@ export default function RoutinePage() {
             <form className="family-event-form" onSubmit={(event) => void saveTabName(event)}>
               <label>루틴 이름<input autoFocus maxLength={30} value={tabNameDraft} onChange={(event) => setTabNameDraft(event.target.value)} placeholder="최대 30자" required /></label>
               {error && <p className="routine-error" role="alert">{error}</p>}
+              <div className="routine-tab-dialog-actions">
+                {renamingTab.day_type === 'custom' && <button type="button" className="routine-tab-delete" onClick={() => void deleteRoutineTab()} disabled={deletingTab}>{deletingTab ? '삭제 중...' : '루틴 삭제'}</button>}
               <button type="submit" className="family-event-save" disabled={savingTabName || !tabNameDraft.trim()}>{savingTabName ? '저장 중...' : '이름 저장'}</button>
+              </div>
             </form>
           </section>
         </div>
