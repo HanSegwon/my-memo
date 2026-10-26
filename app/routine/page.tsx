@@ -224,7 +224,6 @@ export default function RoutinePage() {
         <header className="stock-header">
           <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>생활루틴</h1></div>
           <div className="routine-header-actions">
-            <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
             <Link href="/" className="logout-button">처음으로</Link>
           </div>
         </header>
@@ -275,6 +274,8 @@ export default function RoutinePage() {
           })}
         </section>
       </section>
+
+      <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
 
       {showForm && (
         <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowForm(false); }}>
