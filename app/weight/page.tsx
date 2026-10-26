@@ -5,16 +5,8 @@ import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
 import { useRouter } from 'next/navigation';
 
-type FastingFrequency = 'weekly' | 'biweekly';
 type Exercise = '상체' | '하체' | '코어' | '휴식';
 type MealAmount = '미취식' | '소식' | '보통' | '과식';
-
-type WeightSettings = {
-  id: number;
-  fasting_frequency: FastingFrequency;
-  fasting_weekdays: number[];
-  fasting_anchor_date: string;
-};
 
 type WeightRecord = {
   record_date: string;
@@ -81,12 +73,6 @@ function getWeekdayNumber(date: string) {
   return day === 0 ? 7 : day;
 }
 
-function getMonday(date: string) {
-  const monday = new Date(`${date}T00:00:00.000Z`);
-  monday.setUTCDate(monday.getUTCDate() - getWeekdayNumber(date) + 1);
-  return monday.toISOString().slice(0, 10);
-}
-
 function formatDate(date: string) {
   const [year, month, day] = date.split('-');
   const weekday = weekdays[getWeekdayNumber(date) - 1].label;
@@ -107,24 +93,6 @@ function formatWeight(value: number) {
   return Number(value).toFixed(2).replace(/\.0+$|(?<=\.[0-9])0$/, '');
 }
 
-function isFastingDay(date: string, settings: WeightSettings | null) {
-  if (!settings?.fasting_weekdays.includes(getWeekdayNumber(date))) {
-    return false;
-  }
-
-  if (settings.fasting_frequency === 'weekly') return true;
-
-  const currentMonday = getMonday(date);
-  const anchorMonday = getMonday(settings.fasting_anchor_date);
-  const weekDistance = Math.round(
-    (Date.parse(`${currentMonday}T00:00:00.000Z`) -
-      Date.parse(`${anchorMonday}T00:00:00.000Z`)) /
-      (7 * 24 * 60 * 60 * 1000)
-  );
-
-  return weekDistance >= 0 && weekDistance % 2 === 0;
-}
-
 function formatChartWeight(value: number) {
   return `${value.toFixed(1)} kg`;
 }
@@ -136,12 +104,10 @@ export default function WeightPage() {
   const [records, setRecords] = useState<WeightRecord[]>([]);
   const [monthlyGoals, setMonthlyGoals] = useState<MonthlyWeightGoal[]>([]);
   const [goalTableReady, setGoalTableReady] = useState(true);
-  const [settings, setSettings] = useState<WeightSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
   const [schemaRequired, setSchemaRequired] = useState(false);
   const weightChartScrollRef = useRef<HTMLDivElement | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [recordDraft, setRecordDraft] =
     useState<RecordDraft>(emptyRecordDraft);
@@ -152,12 +118,6 @@ export default function WeightPage() {
   const [goalDrafts, setGoalDrafts] = useState<Record<string, string>>({});
   const [goalError, setGoalError] = useState('');
   const [savingGoal, setSavingGoal] = useState(false);
-  const [settingsDraft, setSettingsDraft] = useState<{
-    frequency: FastingFrequency;
-    weekdays: number[];
-  }>({ frequency: 'weekly', weekdays: [] });
-  const [settingsError, setSettingsError] = useState('');
-  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     setToday(getKoreanToday());
@@ -215,7 +175,6 @@ export default function WeightPage() {
         return;
       }
 
-      setSettings(data.settings as WeightSettings);
       setRecords((data.records ?? []) as WeightRecord[]);
       setMonthlyGoals((data.monthlyGoals ?? []) as MonthlyWeightGoal[]);
       setGoalTableReady(data.goalTableReady !== false);
@@ -406,53 +365,6 @@ export default function WeightPage() {
     }
   }
 
-  function openSettings() {
-    if (!settings) return;
-    setSettingsDraft({
-      frequency: settings.fasting_frequency,
-      weekdays: [...settings.fasting_weekdays],
-    });
-    setSettingsError('');
-    setShowSettings(true);
-  }
-
-  function toggleWeekday(day: number) {
-    setSettingsDraft((current) => ({
-      ...current,
-      weekdays: current.weekdays.includes(day)
-        ? current.weekdays.filter((item) => item !== day)
-        : [...current.weekdays, day].sort((a, b) => a - b),
-    }));
-  }
-
-  async function saveSettings() {
-    setSavingSettings(true);
-    setSettingsError('');
-    try {
-      const response = await fetch('/api/weight', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'settings',
-          fastingFrequency: settingsDraft.frequency,
-          fastingWeekdays: settingsDraft.weekdays,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setSettingsError(data.message || '설정을 저장하지 못했습니다.');
-        return;
-      }
-
-      setSettings(data.settings as WeightSettings);
-      setShowSettings(false);
-    } catch {
-      setSettingsError('설정을 저장하지 못했습니다. 다시 시도해주세요.');
-    } finally {
-      setSavingSettings(false);
-    }
-  }
-
   if (authenticated === null || loading) {
     return <main className="loading-screen"><LoadingDots /></main>;
   }
@@ -549,9 +461,6 @@ export default function WeightPage() {
           <div className="stock-header-actions">
             <button className="weight-goal-button" type="button" onClick={openGoal}>
               목표
-            </button>
-            <button className="settings-button" type="button" onClick={openSettings}>
-              설정
             </button>
             <Link href="/" className="logout-button">처음으로</Link>
           </div>
@@ -707,7 +616,6 @@ export default function WeightPage() {
                 <th>날짜</th>
                 <th>체중</th>
                 <th>운동</th>
-                <th>단식</th>
                 <th>조식</th>
                 <th>중식</th>
                 <th>석식</th>
@@ -717,7 +625,6 @@ export default function WeightPage() {
             <tbody>
               {visibleDates.map((date) => {
                 const record = recordMap.get(date);
-                const fasting = isFastingDay(date, settings);
                 return (
                   <tr
                     key={date}
@@ -743,9 +650,6 @@ export default function WeightPage() {
                         : record?.exercise === '코어'
                           ? '유산소'
                           : record?.exercise ?? ''}
-                    </td>
-                    <td className={fasting ? 'weight-fasting-mark' : undefined}>
-                      {fasting ? '●' : ''}
                     </td>
                     <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? ''}
@@ -926,68 +830,6 @@ export default function WeightPage() {
         </div>
       )}
 
-      {showSettings && (
-        <div className="modal-backdrop" onMouseDown={() => setShowSettings(false)}>
-          <div className="settings-modal weight-settings-modal" onMouseDown={(event) => event.stopPropagation()}>
-            <div className="settings-modal-header">
-              <div>
-                <p className="eyebrow">WEIGHT SETTINGS</p>
-                <h2>간헐적 단식 설정</h2>
-              </div>
-              <button className="modal-close" type="button" onClick={() => setShowSettings(false)}>
-                닫기
-              </button>
-            </div>
-
-            <div className="weight-form-field">
-              <span>반복 주기</span>
-              <div className="weight-frequency-options">
-                {([
-                  ['weekly', '매주'],
-                  ['biweekly', '격주'],
-                ] as const).map(([frequency, label]) => (
-                  <button
-                    key={frequency}
-                    type="button"
-                    className={settingsDraft.frequency === frequency ? 'is-selected' : ''}
-                    aria-pressed={settingsDraft.frequency === frequency}
-                    onClick={() => setSettingsDraft((current) => ({ ...current, frequency }))}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="weight-form-field">
-              <span>단식 요일</span>
-              <div className="weight-weekday-options" role="group" aria-label="단식 요일 선택">
-                {weekdays.map((day) => (
-                  <button
-                    key={day.number}
-                    type="button"
-                    className={settingsDraft.weekdays.includes(day.number) ? 'is-selected' : ''}
-                    aria-pressed={settingsDraft.weekdays.includes(day.number)}
-                    onClick={() => toggleWeekday(day.number)}
-                  >
-                    {day.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <p className="weight-settings-help">
-              {settingsDraft.frequency === 'biweekly'
-                ? '격주는 설정한 주를 기준으로 2주마다 반복됩니다.'
-                : '선택한 요일마다 간헐적 단식 표시가 반복됩니다.'}
-            </p>
-            {settingsError && <p className="weight-dialog-error" role="alert">{settingsError}</p>}
-            <button className="settings-save-button weight-save-button" type="button" onClick={saveSettings} disabled={savingSettings}>
-              {savingSettings ? '저장 중...' : '설정 저장'}
-            </button>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
