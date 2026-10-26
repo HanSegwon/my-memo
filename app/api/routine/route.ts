@@ -159,10 +159,10 @@ export async function DELETE(request: Request) {
   const searchParams = new URL(request.url).searchParams;
   const id = searchParams.get('id');
   if (searchParams.get('type') === 'tab') {
-    if (!id || !UUID_PATTERN.test(id)) {
-      return Response.json({ message: '삭제할 사용자 루틴을 확인해주세요.' }, { status: 400 });
+    if (!id || !(['weekday', 'holiday'].includes(id) || UUID_PATTERN.test(id))) {
+      return Response.json({ message: '삭제할 루틴을 확인해주세요.' }, { status: 400 });
     }
-    const { error } = await supabaseAdmin.from('routine_tabs').delete().eq('id', id).eq('day_type', 'custom');
+    const { error } = await supabaseAdmin.from('routine_tabs').delete().eq('id', id);
     if (error) {
       if (isMissingSchema(error)) return schemaRequired();
       console.error(error);
