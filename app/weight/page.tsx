@@ -708,7 +708,9 @@ export default function WeightPage() {
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
                       {record?.exercise === '휴식' ? '-' : record?.exercise ?? ''}
                     </td>
-                    <td>{record?.aerobic_exercise === true ? '유산소' : ''}</td>
+                    <td className={record?.aerobic_exercise === false ? 'weight-muted-value' : undefined}>
+                      {record?.aerobic_exercise === true ? '유산소' : record?.aerobic_exercise === false ? '-' : ''}
+                    </td>
                     <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? ''}
                     </td>
