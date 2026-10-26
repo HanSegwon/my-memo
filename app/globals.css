@@ -26,6 +26,10 @@ textarea {
   padding: 24px 16px 48px;
 }
 
+.home-dashboard-app {
+  touch-action: pan-y;
+}
+
 .container {
   width: 100%;
   max-width: 680px;
@@ -563,12 +567,12 @@ h1 {
 }
 
 .home-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  overflow: hidden;
+  touch-action: pan-y;
 }
 
 .home-category-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
@@ -579,7 +583,24 @@ h1 {
   background: #eff4fb;
 }
 
+.home-category-tab-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 20px) / 3);
+  border-radius: 10px;
+  background: #285b98;
+  box-shadow: 0 3px 8px rgba(31, 73, 122, 0.2);
+  transform: translate3d(var(--home-tab-offset), 0, 0);
+  transition: transform 260ms cubic-bezier(0.22, 0.75, 0.25, 1);
+  pointer-events: none;
+}
+
 .home-category-tabs button {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   min-height: 40px;
   padding: 0 4px;
@@ -591,13 +612,12 @@ h1 {
   font-weight: 600;
   letter-spacing: -0.04em;
   cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: color 160ms ease;
 }
 
 .home-category-tabs button.is-selected {
-  background: #285b98;
   color: #fff;
-  box-shadow: 0 3px 8px rgba(31, 73, 122, 0.2);
+  background: transparent;
 }
 
 .home-category-tabs button:focus-visible {
@@ -605,8 +625,22 @@ h1 {
   outline-offset: 1px;
 }
 
-.home-grid {
-  touch-action: pan-y;
+.home-grid-track {
+  display: flex;
+  width: 300%;
+  align-items: flex-start;
+  transform: translate3d(var(--home-panel-offset), 0, 0);
+  transition: transform 260ms cubic-bezier(0.22, 0.75, 0.25, 1);
+  will-change: transform;
+}
+
+.home-grid-panel {
+  display: flex;
+  width: 33.333333%;
+  min-width: 0;
+  flex: 0 0 33.333333%;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .home-button {

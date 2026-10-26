@@ -236,13 +236,39 @@ export default function Home() {
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
   const [activeHomeTab, setActiveHomeTab] = useState<HomeTab>(getInitialHomeTab);
-  const tabSwipeStart = useRef<{ x: number; y: number } | null>(null);
+  const homeGridRef = useRef<HTMLElement | null>(null);
+  const homeTabsRef = useRef<HTMLDivElement | null>(null);
+  const tabSwipeStart = useRef<{ x: number; y: number; horizontal: boolean } | null>(null);
   const suppressSwipeClick = useRef(false);
+  const [homePanelWidth, setHomePanelWidth] = useState(0);
+  const [homeTabStride, setHomeTabStride] = useState(0);
+  const [homeLayoutMeasured, setHomeLayoutMeasured] = useState(false);
+  const [tabDragOffset, setTabDragOffset] = useState(0);
+  const [isDraggingHomeTabs, setIsDraggingHomeTabs] = useState(false);
 
   useEffect(() => {
     setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (!dashboardReady || !authenticated) return;
+    const panel = homeGridRef.current;
+    const tabs = homeTabsRef.current;
+    if (!panel || !tabs) return;
+
+    const measure = () => {
+      setHomePanelWidth(panel.clientWidth);
+      const firstTab = tabs.querySelector('button');
+      setHomeTabStride(firstTab ? firstTab.getBoundingClientRect().width + 5 : 0);
+      setHomeLayoutMeasured(true);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(panel);
+    observer.observe(tabs);
+    return () => observer.disconnect();
+  }, [dashboardReady, authenticated]);
 
   function selectHomeTab(tab: HomeTab) {
     setActiveHomeTab(tab);
@@ -251,20 +277,53 @@ export default function Home() {
     } catch {}
   }
 
-  function handleTabSwipeEnd(event: PointerEvent<HTMLElement>) {
+  function handleHomePanelPointerDown(event: PointerEvent<HTMLElement>) {
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    const tabsBottom = homeTabsRef.current?.getBoundingClientRect().bottom ?? 0;
+    if (event.clientY < tabsBottom) return;
+    tabSwipeStart.current = { x: event.clientX, y: event.clientY, horizontal: false };
+  }
+
+  function handleHomePanelPointerMove(event: PointerEvent<HTMLElement>) {
     const start = tabSwipeStart.current;
-    tabSwipeStart.current = null;
     if (!start) return;
 
     const deltaX = event.clientX - start.x;
     const deltaY = event.clientY - start.y;
-    if (Math.abs(deltaX) < 55 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+    if (!start.horizontal) {
+      if (Math.abs(deltaX) < 8 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+      start.horizontal = true;
+      setIsDraggingHomeTabs(true);
+      try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+    }
 
+    event.preventDefault();
     const currentIndex = homeTabs.indexOf(activeHomeTab);
-    const nextIndex = Math.max(0, Math.min(homeTabs.length - 1, currentIndex + (deltaX < 0 ? 1 : -1)));
-    if (nextIndex !== currentIndex) selectHomeTab(homeTabs[nextIndex]);
-    suppressSwipeClick.current = true;
-    window.setTimeout(() => { suppressSwipeClick.current = false; }, 350);
+    const atEdge = (currentIndex === 0 && deltaX > 0) || (currentIndex === homeTabs.length - 1 && deltaX < 0);
+    const dragLimit = homePanelWidth || Number.POSITIVE_INFINITY;
+    const boundedDelta = Math.max(-dragLimit, Math.min(dragLimit, deltaX));
+    setTabDragOffset(atEdge ? boundedDelta * 0.24 : boundedDelta);
+  }
+
+  function handleHomePanelPointerUp(event: PointerEvent<HTMLElement>, cancelled = false) {
+    const start = tabSwipeStart.current;
+    tabSwipeStart.current = null;
+    if (!start) return;
+
+    if (start.horizontal && !cancelled) {
+      const deltaX = event.clientX - start.x;
+      const shouldChangeTab = Math.abs(deltaX) > Math.max(55, homePanelWidth * 0.16);
+      if (shouldChangeTab) {
+        const currentIndex = homeTabs.indexOf(activeHomeTab);
+        const nextIndex = Math.max(0, Math.min(homeTabs.length - 1, currentIndex + (deltaX < 0 ? 1 : -1)));
+        if (nextIndex !== currentIndex) selectHomeTab(homeTabs[nextIndex]);
+      }
+      suppressSwipeClick.current = true;
+      window.setTimeout(() => { suppressSwipeClick.current = false; }, 350);
+    }
+
+    setTabDragOffset(0);
+    setIsDraggingHomeTabs(false);
   }
 
   function preventSwipeNavigation(event: MouseEvent<HTMLElement>) {
@@ -705,8 +764,26 @@ export default function Home() {
     );
   }
 
+  const activeTabIndex = homeTabs.indexOf(activeHomeTab);
+  const visualTabPosition = Math.max(0, Math.min(homeTabs.length - 1, activeTabIndex - (homePanelWidth ? tabDragOffset / homePanelWidth : 0)));
+  const tabMotionStyle = {
+    '--home-tab-offset': `${activeTabIndex * homeTabStride + (homePanelWidth ? (-tabDragOffset / homePanelWidth) * homeTabStride : 0)}px`,
+    transition: isDraggingHomeTabs || !homeLayoutMeasured ? 'none' : undefined,
+  } as CSSProperties;
+  const homeTrackStyle = {
+    '--home-panel-offset': `${-activeTabIndex * homePanelWidth + tabDragOffset}px`,
+    transition: isDraggingHomeTabs || !homeLayoutMeasured ? 'none' : undefined,
+  } as CSSProperties;
+
   return (
-    <main className="app">
+    <main
+      className="app home-dashboard-app"
+      onPointerDown={handleHomePanelPointerDown}
+      onPointerMove={handleHomePanelPointerMove}
+      onPointerUp={(event) => handleHomePanelPointerUp(event)}
+      onPointerCancel={(event) => handleHomePanelPointerUp(event, true)}
+      onClickCapture={preventSwipeNavigation}
+    >
       <section className="container home-container">
         <header className="home-header">
           <div>
@@ -736,60 +813,78 @@ export default function Home() {
           </button>
         </header>
 
-        <div className="home-category-tabs" role="tablist" aria-label="생활 관리 분류">
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'health'} className={activeHomeTab === 'health' ? 'is-selected' : ''} onClick={() => selectHomeTab('health')}>건강관리</button>
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'asset'} className={activeHomeTab === 'asset' ? 'is-selected' : ''} onClick={() => selectHomeTab('asset')}>자산관리</button>
-          <button type="button" role="tab" aria-selected={activeHomeTab === 'family'} className={activeHomeTab === 'family' ? 'is-selected' : ''} onClick={() => selectHomeTab('family')}>가족관리</button>
+        <div ref={homeTabsRef} className="home-category-tabs" role="tablist" aria-label="생활 관리 분류" style={tabMotionStyle}>
+          <span className="home-category-tab-indicator" aria-hidden="true" />
+          {homeTabs.map((tab, index) => {
+            const highlight = isDraggingHomeTabs
+              ? Math.max(0, 1 - Math.abs(visualTabPosition - index))
+              : activeHomeTab === tab ? 1 : 0;
+            const color = [97, 113, 138]
+              .map((inactive) => Math.round(inactive + (255 - inactive) * highlight))
+              .join(', ');
+            return (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={activeHomeTab === tab}
+                className={activeHomeTab === tab ? 'is-selected' : ''}
+                style={{ color: `rgb(${color})`, transition: isDraggingHomeTabs ? 'none' : undefined }}
+                onClick={() => selectHomeTab(tab)}
+              >
+                {tab === 'health' ? '건강관리' : tab === 'asset' ? '자산관리' : '가족관리'}
+              </button>
+            );
+          })}
         </div>
 
         <section
+          ref={homeGridRef}
           className="home-grid"
           role="tabpanel"
           aria-label={activeHomeTab === 'health' ? '건강관리' : activeHomeTab === 'asset' ? '자산관리' : '가족관리'}
-          onPointerDown={(event) => { tabSwipeStart.current = { x: event.clientX, y: event.clientY }; }}
-          onPointerUp={handleTabSwipeEnd}
-          onPointerCancel={() => { tabSwipeStart.current = null; }}
-          onClickCapture={preventSwipeNavigation}
         >
-          {activeHomeTab === 'health' && <>
-            <Link href="/weight" className="home-button">
-              <span className="home-button-title">체중관리</span>
-              {weightSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={weightSummary} /></>}
-            </Link>
-            <Link href="/smoking" className="home-button">금연관리</Link>
-            <button type="button" className="home-button" disabled>헬스루틴</button>
-            <Link href="/routine" className="home-button">
-              <span className="home-button-title">생활루틴</span>
-              {routineSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={routineSummary} /></>}
-            </Link>
-          </>}
+          <div className="home-grid-track" style={homeTrackStyle}>
+            <div className="home-grid-panel" aria-hidden={activeHomeTab !== 'health'} inert={activeHomeTab !== 'health'}>
+              <Link href="/weight" className="home-button">
+                <span className="home-button-title">체중관리</span>
+                {weightSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={weightSummary} /></>}
+              </Link>
+              <Link href="/smoking" className="home-button">금연관리</Link>
+              <button type="button" className="home-button" disabled>헬스루틴</button>
+              <Link href="/routine" className="home-button">
+                <span className="home-button-title">생활루틴</span>
+                {routineSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={routineSummary} /></>}
+              </Link>
+            </div>
 
-          {activeHomeTab === 'asset' && <>
-            <Link href="/stocks" className="home-button">
-              <span className="home-button-title">주식성과</span>
-              {stockSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={stockSummary} /></>}
-            </Link>
-            <Link href="/salary" className="home-button">
-              <span className="home-button-title">급여추이</span>
-              {salarySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={salarySummary} /></>}
-            </Link>
-            <button type="button" className="home-button" disabled>고정지출</button>
-            <Link href="/overtime" className="home-button">초과수당</Link>
-          </>}
+            <div className="home-grid-panel" aria-hidden={activeHomeTab !== 'asset'} inert={activeHomeTab !== 'asset'}>
+              <Link href="/stocks" className="home-button">
+                <span className="home-button-title">주식성과</span>
+                {stockSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={stockSummary} /></>}
+              </Link>
+              <Link href="/salary" className="home-button">
+                <span className="home-button-title">급여추이</span>
+                {salarySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={salarySummary} /></>}
+              </Link>
+              <button type="button" className="home-button" disabled>고정지출</button>
+              <Link href="/overtime" className="home-button">초과수당</Link>
+            </div>
 
-          {activeHomeTab === 'family' && <>
-            <button type="button" className="home-button" disabled>퇴근시간</button>
-            <Link href="/shared-memo" className="home-button">
-              <span className="home-button-title">할일메모</span>
-              {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
-            </Link>
-            <Link href="/family-events" className="home-button">
-              <span className="home-button-title">집안행사</span>
-              {familyEventSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={familyEventSummary} /></>}
-            </Link>
-            <Link href="/children-academy" className="home-button">자녀학원</Link>
-            <Link href="/affair-expenses" className="home-button">경조사비</Link>
-          </>}
+            <div className="home-grid-panel" aria-hidden={activeHomeTab !== 'family'} inert={activeHomeTab !== 'family'}>
+              <button type="button" className="home-button" disabled>퇴근시간</button>
+              <Link href="/shared-memo" className="home-button">
+                <span className="home-button-title">할일메모</span>
+                {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
+              </Link>
+              <Link href="/family-events" className="home-button">
+                <span className="home-button-title">집안행사</span>
+                {familyEventSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={familyEventSummary} /></>}
+              </Link>
+              <Link href="/children-academy" className="home-button">자녀학원</Link>
+              <Link href="/affair-expenses" className="home-button">경조사비</Link>
+            </div>
+          </div>
         </section>
       </section>
     </main>
