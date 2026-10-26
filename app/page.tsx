@@ -589,7 +589,7 @@ export default function Home() {
           </Link>
 
           <Link href="/salary" className="home-button">
-            연봉추이
+            급여추이
           </Link>
 
           <Link href="/overtime" className="home-button">

@@ -2285,6 +2285,7 @@ h1 {
 .salary-table th:nth-child(5), .salary-table td:nth-child(5) { width: 19%; }
 .salary-table th:nth-child(6), .salary-table td:nth-child(6) { width: 22%; }
 .salary-table th { font-size: 9px; }
+.salary-table th:nth-child(n + 3) { text-align: right; }
 .salary-table td { padding: 11px 3px; font-size: clamp(7px, 2.15vw, 11px); font-variant-numeric: tabular-nums; }
 .salary-row { cursor: pointer; }
 .salary-row:hover td { background: #f8fafc; }

@@ -21,7 +21,7 @@ async function isAuthenticated() {
 
 function tableRequired() {
   return Response.json({
-    message: '연봉추이 데이터베이스 설정이 필요합니다. Supabase에서 supabase/migrations/20260930_create_salary_records.sql 파일을 실행해주세요.',
+    message: '급여추이 데이터베이스 설정이 필요합니다. Supabase에서 supabase/migrations/20260930_create_salary_records.sql 파일을 실행해주세요.',
   }, { status: 503 });
 }
 
@@ -45,7 +45,7 @@ export async function GET() {
   if (error) {
     if (missingTable(error)) return tableRequired();
     console.error(error);
-    return Response.json({ message: '연봉추이 자료를 불러오지 못했습니다.' }, { status: 500 });
+    return Response.json({ message: '급여추이 자료를 불러오지 못했습니다.' }, { status: 500 });
   }
   return Response.json({ records: data ?? [] });
 }

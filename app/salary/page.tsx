@@ -63,11 +63,11 @@ export default function SalaryPage() {
     try {
       const response = await fetch('/api/salary-records', { cache: 'no-store' });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || '연봉추이 자료를 불러오지 못했습니다.');
+      if (!response.ok) throw new Error(data.message || '급여추이 자료를 불러오지 못했습니다.');
       setRecords(data.records ?? []);
       setError('');
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : '연봉추이 자료를 불러오지 못했습니다.');
+      setError(loadError instanceof Error ? loadError.message : '급여추이 자료를 불러오지 못했습니다.');
     } finally { setLoading(false); }
   }, []);
 
@@ -191,7 +191,7 @@ export default function SalaryPage() {
     <main className="app">
       <section className="container stock-container salary-container">
         <header className="stock-header">
-          <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>연봉추이</h1></div>
+          <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>급여추이</h1></div>
           <Link href="/" className="logout-button">처음으로</Link>
         </header>
 
