@@ -104,7 +104,7 @@ function formatGoalMonth(month: string) {
 }
 
 function formatWeight(value: number) {
-  return Number(value).toFixed(2).replace(/\.0+$|(?<=\.[0-9])0$/, '');
+  return Number(value).toFixed(2).replace(/(?<=\.\d)0$/, '');
 }
 
 function formatChartWeight(value: number) {
