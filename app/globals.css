@@ -1038,7 +1038,6 @@ h1 {
 
 .routine-container {
   max-width: 760px;
-  padding-bottom: 84px;
 }
 
 .routine-header-actions {
@@ -1155,31 +1154,28 @@ h1 {
 .routine-now strong { color: #1874df; }
 
 .routine-add-button {
-  position: fixed;
-  z-index: 30;
-  bottom: calc(22px + env(safe-area-inset-bottom));
-  left: 50%;
   display: grid;
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
+  margin: 16px auto 14px;
   place-items: center;
-  border: 0;
+  border: 1px solid #e2e6eb;
   border-radius: 50%;
-  background: #242424;
-  color: #fff;
-  font-size: 32px;
-  font-weight: 300;
+  background: #fff;
+  color: #394454;
+  font-size: 26px;
+  font-weight: 350;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(20, 25, 32, 0.2);
-  transform: translateX(-50%);
+  box-shadow: 0 3px 10px rgba(20, 25, 32, 0.08);
   transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .routine-add-button:hover {
-  background: #3a3a3a;
-  box-shadow: 0 8px 22px rgba(20, 25, 32, 0.24);
-  transform: translate(-50%, -2px);
+  border-color: #cbd2dc;
+  background: #f8fafc;
+  box-shadow: 0 5px 14px rgba(20, 25, 32, 0.12);
+  transform: translateY(-1px);
 }
 
 .affair-expenses-container {

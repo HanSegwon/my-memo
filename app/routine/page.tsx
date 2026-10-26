@@ -272,10 +272,9 @@ export default function RoutinePage() {
               </article>
             );
           })}
+          <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
         </section>
       </section>
-
-      <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
 
       {showForm && (
         <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowForm(false); }}>
