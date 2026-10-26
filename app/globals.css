@@ -568,6 +568,43 @@ h1 {
   gap: 10px;
 }
 
+.home-category-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid #edf0f3;
+  border-radius: 14px;
+  background: #f7f8fa;
+}
+
+.home-category-tabs button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #858d99;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.home-category-tabs button.is-selected {
+  background: #fff;
+  color: #263652;
+  box-shadow: 0 1px 4px rgba(25, 38, 58, 0.1);
+}
+
+.home-category-tabs button:focus-visible {
+  outline: 2px solid #7185a4;
+  outline-offset: 1px;
+}
+
 .home-button {
   min-height: 68px;
   display: flex;

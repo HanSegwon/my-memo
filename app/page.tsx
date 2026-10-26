@@ -214,6 +214,7 @@ export default function Home() {
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
+  const [activeHomeTab, setActiveHomeTab] = useState<'health' | 'asset' | 'family'>('health');
 
   useEffect(() => {
     setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
@@ -682,94 +683,52 @@ export default function Home() {
           </button>
         </header>
 
-        <section className="home-grid">
-          <Link href="/stocks" className="home-button">
-            <span className="home-button-title">주식성과</span>
-            {stockSummary && (
-              <>
-                <span className="home-button-divider" aria-hidden="true">
-                  |
-                </span>
-                <SlidingSummary text={stockSummary} />
-              </>
-            )}
-          </Link>
+        <div className="home-category-tabs" role="tablist" aria-label="생활 관리 분류">
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'health'} className={activeHomeTab === 'health' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('health')}>건강관리</button>
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'asset'} className={activeHomeTab === 'asset' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('asset')}>자산관리</button>
+          <button type="button" role="tab" aria-selected={activeHomeTab === 'family'} className={activeHomeTab === 'family' ? 'is-selected' : ''} onClick={() => setActiveHomeTab('family')}>가족관리</button>
+        </div>
 
-          <Link href="/salary" className="home-button">
-            <span className="home-button-title">급여추이</span>
-            {salarySummary && (
-              <>
-                <span className="home-button-divider" aria-hidden="true">|</span>
-                <SlidingSummary text={salarySummary} />
-              </>
-            )}
-          </Link>
+        <section className="home-grid" role="tabpanel" aria-label={activeHomeTab === 'health' ? '건강관리' : activeHomeTab === 'asset' ? '자산관리' : '가족관리'}>
+          {activeHomeTab === 'health' && <>
+            <Link href="/weight" className="home-button">
+              <span className="home-button-title">체중관리</span>
+              {weightSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={weightSummary} /></>}
+            </Link>
+            <Link href="/smoking" className="home-button">금연관리</Link>
+            <button type="button" className="home-button" disabled>헬스루틴</button>
+            <Link href="/routine" className="home-button">
+              <span className="home-button-title">생활루틴</span>
+              {routineSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={routineSummary} /></>}
+            </Link>
+          </>}
 
-          <button type="button" className="home-button" disabled>
-            고정지출
-          </button>
+          {activeHomeTab === 'asset' && <>
+            <Link href="/stocks" className="home-button">
+              <span className="home-button-title">주식성과</span>
+              {stockSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={stockSummary} /></>}
+            </Link>
+            <Link href="/salary" className="home-button">
+              <span className="home-button-title">급여추이</span>
+              {salarySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={salarySummary} /></>}
+            </Link>
+            <button type="button" className="home-button" disabled>고정지출</button>
+            <Link href="/overtime" className="home-button">초과수당</Link>
+          </>}
 
-          <Link href="/overtime" className="home-button">
-            초과수당
-          </Link>
-
-          <button type="button" className="home-button" disabled>
-            퇴근시간
-          </button>
-
-          <Link href="/weight" className="home-button">
-            <span className="home-button-title">체중관리</span>
-            {weightSummary && (
-              <>
-                <span className="home-button-divider" aria-hidden="true">|</span>
-                <SlidingSummary text={weightSummary} />
-              </>
-            )}
-          </Link>
-
-          <Link href="/smoking" className="home-button">
-            금연관리
-          </Link>
-
-          <button type="button" className="home-button" disabled>
-            헬스루틴
-          </button>
-
-          <Link href="/routine" className="home-button">
-            <span className="home-button-title">생활루틴</span>
-            {routineSummary && (
-              <>
-                <span className="home-button-divider" aria-hidden="true">|</span>
-                <SlidingSummary text={routineSummary} />
-              </>
-            )}
-          </Link>
-
-          <Link
-            href="/shared-memo"
-            className="home-button"
-          >
-            <span className="home-button-title">할일메모</span>
-            {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
-          </Link>
-
-          <Link href="/family-events" className="home-button">
-            <span className="home-button-title">집안행사</span>
-            {familyEventSummary && (
-              <>
-                <span className="home-button-divider" aria-hidden="true">|</span>
-                <SlidingSummary text={familyEventSummary} />
-              </>
-            )}
-          </Link>
-
-          <Link href="/children-academy" className="home-button">
-            자녀학원
-          </Link>
-
-          <Link href="/affair-expenses" className="home-button">
-            경조사비
-          </Link>
+          {activeHomeTab === 'family' && <>
+            <button type="button" className="home-button" disabled>퇴근시간</button>
+            <Link href="/shared-memo" className="home-button">
+              <span className="home-button-title">할일메모</span>
+              {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
+            </Link>
+            <Link href="/family-events" className="home-button">
+              <span className="home-button-title">집안행사</span>
+              {familyEventSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={familyEventSummary} /></>}
+            </Link>
+            <Link href="/children-academy" className="home-button">자녀학원</Link>
+            <Link href="/affair-expenses" className="home-button">경조사비</Link>
+          </>}
         </section>
       </section>
     </main>
