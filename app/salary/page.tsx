@@ -117,8 +117,13 @@ export default function SalaryPage() {
     const incomeMonthsCount = Math.max(0, monthsCount - firstIncomeMonth + 1);
     const yearRecords = records.filter((record) => record.income_year === year);
     const salary = Array.from({ length: incomeMonthsCount }, (_, index) => Number(yearRecords.find((record) => record.income_month === firstIncomeMonth + index)?.monthly_salary ?? 0)).reduce((sum, value) => sum + value, 0);
+    const salaryMonthsWithIncome = yearRecords.filter((record) =>
+      record.income_month >= firstIncomeMonth &&
+      record.income_month <= monthsCount &&
+      Number(record.monthly_salary ?? 0) > 0
+    ).length;
     const bonus = yearRecords.filter((record) => record.income_month >= firstIncomeMonth && record.income_month <= monthsCount).reduce((sum, record) => sum + Number(record.base_bonus ?? 0) + Number(record.extra_bonus ?? 0), 0);
-    const value = chartKind === 'income' ? salary + bonus : chartKind === 'average' ? (incomeMonthsCount ? salary / incomeMonthsCount : 0) : bonus;
+    const value = chartKind === 'income' ? salary + bonus : chartKind === 'average' ? (salaryMonthsWithIncome ? salary / salaryMonthsWithIncome : 0) : bonus;
     return { year, value };
   }), [years, thisYear, thisMonth, records, chartKind]);
 
