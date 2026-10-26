@@ -2932,16 +2932,16 @@ h1 {
   white-space: nowrap;
 }
 
-.weight-table th:nth-child(1) { width: 21%; }
-.weight-table th:nth-child(2) { width: 8%; }
-.weight-table th:nth-child(3) { width: 11%; }
-.weight-table th:nth-child(4) { width: 8%; }
+.weight-table th:nth-child(1) { width: 22%; }
+.weight-table th:nth-child(2) { width: 9%; }
+.weight-table th:nth-child(3) { width: 13%; }
+.weight-table th:nth-child(4) { width: 9%; }
 .weight-table th:nth-child(5),
 .weight-table th:nth-child(6),
 .weight-table th:nth-child(7) { width: 8%; }
 .weight-table th:nth-child(8),
 .weight-table th:nth-child(9) {
-  width: 14%;
+  width: 11.5%;
   white-space: normal;
   line-height: 1.15;
 }
@@ -2949,7 +2949,7 @@ h1 {
 .weight-table td {
   min-width: 0;
   overflow: hidden;
-  padding: 14px 1px;
+  padding: 14px 3px;
   border-bottom: 1px solid #edf0f3;
   color: #3f4651;
   font-size: clamp(8px, 2.6vw, 11px);
@@ -3001,7 +3001,13 @@ h1 {
 .weight-other-food-cell {
   overflow: hidden;
   color: #6e7784 !important;
+  font-size: 13px !important;
   text-overflow: ellipsis;
+}
+
+.weight-aerobic-mark {
+  color: #6e7784 !important;
+  font-size: clamp(7px, 2.2vw, 9px) !important;
 }
 
 .weight-fasting-mark {

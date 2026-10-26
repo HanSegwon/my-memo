@@ -661,7 +661,9 @@ export default function WeightPage() {
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
                       {record?.exercise === '휴식' ? '-' : record?.exercise ?? ''}
                     </td>
-                    <td>{record?.aerobic_exercise === true ? 'O' : ''}</td>
+                    <td className={record?.aerobic_exercise === true ? 'weight-aerobic-mark' : undefined}>
+                      {record?.aerobic_exercise === true ? '유산소' : ''}
+                    </td>
                     <td className={record?.breakfast === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.breakfast === '미취식' ? '-' : record?.breakfast ?? ''}
                     </td>
@@ -671,8 +673,8 @@ export default function WeightPage() {
                     <td className={record?.dinner === '미취식' ? 'weight-muted-value' : undefined}>
                       {record?.dinner === '미취식' ? '-' : record?.dinner ?? ''}
                     </td>
-                    <td className="weight-other-food-cell">{record?.snack ? 'O' : ''}</td>
-                    <td className="weight-other-food-cell">{record?.late_snack ? 'O' : ''}</td>
+                    <td className="weight-other-food-cell">{record?.snack ? '○' : ''}</td>
+                    <td className="weight-other-food-cell">{record?.late_snack ? '○' : ''}</td>
                   </tr>
                 );
               })}
