@@ -87,6 +87,12 @@ function formatDate(date: string) {
   return `'${year.slice(-2)}.${month}.${day} (${weekday})`;
 }
 
+function formatTableDate(date: string) {
+  const [, month, day] = date.split('-');
+  const weekday = weekdays[getWeekdayNumber(date) - 1].label;
+  return `${Number(month)}/${Number(day)} (${weekday})`;
+}
+
 function formatChartMonth(month: string) {
   const [year, monthNumber] = month.split('-');
   return `'${year.slice(-2)}.${monthNumber}`;
@@ -109,6 +115,7 @@ export default function WeightPage() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [today, setToday] = useState('');
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [records, setRecords] = useState<WeightRecord[]>([]);
   const [showAllRecords, setShowAllRecords] = useState(false);
   const [monthlyGoals, setMonthlyGoals] = useState<MonthlyWeightGoal[]>([]);
@@ -129,7 +136,9 @@ export default function WeightPage() {
   const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
-    setToday(getKoreanToday());
+    const currentDate = getKoreanToday();
+    setToday(currentDate);
+    setSelectedYear((year) => year ?? Number(currentDate.slice(0, 4)));
     const refreshDate = () => setToday(getKoreanToday());
     const timer = setInterval(refreshDate, 60_000);
     void checkAuth();
@@ -194,22 +203,26 @@ export default function WeightPage() {
     }
   }
 
-  const visibleDates = useMemo(
-    () => {
-      if (!today) return [];
+  const currentYear = today ? Number(today.slice(0, 4)) : null;
+  const availableYears = useMemo(() => {
+    if (currentYear === null) return [];
+    const earliestYear = records.reduce(
+      (earliest, record) => Math.min(earliest, Number(record.record_date.slice(0, 4))),
+      currentYear
+    );
+    return Array.from({ length: currentYear - earliestYear + 1 }, (_, index) => currentYear - index);
+  }, [currentYear, records]);
 
-      const firstDateWithRecord = records.reduce(
-        (earliest, record) => record.record_date < earliest ? record.record_date : earliest,
-        addDays(today, -5)
-      );
-      const dates: string[] = [];
-      for (let date = today; date >= firstDateWithRecord; date = addDays(date, -1)) {
-        dates.push(date);
-      }
-      return dates;
-    },
-    [today, records]
-  );
+  const visibleDates = useMemo(() => {
+    if (!today || currentYear === null || selectedYear === null) return [];
+    const firstDate = `${selectedYear}-01-01`;
+    const lastDate = selectedYear === currentYear ? today : `${selectedYear}-12-31`;
+    const dates: string[] = [];
+    for (let date = lastDate; date >= firstDate; date = addDays(date, -1)) {
+      dates.push(date);
+    }
+    return dates;
+  }, [today, currentYear, selectedYear]);
   const displayedDates = showAllRecords ? visibleDates : visibleDates.slice(0, 14);
 
   const recordMap = useMemo(
@@ -622,6 +635,19 @@ export default function WeightPage() {
         </section>
 
         <section className="weight-table-wrap" aria-label="체중관리 일별 기록">
+          <div className="weight-year-select-row">
+            <label htmlFor="weight-record-year">년도</label>
+            <select
+              id="weight-record-year"
+              value={selectedYear ?? currentYear ?? ''}
+              onChange={(event) => {
+                setSelectedYear(Number(event.target.value));
+                setShowAllRecords(false);
+              }}
+            >
+              {availableYears.map((year) => <option key={year} value={year}>{year}년</option>)}
+            </select>
+          </div>
           <table className="weight-table">
             <thead>
               <tr>
@@ -645,7 +671,7 @@ export default function WeightPage() {
                     className={`weight-day-row${date === today ? ' weight-today-row' : ''}`}
                     tabIndex={0}
                     role="button"
-                    aria-label={`${formatDate(date)} 기록 입력`}
+                    aria-label={`${formatTableDate(date)} 기록 입력`}
                     onClick={() => openRecord(date)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -655,7 +681,7 @@ export default function WeightPage() {
                     }}
                   >
                     <td className="weight-date-cell">
-                      <span>{formatDate(date)}</span>
+                      <span>{formatTableDate(date)}</span>
                     </td>
                     <td>{record?.weight_kg == null ? '' : formatWeight(record.weight_kg)}</td>
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>

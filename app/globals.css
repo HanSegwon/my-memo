@@ -2932,18 +2932,39 @@ h1 {
   white-space: nowrap;
 }
 
-.weight-table th:nth-child(1) { width: 22%; }
-.weight-table th:nth-child(2) { width: 9%; }
-.weight-table th:nth-child(3) { width: 13%; }
-.weight-table th:nth-child(4) { width: 9%; }
+.weight-table th:nth-child(1) { width: 15%; }
+.weight-table th:nth-child(2) { width: 10.5%; }
+.weight-table th:nth-child(3) { width: 12%; }
+.weight-table th:nth-child(4) { width: 10%; }
 .weight-table th:nth-child(5),
 .weight-table th:nth-child(6),
 .weight-table th:nth-child(7),
 .weight-table th:nth-child(8),
 .weight-table th:nth-child(9) {
-  width: 9.4%;
+  width: 10.5%;
   white-space: normal;
   line-height: 1.15;
+}
+
+.weight-year-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 2px 10px;
+  color: #6e7681;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.weight-year-select-row select {
+  min-height: 32px;
+  padding: 0 26px 0 9px;
+  border: 1px solid #e7eaf0;
+  border-radius: 9px;
+  background: #fff;
+  color: #4d5663;
+  font-size: 12px;
 }
 
 .weight-table td {
