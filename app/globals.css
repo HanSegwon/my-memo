@@ -1073,7 +1073,11 @@ h1 {
 }
 
 .routine-day-switch .routine-tab-button {
+  display: flex;
   flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   max-width: 112px;
   min-width: 84px;
   padding: 0 12px;
@@ -1083,6 +1087,20 @@ h1 {
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+}
+
+.routine-tab-featured-star {
+  flex: 0 0 auto;
+  color: #d3a54b;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.routine-tab-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .routine-day-switch .routine-tab-add {
@@ -1111,10 +1129,96 @@ h1 {
   width: min(100%, 420px);
 }
 
-.routine-tab-dialog-actions {
+.routine-tab-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.routine-tab-icon-button {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #ededed;
+  border-radius: 10px;
+  background: #fff;
+  color: #747b85;
+  cursor: pointer;
+}
+
+.routine-tab-icon-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.routine-tab-icon-button:hover {
+  border-color: #d8dde4;
+  background: #f8f9fb;
+}
+
+.routine-tab-icon-button.is-delete:hover {
+  border-color: #ead2d2;
+  background: #fffafa;
+  color: #a84949;
+}
+
+.routine-tab-icon-button.is-featured {
+  border-color: #eadcb9;
+  background: #fffaf0;
+  color: #c29134;
+}
+
+.routine-tab-icon-button.is-featured svg {
+  fill: currentColor;
+}
+
+.routine-tab-icon-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.routine-tab-close-button {
+  font-size: 23px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.routine-name-field {
+  display: grid;
+  gap: 7px;
+}
+
+.routine-name-field > label {
+  color: #444;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.routine-name-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.family-event-form .routine-name-input-row input {
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+}
+
+.routine-name-input-row .family-event-save {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 18px;
 }
 
 .routine-tab-copy-trigger {

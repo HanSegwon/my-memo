@@ -3,6 +3,7 @@ create table if not exists public.routine_tabs (
   id text primary key,
   title text not null check (char_length(trim(title)) between 1 and 30),
   day_type text not null check (day_type in ('weekday', 'holiday', 'custom')),
+  is_featured boolean not null default false,
   sort_order integer not null unique check (sort_order between 0 and 3),
   created_at timestamptz not null default now()
 );

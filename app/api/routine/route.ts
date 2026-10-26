@@ -21,13 +21,13 @@ async function isAuthenticated() {
 }
 
 function isMissingSchema(error: { code?: string; message?: string }) {
-  return ['PGRST205', 'PGRST204', '42P01', '42703'].includes(error.code ?? '') ||
+  return ['PGRST205', 'PGRST204', '42P01', '42703', '42883'].includes(error.code ?? '') ||
     error.message?.includes('schema cache') === true;
 }
 
 function schemaRequired() {
   return Response.json({
-    message: 'Supabase에서 생활루틴 탭 설정 SQL을 실행해주세요. supabase/migrations/20261026_add_routine_tabs.sql 파일이 필요합니다.',
+    message: 'Supabase에서 대표 루틴 설정 SQL을 실행해주세요. supabase/migrations/20261026_add_featured_routine.sql 파일이 필요합니다.',
   }, { status: 503 });
 }
 
@@ -57,7 +57,7 @@ export async function GET() {
     return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   }
   const [tabsResult, routinesResult] = await Promise.all([
-    supabaseAdmin.from('routine_tabs').select('id, title, day_type, sort_order').order('sort_order', { ascending: true }),
+    supabaseAdmin.from('routine_tabs').select('id, title, day_type, is_featured, sort_order').order('sort_order', { ascending: true }),
     supabaseAdmin.from('routine_items').select('id, start_time, end_time, title, details, day_type, routine_tab_id, created_at').order('routine_tab_id', { ascending: true }).order('start_time', { ascending: true }).order('created_at', { ascending: true }),
   ]);
 
@@ -86,8 +86,8 @@ export async function POST(request: Request) {
     const sortOrder = [0, 1, 2, 3].find((order) => !existingTabs?.some((tab) => tab.sort_order === order));
     if (sortOrder === undefined) return Response.json({ message: '루틴을 추가할 수 없습니다.' }, { status: 409 });
     const id = randomUUID();
-    const { data, error } = await supabaseAdmin.from('routine_tabs').insert({ id, title: '새 루틴', day_type: 'custom', sort_order: sortOrder })
-      .select('id, title, day_type, sort_order').single();
+    const { data, error } = await supabaseAdmin.from('routine_tabs').insert({ id, title: '새 루틴', day_type: 'custom', is_featured: false, sort_order: sortOrder })
+      .select('id, title, day_type, is_featured, sort_order').single();
     if (error) {
       if (isMissingSchema(error)) return schemaRequired();
       console.error(error);
@@ -169,13 +169,32 @@ export async function PATCH(request: Request) {
     if (typeof id !== 'string' || !(['weekday', 'holiday'].includes(id) || UUID_PATTERN.test(id)) || !title || title.length > 30) {
       return Response.json({ message: '루틴 이름은 1~30자로 입력해주세요.' }, { status: 400 });
     }
-    const { data, error } = await supabaseAdmin.from('routine_tabs').update({ title }).eq('id', id).select('id, title, day_type, sort_order').single();
+    const { data, error } = await supabaseAdmin.from('routine_tabs').update({ title }).eq('id', id).select('id, title, day_type, is_featured, sort_order').single();
     if (error) {
       if (isMissingSchema(error)) return schemaRequired();
       console.error(error);
       return Response.json({ message: '루틴 이름을 변경하지 못했습니다.' }, { status: 500 });
     }
     return Response.json({ tab: data });
+  }
+  if (body.type === 'featured') {
+    const id = body.id;
+    if (id !== null && (typeof id !== 'string' || !(['weekday', 'holiday'].includes(id) || UUID_PATTERN.test(id)))) {
+      return Response.json({ message: '대표 루틴을 확인해주세요.' }, { status: 400 });
+    }
+    const { error } = await supabaseAdmin.rpc('set_featured_routine_tab', { target_tab_id: id });
+    if (error) {
+      if (isMissingSchema(error)) return schemaRequired();
+      console.error(error);
+      return Response.json({ message: '대표 루틴을 변경하지 못했습니다.' }, { status: 500 });
+    }
+    const { data, error: tabsError } = await supabaseAdmin.from('routine_tabs').select('id, title, day_type, is_featured, sort_order').order('sort_order', { ascending: true });
+    if (tabsError) {
+      if (isMissingSchema(tabsError)) return schemaRequired();
+      console.error(tabsError);
+      return Response.json({ message: '대표 루틴을 불러오지 못했습니다.' }, { status: 500 });
+    }
+    return Response.json({ tabs: data ?? [] });
   }
   const id = body.id;
   if (typeof id !== 'string' || !UUID_PATTERN.test(id)) return Response.json({ message: '수정할 생활루틴을 확인해주세요.' }, { status: 400 });

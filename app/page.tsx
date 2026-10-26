@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
-import { getActiveRoutine, getRoutineDayType, type ScheduledRoutine } from '../lib/routineSchedule';
+import { getActiveRoutine, type ScheduledRoutine } from '../lib/routineSchedule';
 
 const greetings = [
   '한세권님, 오늘도 파이팅!',
@@ -287,8 +287,17 @@ export default function Home() {
     try {
       const response = await fetch('/api/routine', { cache: 'no-store' });
       if (!response.ok) return;
-      const data = await response.json() as { routines: ScheduledRoutine[] };
-      const active = getActiveRoutine(data.routines ?? [], new Date(), getRoutineDayType());
+      const data = await response.json() as {
+        routines: Array<ScheduledRoutine & { routine_tab_id: string }>;
+        tabs: Array<{ id: string; day_type: ScheduledRoutine['day_type']; is_featured: boolean }>;
+      };
+      const featuredTab = data.tabs?.find((tab) => tab.is_featured);
+      if (!featuredTab) {
+        setRoutineSummary(null);
+        return;
+      }
+      const featuredRoutines = (data.routines ?? []).filter((routine) => routine.routine_tab_id === featuredTab.id);
+      const active = getActiveRoutine(featuredRoutines, new Date(), featuredTab.day_type);
       setRoutineSummary(active ? `지금은 ${active.title} 시간입니다.` : null);
     } catch {
       // 생활루틴 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.

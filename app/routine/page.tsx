@@ -20,6 +20,7 @@ type RoutineTab = {
   id: string;
   title: string;
   day_type: RoutineDayType;
+  is_featured: boolean;
   sort_order: number;
 };
 
@@ -59,6 +60,7 @@ export default function RoutinePage() {
   const [tabNameDraft, setTabNameDraft] = useState('');
   const [savingTabName, setSavingTabName] = useState(false);
   const [deletingTab, setDeletingTab] = useState(false);
+  const [updatingFeatured, setUpdatingFeatured] = useState(false);
   const [showCopyPicker, setShowCopyPicker] = useState(false);
   const [copySourceTabId, setCopySourceTabId] = useState('');
   const [copyingRoutines, setCopyingRoutines] = useState(false);
@@ -76,9 +78,10 @@ export default function RoutinePage() {
       setRoutines(data.routines ?? []);
       setTabs(data.tabs ?? []);
       const detected = getRoutineDayType();
-      const defaultTab = (data.tabs ?? []).find((tab: RoutineTab) => tab.day_type === detected);
-      if (defaultTab) {
-        setSelectedTabId(defaultTab.id);
+      const initialTab = (data.tabs ?? []).find((tab: RoutineTab) => tab.is_featured)
+        ?? (data.tabs ?? []).find((tab: RoutineTab) => tab.day_type === detected);
+      if (initialTab) {
+        setSelectedTabId(initialTab.id);
       }
       setError('');
     } catch (loadError) {
@@ -112,6 +115,8 @@ export default function RoutinePage() {
     longPressTimer.current = window.setTimeout(() => {
       longPressFired.current = true;
       setTabNameDraft(tab.title);
+      setCopyMessage('');
+      setCopyError('');
       setRenamingTab(tab);
     }, 650);
   }
@@ -153,11 +158,40 @@ export default function RoutinePage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || '루틴 이름을 변경하지 못했습니다.');
       setTabs((current) => current.map((tab) => tab.id === data.tab.id ? data.tab : tab));
-      setRenamingTab(null);
+      closeRenameDialog();
     } catch (renameError) {
       setError(renameError instanceof Error ? renameError.message : '루틴 이름을 변경하지 못했습니다.');
     } finally {
       setSavingTabName(false);
+    }
+  }
+
+  function closeRenameDialog() {
+    setRenamingTab(null);
+    setShowCopyPicker(false);
+    setCopyMessage('');
+    setCopyError('');
+  }
+
+  async function toggleFeaturedTab() {
+    if (!renamingTab || updatingFeatured) return;
+    setUpdatingFeatured(true);
+    setError('');
+    try {
+      const response = await fetch('/api/routine', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'featured', id: renamingTab.is_featured ? null : renamingTab.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '대표 루틴을 변경하지 못했습니다.');
+      setTabs(data.tabs ?? []);
+      const updatedTab = (data.tabs ?? []).find((tab: RoutineTab) => tab.id === renamingTab.id);
+      if (updatedTab) setRenamingTab(updatedTab);
+    } catch (featureError) {
+      setError(featureError instanceof Error ? featureError.message : '대표 루틴을 변경하지 못했습니다.');
+    } finally {
+      setUpdatingFeatured(false);
     }
   }
 
@@ -207,7 +241,7 @@ export default function RoutinePage() {
         const fallback = remainingTabs.find((tab) => tab.id === todayType) ?? remainingTabs[0];
         setSelectedTabId(fallback?.id ?? '');
       }
-      setRenamingTab(null);
+      closeRenameDialog();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : '루틴을 삭제하지 못했습니다.');
     } finally {
@@ -248,7 +282,7 @@ export default function RoutinePage() {
 
   const selectedTab = tabs.find((tab) => tab.id === selectedTabId) ?? null;
   const visibleRoutines = routines.filter((item) => item.routine_tab_id === selectedTabId);
-  const activeRoutine = selectedTab ? getActiveRoutine(visibleRoutines, clock, selectedTab.day_type) : null;
+  const activeRoutine = selectedTab?.is_featured ? getActiveRoutine(visibleRoutines, clock, selectedTab.day_type) : null;
 
   if (loading) return <main className="loading-screen"><LoadingDots /></main>;
 
@@ -269,7 +303,7 @@ export default function RoutinePage() {
               type="button"
               className={`routine-tab-button${selectedTabId === tab.id ? ' is-selected' : ''}`}
               title={`${tab.title} (길게 눌러 이름 변경)`}
-              aria-label={`${tab.title}, 길게 눌러 이름 변경`}
+              aria-label={`${tab.is_featured ? '대표 루틴, ' : ''}${tab.title}, 길게 눌러 이름 변경`}
               onPointerDown={() => startTabLongPress(tab)}
               onPointerUp={cancelTabLongPress}
               onPointerLeave={cancelTabLongPress}
@@ -280,7 +314,8 @@ export default function RoutinePage() {
                 setSelectedTabId(tab.id);
               }}
             >
-              {formatTabTitle(tab.title)}
+              {tab.is_featured && <span className="routine-tab-featured-star" aria-hidden="true">★</span>}
+              <span className="routine-tab-title">{formatTabTitle(tab.title)}</span>
             </button>
           ))}
           {tabs.length < 4 && <button type="button" className="routine-tab-add" onClick={() => void addRoutineTab()} aria-label="루틴 추가" title="루틴 추가">+</button>}
@@ -325,18 +360,31 @@ export default function RoutinePage() {
       )}
 
       {renamingTab && (
-        <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setRenamingTab(null); }}>
+        <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeRenameDialog(); }}>
           <section className="family-event-modal routine-rename-modal" role="dialog" aria-modal="true" aria-labelledby="routine-tab-name-title">
-            <div className="family-event-modal-heading"><div><p className="eyebrow">RENAME ROUTINE</p><h2 id="routine-tab-name-title">이름 변경하기</h2></div><button type="button" onClick={() => setRenamingTab(null)} aria-label="닫기">×</button></div>
+            <div className="family-event-modal-heading">
+              <div><p className="eyebrow">ROUTINE SETTING</p><h2 id="routine-tab-name-title">루틴 설정</h2></div>
+              <div className="routine-tab-header-actions">
+                <button type="button" className="routine-tab-icon-button is-delete" onClick={() => void deleteRoutineTab()} disabled={deletingTab} aria-label="루틴 삭제" title="루틴 삭제">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5" /></svg>
+                </button>
+                <button type="button" className={`routine-tab-icon-button${renamingTab.is_featured ? ' is-featured' : ''}`} onClick={() => void toggleFeaturedTab()} disabled={updatingFeatured} aria-label={renamingTab.is_featured ? '대표 루틴 해제' : '대표 루틴 지정'} title={renamingTab.is_featured ? '대표 루틴 해제' : '대표 루틴 지정'}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 17.02l-5.3 2.79 1.01-5.9-4.29-4.18 5.93-.86L12 3.5Z" /></svg>
+                </button>
+                <button type="button" className="routine-tab-icon-button routine-tab-close-button" onClick={closeRenameDialog} aria-label="닫기">×</button>
+              </div>
+            </div>
             <form className="family-event-form" onSubmit={(event) => void saveTabName(event)}>
-              <label>루틴 이름<input autoFocus maxLength={30} value={tabNameDraft} onChange={(event) => setTabNameDraft(event.target.value)} placeholder="최대 30자" required /></label>
+              <div className="routine-name-field">
+                <label htmlFor="routine-name-input">루틴 이름</label>
+                <div className="routine-name-input-row">
+                  <input id="routine-name-input" autoFocus maxLength={30} value={tabNameDraft} onChange={(event) => setTabNameDraft(event.target.value)} placeholder="최대 30자" required />
+                  <button type="submit" className="family-event-save" disabled={savingTabName || !tabNameDraft.trim()}>{savingTabName ? '저장 중...' : '변경'}</button>
+                </div>
+              </div>
               {error && <p className="routine-error" role="alert">{error}</p>}
               <button type="button" className="routine-tab-copy-trigger" onClick={openCopyPicker}>다른 루틴에서 일정 가져오기</button>
               {copyMessage && <p className="routine-copy-message" role="status">{copyMessage}</p>}
-              <div className="routine-tab-dialog-actions">
-                <button type="button" className="routine-tab-delete" onClick={() => void deleteRoutineTab()} disabled={deletingTab}>{deletingTab ? '삭제 중...' : '루틴 삭제'}</button>
-                <button type="submit" className="family-event-save" disabled={savingTabName || !tabNameDraft.trim()}>{savingTabName ? '저장 중...' : '이름 저장'}</button>
-              </div>
             </form>
           </section>
         </div>
