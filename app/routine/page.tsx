@@ -257,7 +257,7 @@ export default function RoutinePage() {
         {error && !showForm && <p className="routine-error" role="alert">{error}</p>}
         <section className="routine-list" aria-label={`${selectedTab?.title ?? '생활'} 목록`}>
           {loading ? <div className="loading-inline"><LoadingDots /></div> : visibleRoutines.length === 0 ? (
-            <div className="routine-empty-state"><h2>{selectedTab?.title ?? '생활루틴'}의 리듬을 만들어 보세요</h2><p>상단 + 버튼으로 일정을 추가할 수 있습니다.</p></div>
+            <div className="routine-empty-state"><h2>{selectedTab?.title ?? '생활루틴'}의 리듬을 만들어 보세요</h2><p>+ 버튼으로 일정을 추가할 수 있습니다.</p></div>
           ) : visibleRoutines.map((routine) => {
             const start = formatTime(routine.start_time);
             const end = formatTime(routine.end_time);
@@ -272,8 +272,8 @@ export default function RoutinePage() {
               </article>
             );
           })}
+          <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
         </section>
-        <button type="button" className="routine-add-button" onClick={() => openForm()} aria-label="생활루틴 추가" title="생활루틴 추가">+</button>
       </section>
 
       {showForm && (
