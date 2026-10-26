@@ -102,6 +102,7 @@ export default function WeightPage() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [today, setToday] = useState('');
   const [records, setRecords] = useState<WeightRecord[]>([]);
+  const [showAllRecords, setShowAllRecords] = useState(false);
   const [monthlyGoals, setMonthlyGoals] = useState<MonthlyWeightGoal[]>([]);
   const [goalTableReady, setGoalTableReady] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -201,6 +202,7 @@ export default function WeightPage() {
     },
     [today, records]
   );
+  const displayedDates = showAllRecords ? visibleDates : visibleDates.slice(0, 14);
 
   const recordMap = useMemo(
     () => new Map(records.map((record) => [record.record_date, record])),
@@ -623,7 +625,7 @@ export default function WeightPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleDates.map((date) => {
+              {displayedDates.map((date) => {
                 const record = recordMap.get(date);
                 return (
                   <tr
@@ -668,6 +670,16 @@ export default function WeightPage() {
           </table>
         </section>
         <p className="weight-table-hint">날짜를 터치하면 기록을 입력할 수 있습니다.</p>
+        {visibleDates.length > 14 && (
+          <button
+            type="button"
+            className="weight-history-toggle"
+            onClick={() => setShowAllRecords((current) => !current)}
+            aria-expanded={showAllRecords}
+          >
+            {showAllRecords ? '최근 14개만 보기' : '전체 기록 펼치기'}
+          </button>
+        )}
       </section>
 
       {activeDate && (
