@@ -91,6 +91,11 @@ export async function POST(request: Request) {
     if (error) {
       if (isMissingSchema(error)) return schemaRequired();
       console.error(error);
+      if (error.code === '23514') {
+        return Response.json({
+          message: 'Supabase가 아직 루틴 4개를 허용하지 않습니다. SQL Editor에서 supabase/migrations/20261026_allow_four_routine_tabs.sql을 실행해주세요.',
+        }, { status: 503 });
+      }
       return Response.json({ message: '새 루틴을 추가하지 못했습니다.' }, { status: 500 });
     }
     return Response.json({ tab: data });
