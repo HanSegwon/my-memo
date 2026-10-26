@@ -1664,6 +1664,15 @@ h1 {
   margin: 0;
 }
 
+.routine-list.is-empty .routine-empty-state {
+  padding-bottom: 0;
+}
+
+.routine-list.is-empty .routine-add-button {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
 .routine-error {
   margin: 0 0 12px;
   color: #c44444;
