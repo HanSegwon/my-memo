@@ -738,7 +738,11 @@ export default function WeightPage() {
                     </td>
                     <td>{record?.weight_kg == null ? '' : formatWeight(record.weight_kg)}</td>
                     <td className={record?.exercise === '휴식' ? 'weight-muted-value' : undefined}>
-                      {record?.exercise === '휴식' ? '-' : record?.exercise ?? ''}
+                      {record?.exercise === '휴식'
+                        ? '-'
+                        : record?.exercise === '코어'
+                          ? '유산소'
+                          : record?.exercise ?? ''}
                     </td>
                     <td className={fasting ? 'weight-fasting-mark' : undefined}>
                       {fasting ? '●' : ''}
@@ -1023,7 +1027,7 @@ function ChoiceField<T extends string>({
             aria-pressed={selected === value}
             onClick={() => onSelect(selected === value ? '' : value)}
           >
-            {value}
+            {value === '코어' ? '유산소' : value}
           </button>
         ))}
       </div>
