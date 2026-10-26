@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
@@ -139,6 +139,7 @@ type SalaryRecordSummary = {
 };
 
 type HomeTab = 'health' | 'asset' | 'family';
+const homeTabs: HomeTab[] = ['health', 'asset', 'family'];
 let hasStartedHomeTabSession = false;
 
 function getInitialHomeTab(): HomeTab {
@@ -235,6 +236,8 @@ export default function Home() {
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
   const [activeHomeTab, setActiveHomeTab] = useState<HomeTab>(getInitialHomeTab);
+  const tabSwipeStart = useRef<{ x: number; y: number } | null>(null);
+  const suppressSwipeClick = useRef(false);
 
   useEffect(() => {
     setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
@@ -246,6 +249,29 @@ export default function Home() {
     try {
       window.sessionStorage.setItem('master-home-tab', tab);
     } catch {}
+  }
+
+  function handleTabSwipeEnd(event: PointerEvent<HTMLElement>) {
+    const start = tabSwipeStart.current;
+    tabSwipeStart.current = null;
+    if (!start) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 55 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+
+    const currentIndex = homeTabs.indexOf(activeHomeTab);
+    const nextIndex = Math.max(0, Math.min(homeTabs.length - 1, currentIndex + (deltaX < 0 ? 1 : -1)));
+    if (nextIndex !== currentIndex) selectHomeTab(homeTabs[nextIndex]);
+    suppressSwipeClick.current = true;
+    window.setTimeout(() => { suppressSwipeClick.current = false; }, 350);
+  }
+
+  function preventSwipeNavigation(event: MouseEvent<HTMLElement>) {
+    if (!suppressSwipeClick.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressSwipeClick.current = false;
   }
 
   async function checkAuth() {
@@ -716,7 +742,15 @@ export default function Home() {
           <button type="button" role="tab" aria-selected={activeHomeTab === 'family'} className={activeHomeTab === 'family' ? 'is-selected' : ''} onClick={() => selectHomeTab('family')}>가족관리</button>
         </div>
 
-        <section className="home-grid" role="tabpanel" aria-label={activeHomeTab === 'health' ? '건강관리' : activeHomeTab === 'asset' ? '자산관리' : '가족관리'}>
+        <section
+          className="home-grid"
+          role="tabpanel"
+          aria-label={activeHomeTab === 'health' ? '건강관리' : activeHomeTab === 'asset' ? '자산관리' : '가족관리'}
+          onPointerDown={(event) => { tabSwipeStart.current = { x: event.clientX, y: event.clientY }; }}
+          onPointerUp={handleTabSwipeEnd}
+          onPointerCancel={() => { tabSwipeStart.current = null; }}
+          onClickCapture={preventSwipeNavigation}
+        >
           {activeHomeTab === 'health' && <>
             <Link href="/weight" className="home-button">
               <span className="home-button-title">체중관리</span>

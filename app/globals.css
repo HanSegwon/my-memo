@@ -574,9 +574,9 @@ h1 {
   gap: 5px;
   margin: 0 0 12px;
   padding: 4px;
-  border: 1px solid #edf0f3;
+  border: 1px solid #e1eaf6;
   border-radius: 14px;
-  background: #f7f8fa;
+  background: #eff4fb;
 }
 
 .home-category-tabs button {
@@ -586,7 +586,7 @@ h1 {
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #858d99;
+  color: #61718a;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.04em;
@@ -595,14 +595,18 @@ h1 {
 }
 
 .home-category-tabs button.is-selected {
-  background: #fff;
-  color: #263652;
-  box-shadow: 0 1px 4px rgba(25, 38, 58, 0.1);
+  background: #285b98;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(31, 73, 122, 0.2);
 }
 
 .home-category-tabs button:focus-visible {
-  outline: 2px solid #7185a4;
+  outline: 2px solid #285b98;
   outline-offset: 1px;
+}
+
+.home-grid {
+  touch-action: pan-y;
 }
 
 .home-button {
