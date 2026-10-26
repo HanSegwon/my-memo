@@ -175,6 +175,14 @@ export default function RoutinePage() {
 
   async function toggleFeaturedTab() {
     if (!renamingTab || updatingFeatured) return;
+    const previousTabs = tabs;
+    const shouldFeature = !renamingTab.is_featured;
+    const updatedTabs = tabs.map((tab) => ({
+      ...tab,
+      is_featured: shouldFeature && tab.id === renamingTab.id,
+    }));
+    setTabs(updatedTabs);
+    setRenamingTab({ ...renamingTab, is_featured: shouldFeature });
     setUpdatingFeatured(true);
     setError('');
     try {
@@ -189,6 +197,8 @@ export default function RoutinePage() {
       const updatedTab = (data.tabs ?? []).find((tab: RoutineTab) => tab.id === renamingTab.id);
       if (updatedTab) setRenamingTab(updatedTab);
     } catch (featureError) {
+      setTabs(previousTabs);
+      setRenamingTab(renamingTab);
       setError(featureError instanceof Error ? featureError.message : '대표 루틴을 변경하지 못했습니다.');
     } finally {
       setUpdatingFeatured(false);
