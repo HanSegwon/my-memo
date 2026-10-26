@@ -1253,7 +1253,7 @@ h1 {
 .affair-flow-badge.income { background: #edf7f1; color: #39815b; }
 .affair-transaction-date { color: #8b9098; font-variant-numeric: tabular-nums; }
 .affair-transaction-event { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.affair-transaction-amount { margin-right: 12px; color: #30343a; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
+.affair-transaction-amount { color: #30343a; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
 
 .affair-contact-delete {
   position: absolute;
