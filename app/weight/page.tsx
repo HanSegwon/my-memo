@@ -289,6 +289,32 @@ export default function WeightPage() {
     setActiveDate(date);
   }
 
+  function keepSnackInputVisible(event: React.FocusEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const adjustScroll = () => {
+      if (document.activeElement !== input) return;
+      const dialog = input.closest<HTMLElement>('.weight-record-dialog');
+      if (!dialog) return;
+
+      const inputRect = input.getBoundingClientRect();
+      const dialogRect = dialog.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+      const visibleTop = Math.max(dialogRect.top, viewportTop) + 16;
+      const visibleBottom = Math.min(dialogRect.bottom, viewportBottom) - 16;
+
+      if (inputRect.bottom > visibleBottom) {
+        dialog.scrollBy({ top: inputRect.bottom - visibleBottom, behavior: 'smooth' });
+      } else if (inputRect.top < visibleTop) {
+        dialog.scrollBy({ top: inputRect.top - visibleTop, behavior: 'smooth' });
+      }
+    };
+
+    window.setTimeout(adjustScroll, 180);
+    window.setTimeout(adjustScroll, 420);
+  }
+
   async function saveRecord(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeDate) return;
@@ -829,6 +855,7 @@ export default function WeightPage() {
                   maxLength={100}
                   placeholder="간식 내용을 입력하세요"
                   value={recordDraft.snack}
+                  onFocus={keepSnackInputVisible}
                   onChange={(event) =>
                     setRecordDraft((current) => ({ ...current, snack: event.target.value }))
                   }
@@ -842,6 +869,7 @@ export default function WeightPage() {
                   maxLength={100}
                   placeholder="야식 내용을 입력하세요"
                   value={recordDraft.lateSnack}
+                  onFocus={keepSnackInputVisible}
                   onChange={(event) =>
                     setRecordDraft((current) => ({ ...current, lateSnack: event.target.value }))
                   }
