@@ -139,6 +139,14 @@ type SalaryRecordSummary = {
   monthly_salary: number | null;
 };
 
+type AcademyScheduleSummary = {
+  child_name: '한유준' | '한이준';
+  weekday: number;
+  title: string;
+  start_time: string;
+  end_time: string;
+};
+
 type HomeTab = 'health' | 'asset' | 'family';
 const homeTabs: HomeTab[] = ['health', 'asset', 'family'];
 let hasStartedHomeTabSession = false;
@@ -179,6 +187,48 @@ function getPayrollMonth(date = new Date()) {
   const day = Number(parts.find((part) => part.type === 'day')?.value);
   const payrollDate = new Date(Date.UTC(year, month - 1 - (day < 21 ? 1 : 0), 1));
   return { year: payrollDate.getUTCFullYear(), month: payrollDate.getUTCMonth() + 1 };
+}
+
+function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now);
+  const weekdayLabel = parts.find((part) => part.type === 'weekday')?.value;
+  const weekday = ({ Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 } as Record<string, number>)[weekdayLabel ?? ''] ?? 0;
+  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? 0);
+  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? 0);
+  if (hour < 6 || hour >= 22) return null;
+
+  const currentMinute = hour * 60 + minute;
+  const formatDuration = (targetMinute: number) => {
+    const remaining = Math.max(0, targetMinute - currentMinute);
+    return `${Math.floor(remaining / 60)}시간 ${remaining % 60}분`;
+  };
+  const describeChild = (childName: AcademyScheduleSummary['child_name']) => {
+    const todaySchedules = schedules
+      .filter((schedule) => schedule.child_name === childName && schedule.weekday === weekday)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    const current = todaySchedules.find((schedule) => {
+      const start = Number(schedule.start_time.slice(0, 2)) * 60 + Number(schedule.start_time.slice(3, 5));
+      const end = Number(schedule.end_time.slice(0, 2)) * 60 + Number(schedule.end_time.slice(3, 5));
+      return start <= currentMinute && currentMinute < end;
+    });
+    if (current) {
+      const end = Number(current.end_time.slice(0, 2)) * 60 + Number(current.end_time.slice(3, 5));
+      return `${childName} (${formatDuration(end)} 뒤 ${current.title} 수업 마침)`;
+    }
+
+    const next = todaySchedules.find((schedule) => Number(schedule.start_time.slice(0, 2)) * 60 + Number(schedule.start_time.slice(3, 5)) > currentMinute);
+    if (!next) return `${childName} (일정 종료)`;
+    const start = Number(next.start_time.slice(0, 2)) * 60 + Number(next.start_time.slice(3, 5));
+    return `${childName} (${formatDuration(start)} 뒤 ${next.title} 수업)`;
+  };
+
+  return [describeChild('한유준'), describeChild('한이준')].join(' · ');
 }
 
 function SlidingSummary({ text }: { text: string }) {
@@ -241,6 +291,7 @@ export default function Home() {
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [smokingSummary, setSmokingSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
+  const [academySummary, setAcademySummary] = useState<string | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
@@ -357,6 +408,7 @@ export default function Home() {
         loadWeightSummary(),
         loadSmokingSummary(),
         loadFamilyEventSummary(),
+        loadAcademySummary(),
         loadRoutineSummary(),
         loadTodoMemoSummary(),
       ]);
@@ -476,6 +528,7 @@ export default function Home() {
       loadWeightSummary(),
       loadSmokingSummary(),
       loadFamilyEventSummary(),
+      loadAcademySummary(),
       loadRoutineSummary(),
       loadTodoMemoSummary(),
     ]);
@@ -501,6 +554,25 @@ export default function Home() {
     window.addEventListener('focus', refresh);
     return () => {
       window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [authenticated, dashboardReady]);
+
+  useEffect(() => {
+    if (authenticated !== true || !dashboardReady) {
+      setAcademySummary(null);
+      return;
+    }
+    const refresh = () => void loadAcademySummary();
+    let interval: number | undefined;
+    const firstRefresh = window.setTimeout(() => {
+      refresh();
+      interval = window.setInterval(refresh, 60_000);
+    }, 60_000 - (Date.now() % 60_000));
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearTimeout(firstRefresh);
+      if (interval !== undefined) window.clearInterval(interval);
       window.removeEventListener('focus', refresh);
     };
   }, [authenticated, dashboardReady]);
@@ -624,6 +696,17 @@ export default function Home() {
       setFamilyEventSummary(`${upcoming.event.title} ${daysLeft === 0 ? '오늘입니다.' : `${daysLeft}일 남았습니다.`}`);
     } catch {
       // 집안행사 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
+  async function loadAcademySummary() {
+    try {
+      const response = await fetch('/api/children-academy', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json() as { schedules: AcademyScheduleSummary[] };
+      setAcademySummary(getAcademySummary(data.schedules ?? []));
+    } catch {
+      // 학원 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
     }
   }
 
@@ -925,7 +1008,10 @@ export default function Home() {
                 <span className="home-button-title">집안행사</span>
                 {familyEventSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={familyEventSummary} /></>}
               </Link>
-              <Link href="/children-academy" className="home-button">자녀학원</Link>
+              <Link href="/children-academy" className="home-button">
+                <span className="home-button-title">자녀학원</span>
+                {academySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={academySummary} /></>}
+              </Link>
               <Link href="/affair-expenses" className="home-button">경조사비</Link>
             </div>
           </div>
