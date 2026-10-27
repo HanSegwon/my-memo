@@ -147,8 +147,8 @@ type AcademyScheduleSummary = {
   end_time: string;
 };
 
-// TEMPORARY: fixed Wednesday 15:32 KST for checking academy dashboard summaries.
-const ACADEMY_SUMMARY_TEST_NOW = new Date('2026-10-28T06:32:00.000Z');
+// TEMPORARY: fixed Wednesday 07:00 KST for checking academy dashboard summaries.
+const ACADEMY_SUMMARY_TEST_NOW = new Date('2026-10-27T22:00:00.000Z');
 
 type HomeTab = 'health' | 'asset' | 'family';
 const homeTabs: HomeTab[] = ['health', 'asset', 'family'];
