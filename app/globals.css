@@ -1598,6 +1598,7 @@ h1 {
 }
 
 .health-exercise-count:active { background: transparent; }
+.health-exercise-count:last-of-type { margin-right: 10px; }
 
 .health-exercise-value {
   color: #303843;
@@ -1673,6 +1674,7 @@ h1 {
   .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
   .health-exercise-order { width: 20px; flex-basis: 20px; }
   .health-exercise-count { gap: 2px; padding: 0 1px; }
+  .health-exercise-count:last-of-type { margin-right: 8px; }
   .health-exercise-name { font-size: 13px; }
 }
 

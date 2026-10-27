@@ -449,10 +449,11 @@ export default function HealthRoutinePage() {
               onPointerUp={selectionMode ? undefined : () => void finishReorder()}
               onPointerCancel={selectionMode ? undefined : () => void finishReorder(true)}
               onPointerLeave={selectionMode ? undefined : stopPendingReorder}
+              onClick={selectionMode ? () => toggleSelected(exercise.id) : undefined}
               onContextMenu={(event) => event.preventDefault()}
               onDragStart={(event) => event.preventDefault()}
             >
-              {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${exercise.exercise_name || `${index + 1}번째 운동`} 선택`} checked={selectedIds.has(exercise.id)} disabled={deletingIds.has(exercise.id)} onChange={() => toggleSelected(exercise.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 운동`}>{index + 1}</span>}
+              {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${exercise.exercise_name || `${index + 1}번째 운동`} 선택`} checked={selectedIds.has(exercise.id)} disabled={deletingIds.has(exercise.id)} onClick={(event) => event.stopPropagation()} onChange={() => toggleSelected(exercise.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 운동`}>{index + 1}</span>}
               <input
                 className="health-exercise-name"
                 aria-label="운동 종목"
