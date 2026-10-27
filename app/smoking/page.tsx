@@ -27,6 +27,17 @@ function getAvoidedCigarettes(startedAt: string, now: number) {
   return Math.floor(activeMilliseconds / 3_600_000);
 }
 
+function formatQuitStart(startedAt: string) {
+  const date = new Date(startedAt);
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const year = String(date.getFullYear()).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `시작일 : ${year}.${month}.${day} (${weekdays[date.getDay()]}) ${hours}:${minutes}`;
+}
+
 export default function SmokingPage() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -162,7 +173,10 @@ export default function SmokingPage() {
       <section className="container stock-container weight-container smoking-container">
         <header className="stock-header">
           <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>금연관리</h1></div>
-          <Link href="/" className="logout-button">처음으로</Link>
+          <div className="smoking-header-actions">
+            {quitStartedAt && <button type="button" className="smoking-quit-fail smoking-header-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '처리 중...' : '금연실패'}</button>}
+            <Link href="/" className="logout-button">처음으로</Link>
+          </div>
         </header>
 
         <section className={`smoking-quit-panel ${quitStartedAt ? 'smoking-quit-active' : 'smoking-not-started'}`} aria-label="금연 타이머">
@@ -171,6 +185,7 @@ export default function SmokingPage() {
               <p className="smoking-quit-eyebrow">금연 시간</p>
               <strong className="smoking-quit-timer">{timerText.split(/(일|시간|분|초)/g).map((part, index) => /^(일|시간|분|초)$/.test(part) ? <span className="smoking-quit-timer-unit" key={`${part}-${index}`}>{part}</span> : part)}</strong>
             </div>
+            <p className="smoking-quit-started-at">{formatQuitStart(quitStartedAt)}</p>
             {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
             <div className="smoking-savings" aria-live="polite">
               <strong>{savedAmount.toLocaleString('ko-KR')}원 절약</strong>
@@ -182,7 +197,6 @@ export default function SmokingPage() {
           </> : <button type="button" className="smoking-quit-start" onClick={() => void startQuitting()} disabled={quitSaving}>{quitSaving ? '시작 중...' : '금연 시작'}</button>}
           {quitError && <p className="smoking-quit-error" role="alert">{quitError}<button type="button" onClick={() => void loadQuitStatus()}>다시 시도</button></p>}
         </section>
-        {quitStartedAt && <button type="button" className="logout-button smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패'}</button>}
       </section>
       {showQuitFailureConfirm && <div className="modal-backdrop smoking-confirm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !quitSaving) setShowQuitFailureConfirm(false); }}>
         <section className="settings-modal smoking-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="smoking-confirm-title">

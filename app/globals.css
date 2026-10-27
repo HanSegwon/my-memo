@@ -3725,6 +3725,21 @@ h1 {
   font-weight: 600;
 }
 
+.smoking-quit-started-at {
+  margin: 10px 0 0;
+  color: #929aa5;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.smoking-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+
 .smoking-quit-start,
 .smoking-quit-fail {
   flex: 0 0 auto;
@@ -3778,6 +3793,15 @@ h1 {
   color: #c5a9ab;
   font-size: 12px;
   font-weight: 500;
+}
+
+.smoking-header-fail {
+  min-height: 34px;
+  margin: 0;
+  padding: 0 9px;
+  align-items: center;
+  justify-content: center;
+  color: #c5a9ab;
 }
 .smoking-quit-start:disabled,
 .smoking-quit-fail:disabled { opacity: .55; cursor: default; }
