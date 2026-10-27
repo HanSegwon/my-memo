@@ -7,6 +7,7 @@ import LoadingDots from '../../components/LoadingDots';
 import { formatQuitTimer, getQuitDuration, getRandomQuitMessage } from '../../lib/smokingQuit';
 
 const CIGARETTE_PRICE = 4900;
+const CIGARETTES_PER_PACK = 20;
 const ACTIVE_HOURS_START = 6;
 const ACTIVE_HOURS_END = 22;
 
@@ -36,6 +37,7 @@ export default function SmokingPage() {
   const [quitError, setQuitError] = useState('');
   const [quitSaving, setQuitSaving] = useState(false);
   const [quitStatusLoaded, setQuitStatusLoaded] = useState(false);
+  const [showSavingsHelp, setShowSavingsHelp] = useState(false);
 
   const loadQuitStatus = useCallback(async () => {
     setQuitError('');
@@ -125,7 +127,8 @@ export default function SmokingPage() {
   if (authenticated === null || loading || !quitStatusLoaded) return <main className="loading-screen"><LoadingDots /></main>;
 
   const avoidedCigarettes = quitStartedAt ? getAvoidedCigarettes(quitStartedAt, quitNow || Date.now()) : 0;
-  const savedAmount = avoidedCigarettes * CIGARETTE_PRICE;
+  const savedAmount = avoidedCigarettes * (CIGARETTE_PRICE / CIGARETTES_PER_PACK);
+  const timerText = quitStartedAt ? formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now())) : '';
 
   return (
     <main className="app">
@@ -139,13 +142,15 @@ export default function SmokingPage() {
           {quitStartedAt ? <>
             <div className="smoking-quit-timer-content">
               <p className="smoking-quit-eyebrow">금연 시간</p>
-              <strong className="smoking-quit-timer">{formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now()))}</strong>
+              <strong className="smoking-quit-timer">{timerText.split(/(일|시간|분|초)/g).map((part, index) => /^(일|시간|분|초)$/.test(part) ? <span className="smoking-quit-timer-unit" key={`${part}-${index}`}>{part}</span> : part)}</strong>
             </div>
             {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
             <div className="smoking-savings" aria-live="polite">
-              <span>아낀 금액</span>
-              <strong>{savedAmount.toLocaleString('ko-KR')}원</strong>
-              <small>06:00~22:00 시간당 1개비 · 담배 1개비 4,900원 기준</small>
+              <strong>{savedAmount.toLocaleString('ko-KR')}원 절약</strong>
+              <span className={`smoking-savings-help${showSavingsHelp ? ' is-open' : ''}`}>
+                <button type="button" aria-label="절약 금액 계산 기준" aria-expanded={showSavingsHelp} onClick={() => setShowSavingsHelp((open) => !open)}>?</button>
+                {showSavingsHelp && <span className="smoking-savings-tooltip" role="status">22:00~06:00는 제외하고, 06:00~22:00 동안 시간당 1개비를 피운 것으로 계산합니다. 한 갑(20개비)은 4,900원 기준입니다.</span>}
+              </span>
             </div>
           </> : <button type="button" className="smoking-quit-start" onClick={() => void startQuitting()} disabled={quitSaving}>{quitSaving ? '시작 중...' : '금연 시작'}</button>}
           {quitError && <p className="smoking-quit-error" role="alert">{quitError}<button type="button" onClick={() => void loadQuitStatus()}>다시 시도</button></p>}
