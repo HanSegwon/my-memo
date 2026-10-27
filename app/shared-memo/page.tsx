@@ -167,11 +167,11 @@ export default function SharedMemoPage() {
         <header className="header">
           <div>
             <p className="eyebrow brand-eyebrow">Master 3.0</p>
-            <h1>할 일 메모</h1>
+            <h1>공유메모</h1>
           </div>
 
           <div className="routine-header-actions">
-            <button type="button" className="routine-add-button" onClick={() => openMemoForm()} aria-label="할 일 메모 추가" title="할 일 메모 추가">+</button>
+            <button type="button" className="routine-add-button" onClick={() => openMemoForm()} aria-label="공유메모 추가" title="공유메모 추가">+</button>
             <Link href="/" className="logout-button">처음으로</Link>
           </div>
         </header>
@@ -180,7 +180,7 @@ export default function SharedMemoPage() {
           <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setShowForm(false); }}>
             <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="memo-form-title">
               <div className="family-event-modal-heading">
-              <div><p className="eyebrow">{editingMemo ? 'EDIT TASK' : 'NEW TASK'}</p><h2 id="memo-form-title">할 일 메모 {editingMemo ? '수정' : '추가'}</h2></div>
+              <div><p className="eyebrow">{editingMemo ? 'EDIT TASK' : 'NEW TASK'}</p><h2 id="memo-form-title">공유메모 {editingMemo ? '수정' : '추가'}</h2></div>
                 <button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button>
               </div>
               <form className="family-event-form routine-form" onSubmit={(event) => { event.preventDefault(); void saveMemo(); }}>
