@@ -1567,18 +1567,17 @@ h1 {
 
 .health-exercise-count {
   display: flex;
-  min-width: 32px;
+  min-width: 0;
   height: 32px;
   flex: 0 0 auto;
-  padding: 0 5px;
+  gap: 3px;
+  padding: 0 2px;
   align-items: center;
   justify-content: flex-end;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: #303843;
-  font-size: 12px;
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   cursor: pointer;
@@ -1586,12 +1585,25 @@ h1 {
 
 .health-exercise-count:active { background: transparent; }
 
+.health-exercise-value {
+  color: #303843;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
 .health-exercise-unit {
   flex: 0 0 auto;
   color: #858d98;
   font-size: 11px;
   letter-spacing: -0.05em;
   white-space: nowrap;
+}
+
+.health-exercise-multiply {
+  flex: 0 0 auto;
+  color: #858d98;
+  font-size: 12px;
 }
 
 .health-exercise-delete {
@@ -1636,7 +1648,7 @@ h1 {
   .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
   .health-exercise-order { width: 20px; flex-basis: 20px; }
   .health-exercise-delete { flex-basis: 20px; width: 20px; }
-  .health-exercise-count { min-width: 29px; padding: 0 3px; }
+  .health-exercise-count { gap: 2px; padding: 0 1px; }
   .health-exercise-name { font-size: 13px; }
 }
 

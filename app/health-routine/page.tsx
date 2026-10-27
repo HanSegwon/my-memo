@@ -444,12 +444,17 @@ export default function HealthRoutinePage() {
                 onChange={(event) => updateExercise(exercise.id, { exercise_name: event.target.value })}
                 onBlur={() => void saveExercise(exercise)}
               />
-              <button type="button" className="health-exercise-count" aria-label={`무게 ${exercise.weight_kg || '0'}kg 변경`} onClick={() => openCountDialog(exercise, 'weight_kg')}>{exercise.weight_kg || '0'}</button>
-              <span className="health-exercise-unit">kg ×</span>
-              <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} onClick={() => openCountDialog(exercise, 'repetitions')}>{exercise.repetitions.padStart(2, '0')}</button>
-              <span className="health-exercise-unit">회 ×</span>
-              <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}세트 변경`} onClick={() => openCountDialog(exercise, 'sets')}>{exercise.sets}</button>
-              <span className="health-exercise-unit">set</span>
+              <button type="button" className="health-exercise-count" aria-label={`무게 ${exercise.weight_kg || '0'}kg 변경`} onClick={() => openCountDialog(exercise, 'weight_kg')}>
+                <span className="health-exercise-value">{exercise.weight_kg || '0'}</span><span className="health-exercise-unit">kg</span>
+              </button>
+              <span className="health-exercise-multiply" aria-hidden="true">×</span>
+              <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} onClick={() => openCountDialog(exercise, 'repetitions')}>
+                <span className="health-exercise-value">{exercise.repetitions.padStart(2, '0')}</span><span className="health-exercise-unit">회</span>
+              </button>
+              <span className="health-exercise-multiply" aria-hidden="true">×</span>
+              <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}set 변경`} onClick={() => openCountDialog(exercise, 'sets')}>
+                <span className="health-exercise-value">{exercise.sets}</span><span className="health-exercise-unit">set</span>
+              </button>
               <button type="button" className="health-exercise-delete" aria-label={`${exercise.exercise_name || '운동'} 삭제`} title="삭제" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)} onClick={() => void deleteExercise(exercise)}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg>
               </button>
