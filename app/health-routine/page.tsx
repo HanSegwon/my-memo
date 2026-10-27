@@ -23,7 +23,7 @@ type ExerciseCard = Omit<HealthExercise, 'repetitions' | 'sets' | 'weight_kg'> &
   weight_kg: string;
   isDraft?: boolean;
 };
-type CountField = 'repetitions' | 'sets';
+type CountField = 'weight_kg' | 'repetitions' | 'sets';
 type ReorderPress = {
   id: string;
   startX: number;
@@ -119,7 +119,8 @@ export default function HealthRoutinePage() {
 
   function openCountDialog(exercise: ExerciseCard, field: CountField) {
     if (savingIds.has(exercise.id) || deletingIds.has(exercise.id)) return;
-    setCountDialog({ exerciseId: exercise.id, field, value: Number(exercise[field]) });
+    const value = field === 'weight_kg' ? Number(exercise.weight_kg || 0) : Number(exercise[field]);
+    setCountDialog({ exerciseId: exercise.id, field, value });
   }
 
   function applyCountDialog() {
@@ -127,6 +128,14 @@ export default function HealthRoutinePage() {
     const exercise = exercises.find((item) => item.id === countDialog.exerciseId);
     if (!exercise) return setCountDialog(null);
     const field = countDialog.field;
+    if (field === 'weight_kg') {
+      const weight = countDialog.value === 0 ? '' : countDialog.value.toFixed(1).replace(/\.0$/, '');
+      const updated = { ...exercise, weight_kg: weight };
+      updateExercise(exercise.id, { weight_kg: weight });
+      setCountDialog(null);
+      if (!exercise.isDraft) void saveExercise(updated);
+      return;
+    }
     const value = String(countDialog.value).padStart(field === 'repetitions' ? 2 : 1, '0');
     const updated = { ...exercise, [field]: value };
     updateExercise(exercise.id, { [field]: value });
@@ -435,18 +444,8 @@ export default function HealthRoutinePage() {
                 onChange={(event) => updateExercise(exercise.id, { exercise_name: event.target.value })}
                 onBlur={() => void saveExercise(exercise)}
               />
-              <label className="health-exercise-weight" aria-label="운동 무게">
-                <input
-                  inputMode="decimal"
-                  aria-label="무게 (kg)"
-                  placeholder="0"
-                  value={exercise.weight_kg}
-                  disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
-                  onChange={(event) => updateExercise(exercise.id, { weight_kg: event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1') })}
-                  onBlur={() => void saveExercise(exercise)}
-                />
-                <span>kg</span>
-              </label>
+              <button type="button" className="health-exercise-count" aria-label={`무게 ${exercise.weight_kg || '0'}kg 변경`} onClick={() => openCountDialog(exercise, 'weight_kg')}>{exercise.weight_kg || '0'}</button>
+              <span className="health-exercise-unit">kg</span>
               <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} onClick={() => openCountDialog(exercise, 'repetitions')}>{exercise.repetitions.padStart(2, '0')}</button>
               <span className="health-exercise-unit">회 ×</span>
               <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}세트 변경`} onClick={() => openCountDialog(exercise, 'sets')}>{exercise.sets}</button>
@@ -461,11 +460,11 @@ export default function HealthRoutinePage() {
         </div>
         {countDialog && <div className="modal-backdrop health-count-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCountDialog(null); }}>
           <section className="settings-modal health-count-modal" role="dialog" aria-modal="true" aria-labelledby="health-count-title">
-            <div className="settings-modal-header"><h2 id="health-count-title">{countDialog.field === 'repetitions' ? '반복 횟수' : '세트 수'}</h2><button type="button" className="modal-close" onClick={() => setCountDialog(null)}>닫기</button></div>
+            <div className="settings-modal-header"><h2 id="health-count-title">{countDialog.field === 'weight_kg' ? '무게 (kg)' : countDialog.field === 'repetitions' ? '반복 횟수' : '세트 수'}</h2><button type="button" className="modal-close" onClick={() => setCountDialog(null)}>닫기</button></div>
             <div className="health-count-controls">
-              <button type="button" aria-label="1 줄이기" disabled={countDialog.value <= 1} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.max(1, current.value - 1) } : current)}>−</button>
-              <output>{String(countDialog.value).padStart(countDialog.field === 'repetitions' ? 2 : 1, '0')}<span>{countDialog.field === 'repetitions' ? '회' : '세트'}</span></output>
-              <button type="button" aria-label="1 늘리기" disabled={countDialog.value >= (countDialog.field === 'repetitions' ? 99 : 9)} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.min(current.field === 'repetitions' ? 99 : 9, current.value + 1) } : current)}>+</button>
+              <button type="button" aria-label={countDialog.field === 'weight_kg' ? '1kg 줄이기' : '1 줄이기'} disabled={countDialog.value <= (countDialog.field === 'weight_kg' ? 0 : 1)} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.max(current.field === 'weight_kg' ? 0 : 1, current.value - 1) } : current)}>−</button>
+              <output>{countDialog.field === 'weight_kg' ? String(countDialog.value) : String(countDialog.value).padStart(countDialog.field === 'repetitions' ? 2 : 1, '0')}<span>{countDialog.field === 'weight_kg' ? 'kg' : countDialog.field === 'repetitions' ? '회' : '세트'}</span></output>
+              <button type="button" aria-label={countDialog.field === 'weight_kg' ? '1kg 늘리기' : '1 늘리기'} disabled={countDialog.value >= (countDialog.field === 'weight_kg' ? 999 : countDialog.field === 'repetitions' ? 99 : 9)} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.min(current.field === 'weight_kg' ? 999 : current.field === 'repetitions' ? 99 : 9, current.value + 1) } : current)}>+</button>
             </div>
             <button type="button" className="primary-button" onClick={applyCountDialog}>적용</button>
           </section>

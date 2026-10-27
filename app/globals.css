@@ -1565,33 +1565,6 @@ h1 {
   font-weight: 400;
 }
 
-.health-exercise-weight {
-  display: flex;
-  flex: 0 0 54px;
-  align-items: center;
-  gap: 2px;
-  color: #858d98;
-  font-size: 10px;
-}
-
-.health-exercise-weight input {
-  width: 38px;
-  min-width: 0;
-  height: 32px;
-  padding: 0 2px;
-  border: 0;
-  border-bottom: 1px solid #dfe4ea;
-  border-radius: 0;
-  outline: 0;
-  background: transparent;
-  color: #303843;
-  font-size: 12px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.health-exercise-weight input:focus { border-color: #7187a2; }
-
 .health-exercise-count {
   display: grid;
   min-width: 32px;
@@ -1661,8 +1634,6 @@ h1 {
   .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
   .health-exercise-order { width: 20px; flex-basis: 20px; }
   .health-exercise-delete { flex-basis: 20px; width: 20px; }
-  .health-exercise-weight { flex-basis: 48px; }
-  .health-exercise-weight input { width: 32px; }
   .health-exercise-count { min-width: 29px; padding: 0 3px; }
   .health-exercise-name { font-size: 13px; }
 }
