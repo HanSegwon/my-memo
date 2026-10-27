@@ -3681,20 +3681,23 @@ h1 {
 }
 
 .smoking-quit-panel {
-  margin: 0 0 18px;
-  padding: 16px;
-  border: 1px solid #e9edf2;
-  border-radius: 16px;
-  background: #fff;
+  margin: 0 0 14px;
+  padding: 8px 0;
+  background: transparent;
 }
 
-.smoking-quit-timer-row,
+.smoking-quit-timer-content {
+  text-align: center;
+}
+
 .smoking-quit-start-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
+
+.smoking-quit-start-row { text-align: center; }
 
 .smoking-quit-eyebrow {
   margin: 0 0 6px;
@@ -3714,9 +3717,9 @@ h1 {
 .smoking-quit-timer {
   display: block;
   color: #252a31;
-  font-size: clamp(17px, 4.6vw, 24px);
-  font-weight: 650;
-  letter-spacing: -.04em;
+  font-size: clamp(23px, 7vw, 40px);
+  font-weight: 700;
+  letter-spacing: -.06em;
   line-height: 1.25;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -3724,18 +3727,18 @@ h1 {
 
 .smoking-quit-start,
 .smoking-quit-fail {
-  min-height: 38px;
+  min-height: 42px;
   flex: 0 0 auto;
-  padding: 0 15px;
+  padding: 0 16px;
   border: 0;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
   cursor: pointer;
 }
 
 .smoking-quit-start { background: #252a31; color: #fff; }
-.smoking-quit-fail { background: #fbf1f1; color: #bb4b52; }
+.smoking-quit-fail { display: block; width: 100%; margin: 12px auto 0; background: #fbf1f1; color: #bb4b52; }
 .smoking-quit-start:disabled,
 .smoking-quit-fail:disabled { opacity: .55; cursor: default; }
 
@@ -3746,13 +3749,14 @@ h1 {
   color: #737d89;
   font-size: 13px;
   line-height: 1.55;
+  text-align: center;
 }
 
 .smoking-savings {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: 5px 12px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 4px;
   margin-top: 14px;
   padding: 13px 14px;
   border-radius: 12px;
@@ -3767,13 +3771,12 @@ h1 {
 
 .smoking-savings > strong {
   color: #293341;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .smoking-savings > small {
-  grid-column: 1 / -1;
   color: #929aa5;
   font-size: 10px;
   line-height: 1.45;

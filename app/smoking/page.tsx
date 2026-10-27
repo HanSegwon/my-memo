@@ -137,9 +137,9 @@ export default function SmokingPage() {
 
         <section className="smoking-quit-panel" aria-label="금연 타이머">
           {quitStartedAt ? <>
-            <div className="smoking-quit-timer-row">
-              <div><p className="smoking-quit-eyebrow">SMOKE FREE</p><strong className="smoking-quit-timer">{formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now()))}</strong></div>
-              <button type="button" className="smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패'}</button>
+            <div className="smoking-quit-timer-content">
+              <p className="smoking-quit-eyebrow">금연한 시간</p>
+              <strong className="smoking-quit-timer">{formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now()))}</strong>
             </div>
             {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
             <div className="smoking-savings" aria-live="polite">
@@ -153,6 +153,7 @@ export default function SmokingPage() {
           </div>}
           {quitError && <p className="smoking-quit-error" role="alert">{quitError}<button type="button" onClick={() => void loadQuitStatus()}>다시 시도</button></p>}
         </section>
+        {quitStartedAt && <button type="button" className="smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패시 이 버튼을 누르세요.'}</button>}
       </section>
     </main>
   );
