@@ -5,6 +5,7 @@ import Link from 'next/link';
 import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
 import { getActiveRoutine, type ScheduledRoutine } from '../lib/routineSchedule';
+import { getNextQuitSummary } from '../lib/smokingQuit';
 
 const greetings = [
   '한세권님, 오늘도 힘차게 시작해요!',
@@ -231,6 +232,7 @@ export default function Home() {
   const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [salarySummary, setSalarySummary] = useState<string | null>(null);
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
+  const [smokingSummary, setSmokingSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
@@ -346,6 +348,7 @@ export default function Home() {
         loadStockSummary(),
         loadSalarySummary(),
         loadWeightSummary(),
+        loadSmokingSummary(),
         loadFamilyEventSummary(),
         loadRoutineSummary(),
         loadTodoMemoSummary(),
@@ -464,6 +467,7 @@ export default function Home() {
       loadStockSummary(),
       loadSalarySummary(),
       loadWeightSummary(),
+      loadSmokingSummary(),
       loadFamilyEventSummary(),
       loadRoutineSummary(),
       loadTodoMemoSummary(),
@@ -486,6 +490,20 @@ export default function Home() {
       return;
     }
     const refresh = () => void loadTodoMemoSummary();
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [authenticated, dashboardReady]);
+
+  useEffect(() => {
+    if (authenticated !== true || !dashboardReady) {
+      setSmokingSummary(null);
+      return;
+    }
+    const refresh = () => void loadSmokingSummary();
     const timer = window.setInterval(refresh, 60_000);
     window.addEventListener('focus', refresh);
     return () => {
@@ -525,6 +543,20 @@ export default function Home() {
       }
     } catch {
       // 체중 요약을 불러오지 못해도 다른 메뉴는 사용할 수 있습니다.
+    }
+  }
+
+  async function loadSmokingSummary() {
+    try {
+      const response = await fetch('/api/smoking/quit', { cache: 'no-store' });
+      if (!response.ok) {
+        setSmokingSummary(null);
+        return;
+      }
+      const data = await response.json() as { quitStartedAt?: string | null };
+      setSmokingSummary(data.quitStartedAt ? getNextQuitSummary(data.quitStartedAt, Date.now()) : null);
+    } catch {
+      setSmokingSummary(null);
     }
   }
 
@@ -672,6 +704,7 @@ export default function Home() {
     setAuthenticated(false);
     setDashboardReady(true);
     setWeightSummary(null);
+    setSmokingSummary(null);
     setFamilyEventSummary(null);
     setRoutineSummary(null);
     setTodoMemoSummary(null);
@@ -850,7 +883,10 @@ export default function Home() {
                 <span className="home-button-title">체중관리</span>
                 {weightSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={weightSummary} /></>}
               </Link>
-              <Link href="/smoking" className="home-button">금연관리</Link>
+              <Link href="/smoking" className="home-button">
+                <span className="home-button-title">금연관리</span>
+                {smokingSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={smokingSummary} /></>}
+              </Link>
               <Link href="/health-routine" className="home-button">헬스루틴</Link>
               <Link href="/routine" className="home-button">
                 <span className="home-button-title">생활루틴</span>

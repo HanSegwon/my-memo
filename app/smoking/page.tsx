@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import LoadingDots from '../../components/LoadingDots';
+import { formatQuitTimer, getQuitDuration, getRandomQuitMessage } from '../../lib/smokingQuit';
 
 type SmokingRecord = {
   record_date: string;
@@ -61,6 +62,12 @@ export default function SmokingPage() {
   const [draft, setDraft] = useState<SmokingDraft>(emptyDraft);
   const [recordError, setRecordError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [quitStartedAt, setQuitStartedAt] = useState<string | null>(null);
+  const [quitNow, setQuitNow] = useState(0);
+  const [quitMessage, setQuitMessage] = useState('');
+  const [quitError, setQuitError] = useState('');
+  const [quitSaving, setQuitSaving] = useState(false);
+  const [quitStatusLoaded, setQuitStatusLoaded] = useState(false);
 
   const loadRecords = useCallback(async () => {
     setLoading(true);
@@ -77,6 +84,22 @@ export default function SmokingPage() {
     }
   }, []);
 
+  const loadQuitStatus = useCallback(async () => {
+    setQuitError('');
+    try {
+      const response = await fetch('/api/smoking/quit', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '금연 시작 정보를 불러오지 못했습니다.');
+      setQuitStartedAt(data.quitStartedAt ?? null);
+      setQuitNow(Date.now());
+      setQuitMessage(data.quitStartedAt ? getRandomQuitMessage(getQuitDuration(data.quitStartedAt)) : '');
+    } catch (error) {
+      setQuitError(error instanceof Error ? error.message : '금연 시작 정보를 불러오지 못했습니다.');
+    } finally {
+      setQuitStatusLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     setToday(koreanToday());
     const timer = window.setInterval(() => setToday(koreanToday()), 60_000);
@@ -89,14 +112,20 @@ export default function SmokingPage() {
           return;
         }
         setAuthenticated(true);
-        await loadRecords();
+        await Promise.all([loadRecords(), loadQuitStatus()]);
       } catch {
         setPageError('로그인 상태를 확인하지 못했습니다.');
         setLoading(false);
       }
     })();
     return () => window.clearInterval(timer);
-  }, [loadRecords, router]);
+  }, [loadQuitStatus, loadRecords, router]);
+
+  useEffect(() => {
+    if (!quitStartedAt) return;
+    const timer = window.setInterval(() => setQuitNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [quitStartedAt]);
 
   useEffect(() => {
     const closeDialog = () => {
@@ -168,6 +197,49 @@ export default function SmokingPage() {
     }
   }
 
+  async function startQuitting() {
+    if (quitSaving) return;
+    setQuitSaving(true);
+    setQuitError('');
+    try {
+      const response = await fetch('/api/smoking/quit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start' }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '금연 시작 시간을 저장하지 못했습니다.');
+      setQuitStartedAt(data.quitStartedAt);
+      setQuitNow(Date.now());
+      setQuitMessage(getRandomQuitMessage(0));
+    } catch (error) {
+      setQuitError(error instanceof Error ? error.message : '금연을 시작하지 못했습니다.');
+    } finally {
+      setQuitSaving(false);
+    }
+  }
+
+  async function markQuitFailed() {
+    if (quitSaving || !window.confirm('금연 실패로 기록하고 현재 타이머를 초기화할까요?')) return;
+    setQuitSaving(true);
+    setQuitError('');
+    try {
+      const response = await fetch('/api/smoking/quit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fail' }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '금연 상태를 저장하지 못했습니다.');
+      setQuitStartedAt(null);
+      setQuitMessage('');
+    } catch (error) {
+      setQuitError(error instanceof Error ? error.message : '금연 실패를 기록하지 못했습니다.');
+    } finally {
+      setQuitSaving(false);
+    }
+  }
+
   const chartMaxCount = Math.max(...chartRows.map((record) => Number(record.regular_count ?? 0) + Number(record.electronic_count ?? 0)), 0);
   const chartStep = niceCountStep((chartMaxCount * 1.1 || 4) / 4);
   const chartMax = Math.ceil((chartMaxCount * 1.1 || 4) / chartStep) * chartStep;
@@ -187,7 +259,7 @@ export default function SmokingPage() {
     return `${index * 48 + 24},${chartBaseline - (total / chartMax) * plotHeight}`;
   }).join(' ');
 
-  if (authenticated === null || loading) return <main className="loading-screen"><LoadingDots /></main>;
+  if (authenticated === null || loading || !quitStatusLoaded) return <main className="loading-screen"><LoadingDots /></main>;
 
   return (
     <main className="app">
@@ -196,6 +268,20 @@ export default function SmokingPage() {
           <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>금연관리</h1></div>
           <Link href="/" className="logout-button">처음으로</Link>
         </header>
+
+        <section className="smoking-quit-panel" aria-label="금연 타이머">
+          {quitStartedAt ? <>
+            <div className="smoking-quit-timer-row">
+              <div><p className="smoking-quit-eyebrow">SMOKE FREE</p><strong className="smoking-quit-timer">{formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now()))}</strong></div>
+              <button type="button" className="smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패'}</button>
+            </div>
+            {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
+          </> : <div className="smoking-quit-start-row">
+            <div><p className="smoking-quit-eyebrow">A NEW START</p><h2>오늘부터 금연을 시작해요</h2></div>
+            <button type="button" className="smoking-quit-start" onClick={() => void startQuitting()} disabled={quitSaving}>{quitSaving ? '시작 중...' : '금연 시작'}</button>
+          </div>}
+          {quitError && <p className="smoking-quit-error" role="alert">{quitError}<button type="button" onClick={() => void loadQuitStatus()}>다시 시도</button></p>}
+        </section>
 
         {pageError && <div className="weight-inline-error" role="alert"><span>{pageError}</span><button type="button" onClick={() => void loadRecords()}>다시 시도</button></div>}
 
