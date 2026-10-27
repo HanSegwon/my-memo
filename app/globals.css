@@ -3686,38 +3686,32 @@ h1 {
   background: transparent;
 }
 
+.smoking-not-started {
+  display: grid;
+  min-height: 62vh;
+  place-items: center;
+}
+
+.smoking-quit-active {
+  margin-top: clamp(100px, 18vh, 180px);
+}
+
 .smoking-quit-timer-content {
   text-align: center;
 }
-
-.smoking-quit-start-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.smoking-quit-start-row { text-align: center; }
 
 .smoking-quit-eyebrow {
   margin: 0 0 6px;
   color: #87909b;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .09em;
-}
-
-.smoking-quit-start-row h2 {
-  margin: 0;
-  color: #303843;
-  font-size: 15px;
-  font-weight: 650;
+  letter-spacing: .02em;
 }
 
 .smoking-quit-timer {
   display: block;
   color: #252a31;
-  font-size: clamp(23px, 7vw, 40px);
+  font-size: clamp(24px, 7.5vw, 44px);
   font-weight: 700;
   letter-spacing: -.06em;
   line-height: 1.25;
@@ -3727,23 +3721,45 @@ h1 {
 
 .smoking-quit-start,
 .smoking-quit-fail {
-  min-height: 42px;
   flex: 0 0 auto;
-  padding: 0 16px;
   border: 0;
-  border-radius: 10px;
   font-size: 13px;
   font-weight: 650;
   cursor: pointer;
 }
 
-.smoking-quit-start { background: #252a31; color: #fff; }
-.smoking-quit-fail { display: block; width: 100%; margin: 12px auto 0; background: #fbf1f1; color: #bb4b52; }
+.smoking-quit-start {
+  display: grid;
+  width: 184px;
+  height: 184px;
+  padding: 20px;
+  place-items: center;
+  border: 1px solid #e8ebef;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(32 41 53 / 9%);
+  color: #252a31;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.smoking-quit-fail {
+  display: flex;
+  width: max-content;
+  min-height: 34px;
+  margin: 20px 0 0 auto;
+  padding: 0 9px;
+  border-radius: 10px;
+  background: #fbf1f1;
+  color: #bb4b52;
+  font-size: 12px;
+}
 .smoking-quit-start:disabled,
 .smoking-quit-fail:disabled { opacity: .55; cursor: default; }
 
 .smoking-quit-message {
-  margin: 13px 0 0;
+  margin: 18px 0 0;
   padding-top: 12px;
   border-top: 1px solid #f0f2f5;
   color: #737d89;
@@ -3757,7 +3773,7 @@ h1 {
   grid-template-columns: 1fr;
   justify-items: center;
   gap: 4px;
-  margin-top: 14px;
+  margin-top: 28px;
   padding: 13px 14px;
   border-radius: 12px;
   background: #f7f8fa;

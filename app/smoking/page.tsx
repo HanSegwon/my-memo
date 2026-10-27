@@ -135,10 +135,10 @@ export default function SmokingPage() {
           <Link href="/" className="logout-button">처음으로</Link>
         </header>
 
-        <section className="smoking-quit-panel" aria-label="금연 타이머">
+        <section className={`smoking-quit-panel ${quitStartedAt ? 'smoking-quit-active' : 'smoking-not-started'}`} aria-label="금연 타이머">
           {quitStartedAt ? <>
             <div className="smoking-quit-timer-content">
-              <p className="smoking-quit-eyebrow">금연한 시간</p>
+              <p className="smoking-quit-eyebrow">금연 시간</p>
               <strong className="smoking-quit-timer">{formatQuitTimer(getQuitDuration(quitStartedAt, quitNow || Date.now()))}</strong>
             </div>
             {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
@@ -147,13 +147,10 @@ export default function SmokingPage() {
               <strong>{savedAmount.toLocaleString('ko-KR')}원</strong>
               <small>06:00~22:00 시간당 1개비 · 담배 1개비 4,900원 기준</small>
             </div>
-          </> : <div className="smoking-quit-start-row">
-            <div><p className="smoking-quit-eyebrow">A NEW START</p><h2>오늘부터 금연을 시작해요</h2></div>
-            <button type="button" className="smoking-quit-start" onClick={() => void startQuitting()} disabled={quitSaving}>{quitSaving ? '시작 중...' : '금연 시작'}</button>
-          </div>}
+          </> : <button type="button" className="smoking-quit-start" onClick={() => void startQuitting()} disabled={quitSaving}>{quitSaving ? '시작 중...' : '금연 시작'}</button>}
           {quitError && <p className="smoking-quit-error" role="alert">{quitError}<button type="button" onClick={() => void loadQuitStatus()}>다시 시도</button></p>}
         </section>
-        {quitStartedAt && <button type="button" className="smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패시 이 버튼을 누르세요.'}</button>}
+        {quitStartedAt && <button type="button" className="logout-button smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패'}</button>}
       </section>
     </main>
   );
