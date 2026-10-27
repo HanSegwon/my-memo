@@ -3703,7 +3703,7 @@ h1 {
 .smoking-quit-eyebrow {
   margin: 0 0 12px;
   color: #687382;
-  font-size: 30px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: -.04em;
 }
@@ -3713,7 +3713,7 @@ h1 {
   color: #252a31;
   font-size: clamp(24px, 7.5vw, 44px);
   font-weight: 700;
-  letter-spacing: -.06em;
+  letter-spacing: .04em;
   line-height: 1.25;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -3771,12 +3771,13 @@ h1 {
   display: flex;
   width: max-content;
   min-height: 34px;
-  margin: 20px 0 0 auto;
+  margin: 20px auto 0;
   padding: 0 9px;
   border-radius: 10px;
-  background: #fbf1f1;
-  color: #bb4b52;
+  background: transparent !important;
+  color: #c5a9ab;
   font-size: 12px;
+  font-weight: 500;
 }
 .smoking-quit-start:disabled,
 .smoking-quit-fail:disabled { opacity: .55; cursor: default; }
@@ -3831,9 +3832,10 @@ h1 {
 .smoking-savings-tooltip {
   position: absolute;
   z-index: 5;
-  right: -8px;
+  left: 50%;
   bottom: calc(100% + 10px);
-  width: min(280px, 78vw);
+  width: min(280px, calc(100vw - 32px));
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   background: #303843;
@@ -3843,6 +3845,79 @@ h1 {
   font-weight: 450;
   line-height: 1.55;
   text-align: left;
+  transform: translateX(-50%);
+}
+
+.smoking-savings-tooltip::after {
+  position: absolute;
+  right: auto;
+  bottom: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: #303843;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.smoking-confirm-backdrop {
+  align-items: center;
+  padding: 20px;
+  background: rgb(31 38 48 / 28%);
+}
+
+.smoking-confirm-dialog {
+  padding: 24px 22px 20px;
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgb(31 38 48 / 16%);
+}
+
+.smoking-confirm-dialog > .eyebrow {
+  margin: 0 0 10px;
+  color: #9098a3;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.smoking-confirm-dialog h2 {
+  margin: 0;
+  color: #293341;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+
+.smoking-confirm-description {
+  margin: 10px 0 22px;
+  color: #77818e;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.smoking-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.smoking-confirm-actions button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.smoking-confirm-cancel {
+  background: #f3f5f7;
+  color: #65707d;
+}
+
+.smoking-confirm-submit {
+  background: #fbf1f1;
+  color: #b95c63;
 }
 
 .smoking-quit-error {

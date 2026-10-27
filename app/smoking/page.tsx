@@ -38,6 +38,7 @@ export default function SmokingPage() {
   const [quitSaving, setQuitSaving] = useState(false);
   const [quitStatusLoaded, setQuitStatusLoaded] = useState(false);
   const [showSavingsHelp, setShowSavingsHelp] = useState(false);
+  const [showQuitFailureConfirm, setShowQuitFailureConfirm] = useState(false);
 
   const loadQuitStatus = useCallback(async () => {
     setQuitError('');
@@ -81,6 +82,15 @@ export default function SmokingPage() {
     return () => window.clearInterval(timer);
   }, [quitStartedAt]);
 
+  useEffect(() => {
+    if (!showQuitFailureConfirm) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !quitSaving) setShowQuitFailureConfirm(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [showQuitFailureConfirm, quitSaving]);
+
   async function startQuitting() {
     if (quitSaving) return;
     setQuitSaving(true);
@@ -103,8 +113,12 @@ export default function SmokingPage() {
     }
   }
 
-  async function markQuitFailed() {
-    if (quitSaving || !window.confirm('금연 실패로 기록하고 현재 타이머를 초기화할까요?')) return;
+  function markQuitFailed() {
+    if (!quitSaving) setShowQuitFailureConfirm(true);
+  }
+
+  async function confirmQuitFailed() {
+    if (quitSaving) return;
     setQuitSaving(true);
     setQuitError('');
     try {
@@ -117,6 +131,7 @@ export default function SmokingPage() {
       if (!response.ok) throw new Error(data.message || '금연 상태를 저장하지 못했습니다.');
       setQuitStartedAt(null);
       setQuitMessage('');
+      setShowQuitFailureConfirm(false);
     } catch (error) {
       setQuitError(error instanceof Error ? error.message : '금연 실패를 기록하지 못했습니다.');
     } finally {
@@ -157,6 +172,17 @@ export default function SmokingPage() {
         </section>
         {quitStartedAt && <button type="button" className="logout-button smoking-quit-fail" onClick={() => void markQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패'}</button>}
       </section>
+      {showQuitFailureConfirm && <div className="modal-backdrop smoking-confirm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !quitSaving) setShowQuitFailureConfirm(false); }}>
+        <section className="settings-modal smoking-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="smoking-confirm-title">
+          <p className="eyebrow">QUIT RECORD</p>
+          <h2 id="smoking-confirm-title">금연 실패를 기록할까요?</h2>
+          <p className="smoking-confirm-description">현재 금연 시간을 초기화하고 새로 시작할 수 있어요.</p>
+          <div className="smoking-confirm-actions">
+            <button type="button" className="smoking-confirm-cancel" onClick={() => setShowQuitFailureConfirm(false)} disabled={quitSaving}>취소</button>
+            <button type="button" className="smoking-confirm-submit" onClick={() => void confirmQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패 기록'}</button>
+          </div>
+        </section>
+      </div>}
     </main>
   );
 }
