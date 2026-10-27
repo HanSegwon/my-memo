@@ -206,7 +206,9 @@ function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()
   const currentMinute = hour * 60 + minute;
   const formatDuration = (targetMinute: number) => {
     const remaining = Math.max(0, targetMinute - currentMinute);
-    return `${Math.floor(remaining / 60)}시간 ${remaining % 60}분`;
+    const hours = Math.floor(remaining / 60);
+    const minutes = remaining % 60;
+    return hours > 0 ? `${hours}시간${minutes > 0 ? ` ${minutes}분` : ''}` : `${minutes}분`;
   };
   const describeChild = (childName: AcademyScheduleSummary['child_name']) => {
     const todaySchedules = schedules
