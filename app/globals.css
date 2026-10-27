@@ -1500,12 +1500,14 @@ h1 {
   cursor: pointer;
 }
 
+.health-routine-list-actions button:last-child { padding-right: 9px; }
+.health-routine-list-actions .health-selection-start,
 .health-routine-list-actions .health-selection-delete {
-  color: #666;
+  color: #c64b52;
 }
 
 .health-routine-list-actions .health-selection-delete:disabled {
-  color: #aeb4bc;
+  color: #d4a5a8;
   cursor: default;
 }
 
