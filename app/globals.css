@@ -1566,22 +1566,55 @@ h1 {
   font-weight: 400;
 }
 
-.health-exercise-number {
+.health-exercise-stepper {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
   height: 34px;
-  padding: 0 3px;
+  padding: 2px;
   border: 1px solid #e8edf2;
   border-radius: 8px;
   background: #fbfcfd;
   color: #303843;
-  font-size: 13px;
+}
+
+.health-exercise-stepper button {
+  display: grid;
+  width: 16px;
+  height: 28px;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #718096;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.health-exercise-stepper button:active:not(:disabled) {
+  background: #eaf0f7;
+}
+
+.health-exercise-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.health-exercise-stepper output {
+  min-width: 18px;
+  color: #303843;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-.health-exercise-reps { width: 32px; }
-.health-exercise-sets { width: 25px; }
+.health-exercise-reps { width: 56px; flex-basis: 56px; }
+.health-exercise-sets { width: 44px; flex-basis: 44px; }
 
 .health-exercise-unit {
   flex: 0 0 auto;
@@ -1595,13 +1628,17 @@ h1 {
   flex: 0 0 58px;
   width: 58px;
   height: 34px;
-  padding: 0 3px 0 6px;
+  padding: 0 3px;
   border: 1px solid #e8edf2;
   border-radius: 9px;
   background: #f7f8fa;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: none;
   font-size: 11px;
   font-weight: 600;
   text-align: center;
+  text-align-last: center;
   cursor: pointer;
 }
 
@@ -1653,9 +1690,13 @@ h1 {
 
 @media (max-width: 380px) {
   .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
-  .health-exercise-grip { flex-basis: 21px; width: 21px; }
-  .health-exercise-delete { flex-basis: 21px; width: 21px; }
-  .health-exercise-intensity { flex-basis: 54px; width: 54px; }
+  .health-exercise-grip { flex-basis: 20px; width: 20px; }
+  .health-exercise-delete { flex-basis: 20px; width: 20px; }
+  .health-exercise-reps { width: 50px; flex-basis: 50px; }
+  .health-exercise-sets { width: 40px; flex-basis: 40px; }
+  .health-exercise-stepper button { width: 14px; }
+  .health-exercise-stepper output { min-width: 16px; font-size: 11px; }
+  .health-exercise-intensity { flex-basis: 52px; width: 52px; }
   .health-exercise-name { font-size: 13px; }
 }
 

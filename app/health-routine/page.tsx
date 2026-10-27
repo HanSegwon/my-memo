@@ -110,6 +110,17 @@ export default function HealthRoutinePage() {
     setError('');
   }
 
+  function adjustCount(exercise: ExerciseCard, field: 'repetitions' | 'sets', amount: number) {
+    const current = Number(exercise[field]);
+    const max = field === 'repetitions' ? 99 : 9;
+    const next = Math.max(1, Math.min(max, current + amount));
+    if (next === current) return;
+    const value = String(next).padStart(field === 'repetitions' ? 2 : 1, '0');
+    const updated = { ...exercise, [field]: value };
+    updateExercise(exercise.id, { [field]: value });
+    void saveExercise(updated);
+  }
+
   async function saveExercise(exercise: ExerciseCard) {
     if (savingIds.has(exercise.id)) return;
     const exerciseName = exercise.exercise_name.trim();
@@ -122,6 +133,8 @@ export default function HealthRoutinePage() {
     }
 
     const bodyItems = exercises.filter((item) => item.body_part === exercise.body_part);
+    const rowIndex = bodyItems.findIndex((item) => item.id === exercise.id);
+    const sortOrder = bodyItems.slice(0, rowIndex).filter((item) => !item.isDraft).length;
     setSavingIds((current) => new Set(current).add(exercise.id));
     setError('');
     try {
@@ -135,7 +148,7 @@ export default function HealthRoutinePage() {
           repetitions,
           sets,
           intensity: exercise.intensity,
-          sortOrder: exercise.isDraft ? bodyItems.filter((item) => !item.isDraft).length : exercise.sort_order,
+          sortOrder: exercise.isDraft ? sortOrder : exercise.sort_order,
         }),
       });
       const data = await response.json();
@@ -172,6 +185,7 @@ export default function HealthRoutinePage() {
   }
 
   async function deleteExercise(exercise: ExerciseCard) {
+    if (!window.confirm(`“${exercise.exercise_name || '이 운동'}”을 삭제할까요?`)) return;
     if (exercise.isDraft) {
       setExercises((current) => current.filter((item) => item.id !== exercise.id));
       return;
@@ -201,7 +215,7 @@ export default function HealthRoutinePage() {
   }
 
   function startReorder(exercise: ExerciseCard, event: PointerEvent<HTMLButtonElement>) {
-    if (exercise.isDraft || !event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     const handle = event.currentTarget;
     try { handle.setPointerCapture(event.pointerId); } catch {}
     const timer = window.setTimeout(() => {
@@ -237,26 +251,24 @@ export default function HealthRoutinePage() {
     const moving = visibleExercises.find((item) => item.id === press.id);
     const list = listRef.current;
     if (!cancelled && moving && list) {
-      const others = visibleExercises.filter((item) => item.id !== moving.id && !item.isDraft);
+      const others = visibleExercises.filter((item) => item.id !== moving.id);
       const cards = Array.from(list.querySelectorAll<HTMLElement>('[data-health-exercise-id]'))
-        .filter((card) => card.dataset.healthExerciseId !== moving.id && card.dataset.healthExerciseDraft !== 'true')
+        .filter((card) => card.dataset.healthExerciseId !== moving.id)
         .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
       let targetIndex = cards.findIndex((card) => event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
       if (targetIndex < 0) targetIndex = others.length;
       const reordered = [...others];
       reordered.splice(targetIndex, 0, moving);
-      const orderedSaved = reordered.map((item, index) => ({ ...item, sort_order: index }));
+      let sortOrder = 0;
+      const ordered = reordered.map((item) => item.isDraft ? item : { ...item, sort_order: sortOrder++ });
 
-      let savedIndex = 0;
-      const reorderedGroup = visibleExercises.map((item) => item.isDraft ? item : orderedSaved[savedIndex++]);
-      const next = exercises.map((item) => item.body_part === bodyPart
-        ? reorderedGroup.find((ordered) => ordered.id === item.id) ?? item
-        : item);
+      let orderedIndex = 0;
+      const next = exercises.map((item) => item.body_part === bodyPart ? ordered[orderedIndex++] : item);
       setExercises(next);
       setDraggingId(null);
       setDragOffsetY(0);
       try {
-        await persistOrder(orderedSaved.map((item) => item.id));
+        await persistOrder(ordered.filter((item) => !item.isDraft).map((item) => item.id));
       } catch (reorderError) {
         setError(reorderError instanceof Error ? reorderError.message : '운동 순서를 저장하지 못했습니다.');
       }
@@ -302,7 +314,7 @@ export default function HealthRoutinePage() {
                 className="health-exercise-grip"
                 aria-label="길게 눌러 운동 순서 변경"
                 title="길게 눌러 순서 변경"
-                disabled={Boolean(exercise.isDraft || savingIds.has(exercise.id) || deletingIds.has(exercise.id))}
+                disabled={Boolean(savingIds.has(exercise.id) || deletingIds.has(exercise.id))}
                 onContextMenu={(event) => event.preventDefault()}
                 onPointerDown={(event) => startReorder(exercise, event)}
                 onPointerMove={moveReorder}
@@ -322,32 +334,17 @@ export default function HealthRoutinePage() {
                 onChange={(event) => updateExercise(exercise.id, { exercise_name: event.target.value })}
                 onBlur={() => void saveExercise(exercise)}
               />
-              <input
-                className="health-exercise-number health-exercise-reps"
-                aria-label="반복 횟수"
-                disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
-                inputMode="numeric"
-                maxLength={2}
-                value={exercise.repetitions}
-                onChange={(event) => updateExercise(exercise.id, { repetitions: event.target.value.replace(/\D/g, '').slice(0, 2) })}
-                onBlur={(event) => {
-                  const repetitions = event.currentTarget.value.padStart(2, '0');
-                  const updated = { ...exercise, repetitions };
-                  updateExercise(exercise.id, { repetitions });
-                  void saveExercise(updated);
-                }}
-              />
+              <div className="health-exercise-stepper health-exercise-reps" role="group" aria-label="반복 횟수">
+                <button type="button" aria-label="반복 횟수 줄이기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.repetitions) <= 1} onClick={() => adjustCount(exercise, 'repetitions', -1)}>−</button>
+                <output>{exercise.repetitions.padStart(2, '0')}</output>
+                <button type="button" aria-label="반복 횟수 늘리기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.repetitions) >= 99} onClick={() => adjustCount(exercise, 'repetitions', 1)}>+</button>
+              </div>
               <span className="health-exercise-unit">회 ×</span>
-              <input
-                className="health-exercise-number health-exercise-sets"
-                aria-label="세트 수"
-                disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
-                inputMode="numeric"
-                maxLength={1}
-                value={exercise.sets}
-                onChange={(event) => updateExercise(exercise.id, { sets: event.target.value.replace(/\D/g, '').slice(0, 1) })}
-                onBlur={() => void saveExercise(exercise)}
-              />
+              <div className="health-exercise-stepper health-exercise-sets" role="group" aria-label="세트 수">
+                <button type="button" aria-label="세트 수 줄이기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.sets) <= 1} onClick={() => adjustCount(exercise, 'sets', -1)}>−</button>
+                <output>{exercise.sets}</output>
+                <button type="button" aria-label="세트 수 늘리기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.sets) >= 9} onClick={() => adjustCount(exercise, 'sets', 1)}>+</button>
+              </div>
               <span className="health-exercise-unit">세트</span>
               <select
                 className={`health-exercise-intensity is-${exercise.intensity}`}
