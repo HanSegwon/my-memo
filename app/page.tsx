@@ -147,9 +147,6 @@ type AcademyScheduleSummary = {
   end_time: string;
 };
 
-// TEMPORARY: fixed Wednesday 07:00 KST for checking academy dashboard summaries.
-const ACADEMY_SUMMARY_TEST_NOW = new Date('2026-10-27T22:00:00.000Z');
-
 type HomeTab = 'health' | 'asset' | 'family';
 const homeTabs: HomeTab[] = ['health', 'asset', 'family'];
 let hasStartedHomeTabSession = false;
@@ -719,7 +716,7 @@ export default function Home() {
       const response = await fetch('/api/children-academy', { cache: 'no-store' });
       if (!response.ok) return;
       const data = await response.json() as { schedules: AcademyScheduleSummary[] };
-      setAcademySummary(getAcademySummary(data.schedules ?? [], ACADEMY_SUMMARY_TEST_NOW));
+      setAcademySummary(getAcademySummary(data.schedules ?? []));
     } catch {
       // 학원 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
     }
