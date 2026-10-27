@@ -35,12 +35,14 @@ function validateExercise(body: Record<string, unknown>) {
   const repetitions = Number(body.repetitions);
   const sets = Number(body.sets);
   const intensity = body.intensity;
+  const weightKg = body.weightKg === null || body.weightKg === undefined || body.weightKg === '' ? null : Number(body.weightKg);
   const sortOrder = Number(body.sortOrder);
 
   if (!BODY_PARTS.includes(bodyPart as typeof BODY_PARTS[number])) return { error: '상체 또는 하체를 선택해주세요.' };
   if (!exerciseName || exerciseName.length > 80) return { error: '운동 종목은 1~80자로 입력해주세요.' };
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 99) return { error: '반복 횟수는 1~99회로 입력해주세요.' };
   if (!Number.isInteger(sets) || sets < 1 || sets > 9) return { error: '세트 수는 1~9세트로 입력해주세요.' };
+  if (weightKg !== null && (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 999.99)) return { error: '무게는 0보다 큰 kg 단위로 입력해주세요.' };
   if (!INTENSITIES.includes(intensity as typeof INTENSITIES[number])) return { error: '운동 강도를 선택해주세요.' };
   if (!Number.isInteger(sortOrder) || sortOrder < 0) return { error: '운동 순서를 확인해주세요.' };
 
@@ -51,6 +53,7 @@ function validateExercise(body: Record<string, unknown>) {
       repetitions,
       sets,
       intensity: intensity as typeof INTENSITIES[number],
+      weight_kg: weightKg,
       sort_order: sortOrder,
     },
   };
@@ -59,7 +62,7 @@ function validateExercise(body: Record<string, unknown>) {
 export async function GET() {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   const { data, error } = await supabaseAdmin.from('health_routine_exercises')
-    .select('id, body_part, exercise_name, repetitions, sets, intensity, sort_order, created_at, updated_at')
+    .select('id, body_part, exercise_name, repetitions, sets, intensity, weight_kg, sort_order, created_at, updated_at')
     .order('body_part', { ascending: true }).order('sort_order', { ascending: true });
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
   if (validated.error || !validated.value) return Response.json({ message: validated.error }, { status: 400 });
 
   const { data, error } = await supabaseAdmin.from('health_routine_exercises').insert(validated.value)
-    .select('id, body_part, exercise_name, repetitions, sets, intensity, sort_order, created_at, updated_at').single();
+    .select('id, body_part, exercise_name, repetitions, sets, intensity, weight_kg, sort_order, created_at, updated_at').single();
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
     console.error(error);
@@ -109,7 +112,7 @@ export async function PATCH(request: Request) {
   const validated = validateExercise(body);
   if (validated.error || !validated.value) return Response.json({ message: validated.error }, { status: 400 });
   const { data, error } = await supabaseAdmin.from('health_routine_exercises').update(validated.value).eq('id', body.id)
-    .select('id, body_part, exercise_name, repetitions, sets, intensity, sort_order, created_at, updated_at').single();
+    .select('id, body_part, exercise_name, repetitions, sets, intensity, weight_kg, sort_order, created_at, updated_at').single();
   if (error) {
     if (isMissingSchema(error)) return schemaRequired();
     console.error(error);

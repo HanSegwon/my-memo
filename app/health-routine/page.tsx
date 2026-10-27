@@ -5,23 +5,25 @@ import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
 
 type BodyPart = 'upper' | 'lower';
-type Intensity = 'easy' | 'normal' | 'hard';
 type HealthExercise = {
   id: string;
   body_part: BodyPart;
   exercise_name: string;
   repetitions: number;
   sets: number;
-  intensity: Intensity;
+  intensity: 'easy' | 'normal' | 'hard';
+  weight_kg: number | null;
   sort_order: number;
   created_at?: string;
   updated_at?: string;
 };
-type ExerciseCard = Omit<HealthExercise, 'repetitions' | 'sets'> & {
+type ExerciseCard = Omit<HealthExercise, 'repetitions' | 'sets' | 'weight_kg'> & {
   repetitions: string;
   sets: string;
+  weight_kg: string;
   isDraft?: boolean;
 };
+type CountField = 'repetitions' | 'sets';
 type ReorderPress = {
   id: string;
   startX: number;
@@ -42,17 +44,12 @@ const BODY_PARTS: { id: BodyPart; label: string }[] = [
   { id: 'upper', label: '상체' },
   { id: 'lower', label: '하체' },
 ];
-const INTENSITIES: { id: Intensity; label: string }[] = [
-  { id: 'easy', label: '쉬움' },
-  { id: 'normal', label: '보통' },
-  { id: 'hard', label: '힘듬' },
-];
-
 function toCard(exercise: HealthExercise): ExerciseCard {
   return {
     ...exercise,
     repetitions: String(exercise.repetitions).padStart(2, '0'),
     sets: String(exercise.sets),
+    weight_kg: exercise.weight_kg == null ? '' : String(exercise.weight_kg),
   };
 }
 
@@ -68,6 +65,7 @@ export default function HealthRoutinePage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [error, setError] = useState('');
+  const [countDialog, setCountDialog] = useState<{ exerciseId: string; field: CountField; value: number } | null>(null);
 
   const loadExercises = useCallback(async () => {
     const response = await fetch('/api/health-routine', { cache: 'no-store' });
@@ -99,7 +97,7 @@ export default function HealthRoutinePage() {
 
   const visibleExercises = exercises.filter((exercise) => exercise.body_part === bodyPart);
 
-  function updateExercise(id: string, patch: Partial<Pick<ExerciseCard, 'exercise_name' | 'repetitions' | 'sets' | 'intensity'>>) {
+  function updateExercise(id: string, patch: Partial<Pick<ExerciseCard, 'exercise_name' | 'repetitions' | 'sets' | 'intensity' | 'weight_kg'>>) {
     setExercises((current) => current.map((exercise) => exercise.id === id ? { ...exercise, ...patch } : exercise));
   }
 
@@ -112,21 +110,28 @@ export default function HealthRoutinePage() {
       repetitions: '10',
       sets: '3',
       intensity: 'normal',
+      weight_kg: '',
       sort_order: sortOrder,
       isDraft: true,
     }]);
     setError('');
   }
 
-  function adjustCount(exercise: ExerciseCard, field: 'repetitions' | 'sets', amount: number) {
-    const current = Number(exercise[field]);
-    const max = field === 'repetitions' ? 99 : 9;
-    const next = Math.max(1, Math.min(max, current + amount));
-    if (next === current) return;
-    const value = String(next).padStart(field === 'repetitions' ? 2 : 1, '0');
+  function openCountDialog(exercise: ExerciseCard, field: CountField) {
+    if (savingIds.has(exercise.id) || deletingIds.has(exercise.id)) return;
+    setCountDialog({ exerciseId: exercise.id, field, value: Number(exercise[field]) });
+  }
+
+  function applyCountDialog() {
+    if (!countDialog) return;
+    const exercise = exercises.find((item) => item.id === countDialog.exerciseId);
+    if (!exercise) return setCountDialog(null);
+    const field = countDialog.field;
+    const value = String(countDialog.value).padStart(field === 'repetitions' ? 2 : 1, '0');
     const updated = { ...exercise, [field]: value };
     updateExercise(exercise.id, { [field]: value });
-    void saveExercise(updated);
+    setCountDialog(null);
+    if (!exercise.isDraft) void saveExercise(updated);
   }
 
   async function saveExercise(exercise: ExerciseCard) {
@@ -134,8 +139,9 @@ export default function HealthRoutinePage() {
     const exerciseName = exercise.exercise_name.trim();
     const repetitions = Number(exercise.repetitions);
     const sets = Number(exercise.sets);
+    const weightKg = exercise.weight_kg.trim() === '' ? null : Number(exercise.weight_kg);
     if (!exerciseName && exercise.isDraft) return;
-    if (!exerciseName || !Number.isInteger(repetitions) || repetitions < 1 || repetitions > 99 || !Number.isInteger(sets) || sets < 1 || sets > 9) {
+    if (!exerciseName || !Number.isInteger(repetitions) || repetitions < 1 || repetitions > 99 || !Number.isInteger(sets) || sets < 1 || sets > 9 || (weightKg !== null && (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 999.99))) {
       setError('운동 이름, 1~99회 반복, 1~9세트를 입력해주세요.');
       return;
     }
@@ -156,6 +162,7 @@ export default function HealthRoutinePage() {
           repetitions,
           sets,
           intensity: exercise.intensity,
+          weightKg,
           sortOrder: exercise.isDraft ? sortOrder : exercise.sort_order,
         }),
       });
@@ -428,28 +435,22 @@ export default function HealthRoutinePage() {
                 onChange={(event) => updateExercise(exercise.id, { exercise_name: event.target.value })}
                 onBlur={() => void saveExercise(exercise)}
               />
-              <div className="health-exercise-stepper health-exercise-reps" role="group" aria-label="반복 횟수">
-                <button type="button" aria-label="반복 횟수 줄이기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.repetitions) <= 1} onClick={() => adjustCount(exercise, 'repetitions', -1)}>−</button>
-                <output>{exercise.repetitions.padStart(2, '0')}</output>
-                <button type="button" aria-label="반복 횟수 늘리기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.repetitions) >= 99} onClick={() => adjustCount(exercise, 'repetitions', 1)}>+</button>
-              </div>
+              <label className="health-exercise-weight" aria-label="운동 무게">
+                <input
+                  inputMode="decimal"
+                  aria-label="무게 (kg)"
+                  placeholder="0"
+                  value={exercise.weight_kg}
+                  disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
+                  onChange={(event) => updateExercise(exercise.id, { weight_kg: event.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1') })}
+                  onBlur={() => void saveExercise(exercise)}
+                />
+                <span>kg</span>
+              </label>
+              <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} onClick={() => openCountDialog(exercise, 'repetitions')}>{exercise.repetitions.padStart(2, '0')}</button>
               <span className="health-exercise-unit">회 ×</span>
-              <div className="health-exercise-stepper health-exercise-sets" role="group" aria-label="세트 수">
-                <button type="button" aria-label="세트 수 줄이기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.sets) <= 1} onClick={() => adjustCount(exercise, 'sets', -1)}>−</button>
-                <output>{exercise.sets}</output>
-                <button type="button" aria-label="세트 수 늘리기" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id) || Number(exercise.sets) >= 9} onClick={() => adjustCount(exercise, 'sets', 1)}>+</button>
-              </div>
+              <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}세트 변경`} onClick={() => openCountDialog(exercise, 'sets')}>{exercise.sets}</button>
               <span className="health-exercise-unit">세트</span>
-              <select
-                className={`health-exercise-intensity is-${exercise.intensity}`}
-                aria-label="운동 강도"
-                disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
-                value={exercise.intensity}
-                onChange={(event) => updateExercise(exercise.id, { intensity: event.target.value as Intensity })}
-                onBlur={() => void saveExercise(exercise)}
-              >
-                {INTENSITIES.map((intensity) => <option value={intensity.id} key={intensity.id}>{intensity.label}</option>)}
-              </select>
               <button type="button" className="health-exercise-delete" aria-label={`${exercise.exercise_name || '운동'} 삭제`} title="삭제" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)} onClick={() => void deleteExercise(exercise)}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg>
               </button>
@@ -458,6 +459,17 @@ export default function HealthRoutinePage() {
           {visibleExercises.length === 0 && <div className="health-routine-empty"><p>{bodyPart === 'upper' ? '상체' : '하체'} 운동을 추가해 루틴을 만들어보세요.</p></div>}
           <button type="button" className="routine-add-button health-routine-list-add" onClick={addExercise} aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 추가`} title="운동 추가">+</button>
         </div>
+        {countDialog && <div className="modal-backdrop health-count-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCountDialog(null); }}>
+          <section className="settings-modal health-count-modal" role="dialog" aria-modal="true" aria-labelledby="health-count-title">
+            <div className="settings-modal-header"><h2 id="health-count-title">{countDialog.field === 'repetitions' ? '반복 횟수' : '세트 수'}</h2><button type="button" className="modal-close" onClick={() => setCountDialog(null)}>닫기</button></div>
+            <div className="health-count-controls">
+              <button type="button" aria-label="1 줄이기" disabled={countDialog.value <= 1} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.max(1, current.value - 1) } : current)}>−</button>
+              <output>{String(countDialog.value).padStart(countDialog.field === 'repetitions' ? 2 : 1, '0')}<span>{countDialog.field === 'repetitions' ? '회' : '세트'}</span></output>
+              <button type="button" aria-label="1 늘리기" disabled={countDialog.value >= (countDialog.field === 'repetitions' ? 99 : 9)} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.min(current.field === 'repetitions' ? 99 : 9, current.value + 1) } : current)}>+</button>
+            </div>
+            <button type="button" className="primary-button" onClick={applyCountDialog}>적용</button>
+          </section>
+        </div>}
       </section>
     </main>
   );
