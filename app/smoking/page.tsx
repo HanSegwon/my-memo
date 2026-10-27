@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import LoadingDots from '../../components/LoadingDots';
@@ -39,6 +39,7 @@ export default function SmokingPage() {
   const [quitStatusLoaded, setQuitStatusLoaded] = useState(false);
   const [showSavingsHelp, setShowSavingsHelp] = useState(false);
   const [showQuitFailureConfirm, setShowQuitFailureConfirm] = useState(false);
+  const savingsHelpRef = useRef<HTMLSpanElement>(null);
 
   const loadQuitStatus = useCallback(async () => {
     setQuitError('');
@@ -90,6 +91,17 @@ export default function SmokingPage() {
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [showQuitFailureConfirm, quitSaving]);
+
+  useEffect(() => {
+    if (!showSavingsHelp) return;
+    const closeOnOutsideTouch = (event: PointerEvent) => {
+      if (event.target instanceof Node && !savingsHelpRef.current?.contains(event.target)) {
+        setShowSavingsHelp(false);
+      }
+    };
+    document.addEventListener('pointerdown', closeOnOutsideTouch);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideTouch);
+  }, [showSavingsHelp]);
 
   async function startQuitting() {
     if (quitSaving) return;
@@ -162,7 +174,7 @@ export default function SmokingPage() {
             {quitMessage && <p className="smoking-quit-message" aria-live="polite">{quitMessage}</p>}
             <div className="smoking-savings" aria-live="polite">
               <strong>{savedAmount.toLocaleString('ko-KR')}원 절약</strong>
-              <span className={`smoking-savings-help${showSavingsHelp ? ' is-open' : ''}`}>
+              <span ref={savingsHelpRef} className={`smoking-savings-help${showSavingsHelp ? ' is-open' : ''}`}>
                 <button type="button" aria-label="절약 금액 계산 기준" aria-expanded={showSavingsHelp} onClick={() => setShowSavingsHelp((open) => !open)}>?</button>
                 {showSavingsHelp && <span className="smoking-savings-tooltip" role="status">22:00~06:00는 제외하고, 06:00~22:00 동안 시간당 1개비를 피운 것으로 계산합니다. 한 갑(20개비)은 4,900원 기준입니다.</span>}
               </span>
@@ -174,12 +186,12 @@ export default function SmokingPage() {
       </section>
       {showQuitFailureConfirm && <div className="modal-backdrop smoking-confirm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !quitSaving) setShowQuitFailureConfirm(false); }}>
         <section className="settings-modal smoking-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="smoking-confirm-title">
-          <p className="eyebrow">QUIT RECORD</p>
-          <h2 id="smoking-confirm-title">금연 실패를 기록할까요?</h2>
-          <p className="smoking-confirm-description">현재 금연 시간을 초기화하고 새로 시작할 수 있어요.</p>
+          <p className="eyebrow">다시 시작</p>
+          <h2 id="smoking-confirm-title">금연에 실패하셨나요?</h2>
+          <p className="smoking-confirm-description">현재 금연 시간은 초기화되고, 다시 시작할 수 있어요.</p>
           <div className="smoking-confirm-actions">
             <button type="button" className="smoking-confirm-cancel" onClick={() => setShowQuitFailureConfirm(false)} disabled={quitSaving}>취소</button>
-            <button type="button" className="smoking-confirm-submit" onClick={() => void confirmQuitFailed()} disabled={quitSaving}>{quitSaving ? '저장 중...' : '금연 실패 기록'}</button>
+            <button type="button" className="smoking-confirm-submit" onClick={() => void confirmQuitFailed()} disabled={quitSaving}>{quitSaving ? '처리 중...' : '금연 실패'}</button>
           </div>
         </section>
       </div>}
