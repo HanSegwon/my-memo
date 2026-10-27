@@ -194,7 +194,10 @@ export default function ChildrenAcademyPage() {
               const weekday = index + 1;
               const daySchedules = childSchedules.filter((item) => item.weekday === weekday);
               return <div className="children-day-column" key={day}>
-                <div className="children-slot-lines" aria-hidden="true">{Array.from({ length: SLOT_COUNT }, (_, slot) => <i key={slot} className={(slot + 1) % 6 === 0 ? 'is-hour' : ''} />)}</div>
+                <div className="children-slot-lines" aria-hidden="true">{Array.from({ length: SLOT_COUNT }, (_, slot) => {
+                  const boundaryMinute = GRID_START_MINUTES + (slot + 1) * 10;
+                  return <i key={slot} className={boundaryMinute % 60 === 0 ? 'is-hour' : ''} />;
+                })}</div>
                 {daySchedules.map((schedule) => {
                   const top = GRID_TOP_PADDING + ((minutesOf(formatTime(schedule.start_time)) - GRID_START_MINUTES) / 10) * SLOT_HEIGHT;
                   const height = ((minutesOf(formatTime(schedule.end_time)) - minutesOf(formatTime(schedule.start_time))) / 10) * SLOT_HEIGHT;
