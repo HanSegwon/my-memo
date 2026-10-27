@@ -286,7 +286,6 @@ export default function HealthRoutinePage() {
         <header className="header">
           <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>헬스루틴</h1></div>
           <div className="routine-header-actions">
-            <button type="button" className="routine-add-button health-routine-add" onClick={addExercise} aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 추가`} title="운동 추가">+</button>
             <Link href="/" className="logout-button">처음으로</Link>
           </div>
         </header>
@@ -361,7 +360,8 @@ export default function HealthRoutinePage() {
               </button>
             </article>
           ))}
-          {visibleExercises.length === 0 && <div className="health-routine-empty"><p>{bodyPart === 'upper' ? '상체' : '하체'} 운동을 추가해 루틴을 만들어보세요.</p><button type="button" className="routine-add-button" onClick={addExercise} aria-label="운동 추가">+</button></div>}
+          {visibleExercises.length === 0 && <div className="health-routine-empty"><p>{bodyPart === 'upper' ? '상체' : '하체'} 운동을 추가해 루틴을 만들어보세요.</p></div>}
+          <button type="button" className="routine-add-button health-routine-list-add" onClick={addExercise} aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 추가`} title="운동 추가">+</button>
         </div>
       </section>
     </main>

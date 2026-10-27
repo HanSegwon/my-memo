@@ -1482,16 +1482,13 @@ h1 {
   min-width: 92px;
 }
 
-.health-routine-add {
-  margin: 0;
-  width: 38px;
-  height: 38px;
-  font-size: 23px;
-}
-
 .health-routine-list {
   display: grid;
   gap: 9px;
+}
+
+.health-routine-list-add {
+  margin: 8px auto 14px;
 }
 
 .health-exercise-card {
@@ -1670,7 +1667,7 @@ h1 {
   display: grid;
   justify-items: center;
   gap: 2px;
-  padding: 32px 12px 24px;
+  padding: 32px 12px 8px;
   color: #858d98;
   text-align: center;
 }
@@ -1678,10 +1675,6 @@ h1 {
 .health-routine-empty p {
   margin: 0;
   font-size: 13px;
-}
-
-.health-routine-empty .routine-add-button {
-  margin: 10px auto 0;
 }
 
 .health-routine-error {
