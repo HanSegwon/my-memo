@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 type Memo = {
   id: number;
@@ -26,6 +27,8 @@ export default function SharedMemoPage() {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingMemo, setEditingMemo] = useState<Memo | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Memo | null>(null);
+  const [deletingMemo, setDeletingMemo] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -118,19 +121,20 @@ export default function SharedMemoPage() {
     setMemos((current) => sortMemos(current.map((item) => item.id === memo.id ? data.memo : item)));
   }
 
-  async function deleteMemo(id: number) {
-    const ok = confirm('이 메모를 삭제할까요?');
-
-    if (!ok) return;
-
-    const response = await fetch(`/api/memos?id=${id}`, {
-      method: 'DELETE',
-    });
-
-    if (response.ok) {
-      setMemos((current) =>
-        current.filter((memo) => memo.id !== id)
-      );
+  async function deleteMemo() {
+    if (!pendingDelete || deletingMemo) return;
+    const id = pendingDelete.id;
+    setDeletingMemo(true);
+    try {
+      const response = await fetch(`/api/memos?id=${id}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || '메모를 삭제하지 못했습니다.');
+      setMemos((current) => current.filter((memo) => memo.id !== id));
+      setPendingDelete(null);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '메모를 삭제하지 못했습니다.');
+    } finally {
+      setDeletingMemo(false);
     }
   }
 
@@ -206,7 +210,7 @@ export default function SharedMemoPage() {
                   <div className="memo-card-main">
                     <div className="memo-top"><h3>{memo.title}</h3><div className="memo-actions">
                       <button className="memo-edit-button" onClick={() => openMemoForm(memo)}>수정</button>
-                      <button className="delete-button" onClick={() => deleteMemo(memo.id)}>삭제</button>
+                      <button className="delete-button" onClick={() => setPendingDelete(memo)}>삭제</button>
                     </div></div>
                     {memo.content && <p className="memo-content">{memo.content}</p>}
                     <p className="memo-date">{new Date(memo.created_at).toLocaleString('ko-KR')}</p>
@@ -217,6 +221,7 @@ export default function SharedMemoPage() {
           )}
         </section>
       </section>
+      <ConfirmDialog open={pendingDelete !== null} title="이 메모를 삭제할까요?" description={pendingDelete?.title} busy={deletingMemo} onCancel={() => setPendingDelete(null)} onConfirm={() => void deleteMemo()} />
     </main>
   );
 }

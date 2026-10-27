@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
 import AppSelect from '../../components/AppSelect';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { CHILDREN_ACADEMY_COLORS, DEFAULT_CHILDREN_ACADEMY_COLOR, type ChildrenAcademyColor } from '../../lib/childrenAcademyColors';
 
 type ChildName = '한유준' | '한이준';
@@ -43,6 +44,7 @@ export default function ChildrenAcademyPage() {
   const [editing, setEditing] = useState<Schedule | null>(null);
   const [draft, setDraft] = useState<Draft>({ weekday: 1, title: '', startTime: '15:00', endTime: '16:00', color: DEFAULT_CHILDREN_ACADEMY_COLOR });
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
   const loadSchedules = useCallback(async () => {
@@ -146,7 +148,7 @@ export default function ChildrenAcademyPage() {
   }
 
   async function deleteSchedule() {
-    if (!editing || saving || !window.confirm('이 일정을 삭제할까요?')) return;
+    if (!editing || saving) return;
     setSaving(true);
     try {
       const response = await fetch(`/api/children-academy?id=${encodeURIComponent(editing.id)}`, { method: 'DELETE' });
@@ -211,7 +213,7 @@ export default function ChildrenAcademyPage() {
     {showForm && <div className="family-event-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm(); }}>
       <section className="family-event-modal children-academy-modal" role="dialog" aria-modal="true" aria-labelledby="children-schedule-title">
         <div className="family-event-modal-heading"><div><p className="eyebrow">{editing ? 'EDIT SCHEDULE' : 'NEW SCHEDULE'}</p><h2 id="children-schedule-title">{child} 일정 {editing ? '수정' : '추가'}</h2></div><div className="children-modal-actions">
-          {editing && <button type="button" className="children-schedule-delete" onClick={() => void deleteSchedule()} disabled={saving} aria-label="일정 삭제" title="일정 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg></button>}
+          {editing && <button type="button" className="children-schedule-delete" onClick={() => setShowDeleteConfirm(true)} disabled={saving} aria-label="일정 삭제" title="일정 삭제"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg></button>}
           <button type="button" onClick={closeForm} aria-label="닫기">×</button>
         </div></div>
         <form className="family-event-form" onSubmit={(event) => void saveSchedule(event)}>
@@ -234,5 +236,6 @@ export default function ChildrenAcademyPage() {
         </form>
       </section>
     </div>}
+    <ConfirmDialog open={showDeleteConfirm} title="이 일정을 삭제할까요?" description="삭제한 일정은 복구할 수 없습니다." busy={saving} onCancel={() => setShowDeleteConfirm(false)} onConfirm={() => { setShowDeleteConfirm(false); void deleteSchedule(); }} />
   </main>;
 }
