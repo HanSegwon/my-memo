@@ -1486,7 +1486,7 @@ h1 {
   flex: 0 0 auto;
   align-items: center;
   gap: 6px;
-  margin-right: 4px;
+  margin-right: 1px;
 }
 
 .health-routine-list-actions button {
@@ -1530,7 +1530,7 @@ h1 {
   min-height: 58px;
   align-items: center;
   gap: 5px;
-  padding: 8px 7px;
+  padding: 8px 12px;
   border: 1px solid #e9edf2;
   border-radius: 14px;
   background: #fff;
@@ -1673,7 +1673,7 @@ h1 {
 }
 
 @media (max-width: 380px) {
-  .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
+  .health-exercise-card { gap: 3px; padding-right: 9px; padding-left: 9px; }
   .health-exercise-order { width: 20px; flex-basis: 20px; }
   .health-exercise-count { gap: 2px; padding: 0 1px; }
   .health-exercise-count:last-of-type { margin-right: 8px; }
