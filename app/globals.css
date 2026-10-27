@@ -1482,6 +1482,38 @@ h1 {
   min-width: 92px;
 }
 
+.health-routine-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -8px 0 8px;
+}
+
+.health-routine-list-actions button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #e5e9ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #555e69;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.health-routine-list-actions .health-selection-delete {
+  border-color: #252a31;
+  background: #252a31;
+  color: #fff;
+}
+
+.health-routine-list-actions .health-selection-delete:disabled {
+  border-color: #d9dde2;
+  background: #d9dde2;
+  color: #fff;
+  cursor: default;
+}
+
 .health-routine-list {
   position: relative;
   display: grid;
@@ -1517,22 +1549,7 @@ h1 {
   will-change: transform;
 }
 
-.health-exercise-delete {
-  display: grid;
-  flex: 0 0 25px;
-  width: 25px;
-  height: 32px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #a4acb7;
-  cursor: pointer;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
+.health-exercise-card.is-selection-mode { touch-action: pan-y; }
 
 .health-exercise-order {
   display: grid;
@@ -1606,25 +1623,15 @@ h1 {
   font-size: 12px;
 }
 
-.health-exercise-delete {
-  flex-basis: 24px;
-  width: 24px;
-  color: #9ba2ac;
-  cursor: pointer;
+.health-exercise-select {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  margin: 0 2px;
+  accent-color: #252a31;
 }
 
-.health-exercise-delete svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.6;
-}
-
-.health-exercise-delete:hover { color: #a65454; }
-.health-exercise-delete:disabled { opacity: 0.45; cursor: default; }
+.health-exercise-count:disabled { cursor: default; }
 
 .health-routine-empty {
   display: grid;
@@ -1647,7 +1654,6 @@ h1 {
 @media (max-width: 380px) {
   .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
   .health-exercise-order { width: 20px; flex-basis: 20px; }
-  .health-exercise-delete { flex-basis: 20px; width: 20px; }
   .health-exercise-count { gap: 2px; padding: 0 1px; }
   .health-exercise-name { font-size: 13px; }
 }

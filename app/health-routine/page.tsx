@@ -62,6 +62,8 @@ export default function HealthRoutinePage() {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set());
   const [exercises, setExercises] = useState<ExerciseCard[]>([]);
   const [bodyPart, setBodyPart] = useState<BodyPart>('upper');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [error, setError] = useState('');
@@ -208,37 +210,48 @@ export default function HealthRoutinePage() {
     if (!response.ok) throw new Error(data.message || '운동 순서를 저장하지 못했습니다.');
   }
 
-  async function deleteExercise(exercise: ExerciseCard) {
-    if (!window.confirm(`“${exercise.exercise_name || '이 운동'}”을 삭제할까요?`)) return;
-    if (exercise.isDraft) {
-      setExercises((current) => current.filter((item) => item.id !== exercise.id));
-      return;
-    }
-    setDeletingIds((current) => new Set(current).add(exercise.id));
+  function toggleSelected(id: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function deleteSelectedExercises() {
+    const selected = visibleExercises.filter((exercise) => selectedIds.has(exercise.id));
+    if (selected.length === 0 || deletingIds.size > 0) return;
+    if (!window.confirm(`선택한 운동 ${selected.length}개를 삭제할까요?`)) return;
+    const ids = new Set(selected.map((exercise) => exercise.id));
+    const saved = selected.filter((exercise) => !exercise.isDraft);
+    setDeletingIds(ids);
     setError('');
     try {
-      const response = await fetch(`/api/health-routine?id=${encodeURIComponent(exercise.id)}`, { method: 'DELETE' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || '운동을 삭제하지 못했습니다.');
+      await Promise.all(saved.map(async (exercise) => {
+        const response = await fetch(`/api/health-routine?id=${encodeURIComponent(exercise.id)}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || '운동을 삭제하지 못했습니다.');
+      }));
       let sortOrder = 0;
-      const next = exercises.filter((item) => item.id !== exercise.id).map((item) => {
-        if (item.body_part !== exercise.body_part || item.isDraft) return item;
+      const next = exercises.filter((item) => !ids.has(item.id)).map((item) => {
+        if (item.body_part !== bodyPart || item.isDraft) return item;
         return { ...item, sort_order: sortOrder++ };
       });
       setExercises(next);
-      await persistOrder(next.filter((item) => item.body_part === exercise.body_part && !item.isDraft).map((item) => item.id));
+      await persistOrder(next.filter((item) => item.body_part === bodyPart && !item.isDraft).map((item) => item.id));
+      setSelectedIds(new Set());
+      setSelectionMode(false);
     } catch (deleteError) {
+      await loadExercises().catch(() => undefined);
       setError(deleteError instanceof Error ? deleteError.message : '운동을 삭제하지 못했습니다.');
     } finally {
-      setDeletingIds((current) => {
-        const next = new Set(current);
-        next.delete(exercise.id);
-        return next;
-      });
+      setDeletingIds(new Set());
     }
   }
 
   function startReorder(exercise: ExerciseCard, index: number, event: PointerEvent<HTMLElement>) {
+    if (selectionMode) return;
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     if (reorderPress.current) window.clearTimeout(reorderPress.current.timer);
     const card = event.currentTarget;
@@ -409,54 +422,57 @@ export default function HealthRoutinePage() {
 
         <div className="routine-day-switch health-routine-tabs" role="tablist" aria-label="운동 부위 선택">
           {BODY_PARTS.map((part) => (
-            <button key={part.id} type="button" role="tab" aria-selected={bodyPart === part.id} className={bodyPart === part.id ? 'is-selected' : ''} onClick={() => setBodyPart(part.id)}>
+            <button key={part.id} type="button" role="tab" aria-selected={bodyPart === part.id} className={bodyPart === part.id ? 'is-selected' : ''} onClick={() => { setBodyPart(part.id); setSelectedIds(new Set()); setSelectionMode(false); }}>
               {part.label}
             </button>
           ))}
         </div>
 
         {error && <p className="routine-error health-routine-error" role="alert">{error}</p>}
+        <div className="health-routine-list-actions">
+          {selectionMode ? <>
+            <button type="button" className="health-selection-cancel" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>취소</button>
+            <button type="button" className="health-selection-delete" onClick={() => void deleteSelectedExercises()} disabled={selectedIds.size === 0 || deletingIds.size > 0}>삭제</button>
+          </> : <button type="button" className="health-selection-start" onClick={() => { setSelectionMode(true); setSelectedIds(new Set()); }}>선택삭제</button>}
+        </div>
         <div ref={listRef} className="health-routine-list" aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 목록`}>
           {visibleExercises.map((exercise, index) => (
             <article
               key={exercise.id}
               data-health-exercise-id={exercise.id}
               data-health-exercise-draft={exercise.isDraft ? 'true' : 'false'}
-              className={`health-exercise-card${draggingId === exercise.id ? ' is-dragging' : ''}`}
+              className={`health-exercise-card${draggingId === exercise.id ? ' is-dragging' : ''}${selectionMode ? ' is-selection-mode' : ''}`}
               style={draggingId === exercise.id ? { '--exercise-drag-offset': `${dragOffsetY}px` } as CSSProperties : undefined}
-              onPointerDown={(event) => startReorder(exercise, index, event)}
-              onPointerMove={moveReorder}
-              onPointerUp={() => void finishReorder()}
-              onPointerCancel={() => void finishReorder(true)}
-              onPointerLeave={stopPendingReorder}
+              onPointerDown={selectionMode ? undefined : (event) => startReorder(exercise, index, event)}
+              onPointerMove={selectionMode ? undefined : moveReorder}
+              onPointerUp={selectionMode ? undefined : () => void finishReorder()}
+              onPointerCancel={selectionMode ? undefined : () => void finishReorder(true)}
+              onPointerLeave={selectionMode ? undefined : stopPendingReorder}
               onContextMenu={(event) => event.preventDefault()}
               onDragStart={(event) => event.preventDefault()}
             >
-              <span className="health-exercise-order" aria-label={`${index + 1}번째 운동`}>{index + 1}</span>
+              {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${exercise.exercise_name || `${index + 1}번째 운동`} 선택`} checked={selectedIds.has(exercise.id)} disabled={deletingIds.has(exercise.id)} onChange={() => toggleSelected(exercise.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 운동`}>{index + 1}</span>}
               <input
                 className="health-exercise-name"
                 aria-label="운동 종목"
                 autoFocus={Boolean(exercise.isDraft)}
-                disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
+                disabled={selectionMode || savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
                 maxLength={80}
                 placeholder="운동 종목"
                 value={exercise.exercise_name}
                 onChange={(event) => updateExercise(exercise.id, { exercise_name: event.target.value })}
                 onBlur={() => void saveExercise(exercise)}
               />
-              <button type="button" className="health-exercise-count" aria-label={`무게 ${exercise.weight_kg || '0'}kg 변경`} onClick={() => openCountDialog(exercise, 'weight_kg')}>
+              <button type="button" className="health-exercise-count" aria-label={`무게 ${exercise.weight_kg || '0'}kg 변경`} disabled={selectionMode} onClick={() => openCountDialog(exercise, 'weight_kg')}>
                 <span className="health-exercise-value">{exercise.weight_kg || '0'}</span><span className="health-exercise-unit">kg</span>
               </button>
               <span className="health-exercise-multiply" aria-hidden="true">×</span>
-              <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} onClick={() => openCountDialog(exercise, 'repetitions')}>
+              <button type="button" className="health-exercise-count" aria-label={`반복 횟수 ${exercise.repetitions}회 변경`} disabled={selectionMode} onClick={() => openCountDialog(exercise, 'repetitions')}>
                 <span className="health-exercise-value">{exercise.repetitions.padStart(2, '0')}</span><span className="health-exercise-unit">회</span>
               </button>
               <span className="health-exercise-multiply" aria-hidden="true">×</span>
-              <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}set 변경`} onClick={() => openCountDialog(exercise, 'sets')}>
+              <button type="button" className="health-exercise-count" aria-label={`세트 수 ${exercise.sets}set 변경`} disabled={selectionMode} onClick={() => openCountDialog(exercise, 'sets')}>
                 <span className="health-exercise-value">{exercise.sets}</span><span className="health-exercise-unit">set</span>
-              </button>
-              <button type="button" className="health-exercise-delete" aria-label={`${exercise.exercise_name || '운동'} 삭제`} title="삭제" disabled={savingIds.has(exercise.id) || deletingIds.has(exercise.id)} onClick={() => void deleteExercise(exercise)}>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0 1 12.5h9L17.5 7M10 10.5v5.5m4-5.5v5.5" /></svg>
               </button>
             </article>
           ))}
