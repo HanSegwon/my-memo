@@ -24,9 +24,17 @@ type ExerciseCard = Omit<HealthExercise, 'repetitions' | 'sets'> & {
 };
 type ReorderPress = {
   id: string;
+  startX: number;
   startY: number;
+  startScrollY: number;
+  lastY: number;
+  grabOffsetY: number;
+  originalIndex: number;
+  originalOrder: string[];
+  slotStride: number;
   pointerId: number;
   active: boolean;
+  scrolling: boolean;
   timer: number;
 };
 
@@ -214,67 +222,160 @@ export default function HealthRoutinePage() {
     }
   }
 
-  function startReorder(exercise: ExerciseCard, event: PointerEvent<HTMLButtonElement>) {
+  function startReorder(exercise: ExerciseCard, index: number, event: PointerEvent<HTMLElement>) {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    const handle = event.currentTarget;
-    try { handle.setPointerCapture(event.pointerId); } catch {}
+    if (reorderPress.current) window.clearTimeout(reorderPress.current.timer);
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const list = listRef.current;
+    const rowGap = list ? Number.parseFloat(window.getComputedStyle(list).rowGap) || 0 : 0;
+    const pointerId = event.pointerId;
     const timer = window.setTimeout(() => {
-      if (reorderPress.current) reorderPress.current.active = true;
+      const press = reorderPress.current;
+      if (!press || press.id !== exercise.id || press.pointerId !== pointerId || press.scrolling) return;
+      press.active = true;
+      try { card.setPointerCapture(pointerId); } catch {}
       setDraggingId(exercise.id);
       setDragOffsetY(0);
     }, 380);
-    reorderPress.current = { id: exercise.id, startY: event.clientY, pointerId: event.pointerId, active: false, timer };
+    reorderPress.current = {
+      id: exercise.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      startScrollY: window.scrollY,
+      lastY: event.clientY,
+      grabOffsetY: event.clientY - rect.top,
+      originalIndex: index,
+      originalOrder: visibleExercises.map((item) => item.id),
+      slotStride: rect.height + rowGap,
+      pointerId,
+      active: false,
+      scrolling: false,
+      timer,
+    };
   }
 
-  function moveReorder(event: PointerEvent<HTMLButtonElement>) {
+  function moveReorder(event: PointerEvent<HTMLElement>) {
     const press = reorderPress.current;
     if (!press || press.pointerId !== event.pointerId) return;
     const deltaY = event.clientY - press.startY;
-    if (!press.active && Math.abs(deltaY) > 10) {
+    const deltaX = event.clientX - press.startX;
+
+    if (!press.active && !press.scrolling && Math.abs(deltaX) > 14 && Math.abs(deltaY) < 14) {
       window.clearTimeout(press.timer);
       reorderPress.current = null;
       return;
     }
+
+    if (!press.active && !press.scrolling && Math.abs(deltaY) > 10) {
+      window.clearTimeout(press.timer);
+      press.scrolling = true;
+      try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+    }
+
+    if (press.scrolling) {
+      event.preventDefault();
+      window.scrollBy(0, press.lastY - event.clientY);
+      press.lastY = event.clientY;
+      return;
+    }
+
     if (press.active) {
       event.preventDefault();
-      setDragOffsetY(deltaY);
+      const list = listRef.current;
+      const card = event.currentTarget;
+      const others = visibleExercises.filter((item) => item.id !== press.id);
+      const listTop = list?.getBoundingClientRect().top ?? 0;
+      const otherCards = list
+        ? Array.from(list.querySelectorAll<HTMLElement>('[data-health-exercise-id]')).filter((item) => item.dataset.healthExerciseId !== press.id)
+        : [];
+      const draggedCenter = event.clientY - press.grabOffsetY + card.getBoundingClientRect().height / 2 - listTop;
+      const targetIndex = otherCards.findIndex((item) => draggedCenter < item.offsetTop + item.getBoundingClientRect().height / 2);
+      const insertAt = targetIndex < 0 ? others.length : targetIndex;
+      const currentIndex = visibleExercises.findIndex((item) => item.id === press.id);
+
+      if (insertAt !== currentIndex) {
+        const moving = visibleExercises.find((item) => item.id === press.id);
+        if (moving) {
+          const reordered = [...others];
+          reordered.splice(insertAt, 0, moving);
+          const previousTops = new Map<string, number>();
+          if (list) {
+            list.querySelectorAll<HTMLElement>('[data-health-exercise-id]').forEach((item) => {
+              const id = item.dataset.healthExerciseId;
+              item.getAnimations().forEach((animation) => animation.cancel());
+              if (id && id !== press.id) previousTops.set(id, item.getBoundingClientRect().top);
+            });
+          }
+          let orderedIndex = 0;
+          const next = exercises.map((item) => item.body_part === bodyPart ? reordered[orderedIndex++] : item);
+          setExercises(next);
+          window.requestAnimationFrame(() => {
+            if (!list) return;
+            list.querySelectorAll<HTMLElement>('[data-health-exercise-id]').forEach((item) => {
+              const id = item.dataset.healthExerciseId;
+              const previousTop = id ? previousTops.get(id) : undefined;
+              if (!id || id === press.id || previousTop === undefined) return;
+              const distance = previousTop - item.getBoundingClientRect().top;
+              if (Math.abs(distance) < 1) return;
+              item.getAnimations().forEach((animation) => animation.cancel());
+              item.animate(
+                [{ transform: `translateY(${distance}px)` }, { transform: 'translateY(0)' }],
+                { duration: 190, easing: 'cubic-bezier(0.22, 0.75, 0.25, 1)' },
+              );
+            });
+          });
+        }
+      }
+
+      const scrollDelta = window.scrollY - press.startScrollY;
+      setDragOffsetY(deltaY + scrollDelta - (insertAt - press.originalIndex) * press.slotStride);
+      if (event.clientY < 54) window.scrollBy(0, -12);
+      else if (event.clientY > window.innerHeight - 54) window.scrollBy(0, 12);
     }
   }
 
-  async function finishReorder(event: PointerEvent<HTMLButtonElement>, cancelled = false) {
+  function stopPendingReorder() {
+    const press = reorderPress.current;
+    if (press && !press.active && !press.scrolling) {
+      window.clearTimeout(press.timer);
+      reorderPress.current = null;
+    }
+  }
+
+  async function finishReorder(cancelled = false) {
     const press = reorderPress.current;
     reorderPress.current = null;
     if (!press) return;
     window.clearTimeout(press.timer);
-    if (!press.active) return;
-
-    const moving = visibleExercises.find((item) => item.id === press.id);
-    const list = listRef.current;
-    if (!cancelled && moving && list) {
-      const others = visibleExercises.filter((item) => item.id !== moving.id);
-      const cards = Array.from(list.querySelectorAll<HTMLElement>('[data-health-exercise-id]'))
-        .filter((card) => card.dataset.healthExerciseId !== moving.id)
-        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-      let targetIndex = cards.findIndex((card) => event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
-      if (targetIndex < 0) targetIndex = others.length;
-      const reordered = [...others];
-      reordered.splice(targetIndex, 0, moving);
-      let sortOrder = 0;
-      const ordered = reordered.map((item) => item.isDraft ? item : { ...item, sort_order: sortOrder++ });
-
-      let orderedIndex = 0;
-      const next = exercises.map((item) => item.body_part === bodyPart ? ordered[orderedIndex++] : item);
-      setExercises(next);
-      setDraggingId(null);
-      setDragOffsetY(0);
-      try {
-        await persistOrder(ordered.filter((item) => !item.isDraft).map((item) => item.id));
-      } catch (reorderError) {
-        setError(reorderError instanceof Error ? reorderError.message : '운동 순서를 저장하지 못했습니다.');
+    if (press.active) {
+      const ordered = visibleExercises;
+      if (cancelled) {
+        const original = press.originalOrder.map((id) => ordered.find((item) => item.id === id)).filter((item): item is ExerciseCard => Boolean(item));
+        setExercises((current) => {
+          let orderedIndex = 0;
+          return current.map((item) => item.body_part === bodyPart ? original[orderedIndex++] ?? item : item);
+        });
+      } else {
+        let sortOrder = 0;
+        const savedOrder = ordered.map((item) => item.isDraft ? item : { ...item, sort_order: sortOrder++ });
+        setExercises((current) => {
+          let orderedIndex = 0;
+          return current.map((item) => item.body_part === bodyPart ? savedOrder[orderedIndex++] ?? item : item);
+        });
+        setDraggingId(null);
+        setDragOffsetY(0);
+        try {
+          await persistOrder(savedOrder.filter((item) => !item.isDraft).map((item) => item.id));
+        } catch (reorderError) {
+          setError(reorderError instanceof Error ? reorderError.message : '운동 순서를 저장하지 못했습니다.');
+        }
+      }
+      if (cancelled) {
+        setDraggingId(null);
+        setDragOffsetY(0);
       }
     }
-    setDraggingId(null);
-    setDragOffsetY(0);
   }
 
   if (loading || authenticated === null) return <main className="loading-screen"><LoadingDots /></main>;
@@ -300,28 +401,22 @@ export default function HealthRoutinePage() {
 
         {error && <p className="routine-error health-routine-error" role="alert">{error}</p>}
         <div ref={listRef} className="health-routine-list" aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 목록`}>
-          {visibleExercises.map((exercise) => (
+          {visibleExercises.map((exercise, index) => (
             <article
               key={exercise.id}
               data-health-exercise-id={exercise.id}
               data-health-exercise-draft={exercise.isDraft ? 'true' : 'false'}
               className={`health-exercise-card${draggingId === exercise.id ? ' is-dragging' : ''}`}
               style={draggingId === exercise.id ? { '--exercise-drag-offset': `${dragOffsetY}px` } as CSSProperties : undefined}
+              onPointerDown={(event) => startReorder(exercise, index, event)}
+              onPointerMove={moveReorder}
+              onPointerUp={() => void finishReorder()}
+              onPointerCancel={() => void finishReorder(true)}
+              onPointerLeave={stopPendingReorder}
+              onContextMenu={(event) => event.preventDefault()}
+              onDragStart={(event) => event.preventDefault()}
             >
-              <button
-                type="button"
-                className="health-exercise-grip"
-                aria-label="길게 눌러 운동 순서 변경"
-                title="길게 눌러 순서 변경"
-                disabled={Boolean(savingIds.has(exercise.id) || deletingIds.has(exercise.id))}
-                onContextMenu={(event) => event.preventDefault()}
-                onPointerDown={(event) => startReorder(exercise, event)}
-                onPointerMove={moveReorder}
-                onPointerUp={(event) => void finishReorder(event)}
-                onPointerCancel={(event) => void finishReorder(event, true)}
-              >
-                <svg viewBox="0 0 16 20" aria-hidden="true"><circle cx="5" cy="4" r="1.3" /><circle cx="11" cy="4" r="1.3" /><circle cx="5" cy="10" r="1.3" /><circle cx="11" cy="10" r="1.3" /><circle cx="5" cy="16" r="1.3" /><circle cx="11" cy="16" r="1.3" /></svg>
-              </button>
+              <span className="health-exercise-order" aria-label={`${index + 1}번째 운동`}>{index + 1}</span>
               <input
                 className="health-exercise-name"
                 aria-label="운동 종목"
