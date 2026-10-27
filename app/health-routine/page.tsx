@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 type BodyPart = 'upper' | 'lower';
 type HealthExercise = {
@@ -68,6 +69,7 @@ export default function HealthRoutinePage() {
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [error, setError] = useState('');
   const [countDialog, setCountDialog] = useState<{ exerciseId: string; field: CountField; value: number } | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const loadExercises = useCallback(async () => {
     const response = await fetch('/api/health-routine', { cache: 'no-store' });
@@ -222,7 +224,6 @@ export default function HealthRoutinePage() {
   async function deleteSelectedExercises() {
     const selected = visibleExercises.filter((exercise) => selectedIds.has(exercise.id));
     if (selected.length === 0 || deletingIds.size > 0) return;
-    if (!window.confirm(`선택한 운동 ${selected.length}개를 삭제할까요?`)) return;
     const ids = new Set(selected.map((exercise) => exercise.id));
     const saved = selected.filter((exercise) => !exercise.isDraft);
     setDeletingIds(ids);
@@ -431,7 +432,7 @@ export default function HealthRoutinePage() {
           <div className="health-routine-list-actions">
             {selectionMode ? <>
               <button type="button" className="health-selection-cancel" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>취소</button>
-              <button type="button" className="health-selection-delete" onClick={() => void deleteSelectedExercises()} disabled={selectedIds.size === 0 || deletingIds.size > 0}>삭제</button>
+              <button type="button" className="health-selection-delete" onClick={() => setConfirmDeleteOpen(true)} disabled={selectedIds.size === 0 || deletingIds.size > 0}>삭제</button>
             </> : <button type="button" className="health-selection-start" onClick={() => { setSelectionMode(true); setSelectedIds(new Set()); }}>선택삭제</button>}
           </div>
         </div>
@@ -481,7 +482,8 @@ export default function HealthRoutinePage() {
           {visibleExercises.length === 0 && <div className="health-routine-empty"><p>{bodyPart === 'upper' ? '상체' : '하체'} 운동을 추가해 루틴을 만들어보세요.</p></div>}
           <button type="button" className="routine-add-button health-routine-list-add" onClick={addExercise} aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 추가`} title="운동 추가">+</button>
         </div>
-        {countDialog && <div className="modal-backdrop health-count-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCountDialog(null); }}>
+      <ConfirmDialog open={confirmDeleteOpen} title={`선택한 운동 ${selectedIds.size}개를 삭제할까요?`} description="삭제한 운동은 복구할 수 없습니다." busy={deletingIds.size > 0} onCancel={() => setConfirmDeleteOpen(false)} onConfirm={() => { setConfirmDeleteOpen(false); void deleteSelectedExercises(); }} />
+      {countDialog && <div className="modal-backdrop health-count-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCountDialog(null); }}>
           <section className="settings-modal health-count-modal" role="dialog" aria-modal="true" aria-labelledby="health-count-title">
             <div className="settings-modal-header"><h2 id="health-count-title">{countDialog.field === 'weight_kg' ? '무게 (kg)' : countDialog.field === 'repetitions' ? '반복 횟수' : '세트 수'}</h2><button type="button" className="modal-close" onClick={() => setCountDialog(null)}>닫기</button></div>
             <div className="health-count-controls">

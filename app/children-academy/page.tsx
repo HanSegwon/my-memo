@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppSelect from '../../components/AppSelect';
 import { CHILDREN_ACADEMY_COLORS, DEFAULT_CHILDREN_ACADEMY_COLOR, type ChildrenAcademyColor } from '../../lib/childrenAcademyColors';
 
 type ChildName = '한유준' | '한이준';
@@ -215,10 +216,10 @@ export default function ChildrenAcademyPage() {
         </div></div>
         <form className="family-event-form" onSubmit={(event) => void saveSchedule(event)}>
           <label>일정<input autoFocus maxLength={100} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} placeholder="예: 수학 학원" required /></label>
-          <label>요일<select value={draft.weekday} onChange={(event) => setDraft((current) => ({ ...current, weekday: Number(event.target.value) }))}>{WEEKDAYS.map((day, index) => <option value={index + 1} key={day}>{day}요일</option>)}</select></label>
+          <div className="app-picker-field"><span>요일</span><AppSelect label="요일" value={String(draft.weekday)} options={WEEKDAYS.map((day, index) => ({ value: String(index + 1), label: `${day}요일` }))} onChange={(value) => setDraft((current) => ({ ...current, weekday: Number(value) }))} /></div>
           <div className="routine-time-fields children-time-fields">
-            <label>시작 시간<select value={draft.startTime} onChange={(event) => changeStartTime(event.target.value)}>{timeOptions.slice(0, -1).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
-          <label>종료 시간<select value={draft.endTime} onChange={(event) => setDraft((current) => ({ ...current, endTime: event.target.value }))}>{timeOptions.filter((time) => minutesOf(time) > minutesOf(draft.startTime)).map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
+            <div className="app-picker-field"><span>시작 시간</span><AppSelect label="시작 시간" value={draft.startTime} options={timeOptions.slice(0, -1).map((time) => ({ value: time, label: time }))} onChange={changeStartTime} /></div>
+            <div className="app-picker-field"><span>종료 시간</span><AppSelect label="종료 시간" value={draft.endTime} options={timeOptions.filter((time) => minutesOf(time) > minutesOf(draft.startTime)).map((time) => ({ value: time, label: time }))} onChange={(value) => setDraft((current) => ({ ...current, endTime: value }))} /></div>
           </div>
           <fieldset className="children-color-fieldset">
             <legend>일정 색상</legend>

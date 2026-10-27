@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppDatePicker from '../../components/AppDatePicker';
+import AppSelect from '../../components/AppSelect';
 
 type AffairTransaction = { id: string; flow: 'expense' | 'income'; event_date: string; event_name: string; amount: number };
 type AffairContact = { id: string; name: string; relation: string | null; phone: string | null; transactions: AffairTransaction[] };
@@ -95,6 +97,10 @@ export default function AffairExpensesPage() {
   async function saveContact(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (saving) return;
+    if (!relation) {
+      setError('관계를 선택해주세요.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -172,7 +178,7 @@ export default function AffairExpensesPage() {
           <form className="family-event-form affair-expense-form" onSubmit={(event) => void saveContact(event)}>
             <label>이름<input autoFocus maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="이름" required /></label>
             <div className="affair-contact-fields">
-              <label>관계<select value={relation} onChange={(event) => setRelation(event.target.value)} required><option value="">선택</option><option value="가족">가족</option><option value="직장">직장</option><option value="친구">친구</option><option value="기타">기타</option></select></label>
+              <div className="app-picker-field"><span>관계</span><AppSelect label="관계" value={relation} options={[{ value: '', label: '선택' }, ...['가족', '직장', '친구', '기타'].map((value) => ({ value, label: value }))]} onChange={setRelation} required /></div>
               <label>전화번호<input type="tel" inputMode="numeric" maxLength={13} value={phone} onChange={(event) => setPhone(formatPhone(event.target.value))} placeholder="010-1234-5678" pattern="\d{3}-\d{4}-\d{4}" title="전화번호 11자리를 입력해주세요." required /></label>
             </div>
             <div className="affair-transaction-editor">
@@ -189,7 +195,7 @@ export default function AffairExpensesPage() {
                   </button>
                 </div>
                 <div className="affair-transaction-editor-bottom">
-                  <label className="affair-inline-field"><span>날짜</span><input type="date" value={item.eventDate} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: event.target.value } : entry))} required={Boolean(item.flow || item.eventName || item.amount)} /></label>
+                  <label className="affair-inline-field"><span>날짜</span><AppDatePicker label="행사 날짜" value={item.eventDate} onChange={(value) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventDate: value } : entry))} /></label>
                   <label className="affair-inline-field"><span>행사명</span><input maxLength={100} value={item.eventName} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, eventName: event.target.value } : entry))} placeholder="예: 결혼식" required={Boolean(item.flow || item.eventDate || item.amount)} /></label>
                   <label className="affair-inline-field"><span>금액</span><input type="text" inputMode="numeric" value={item.amount} onChange={(event) => setTransactions((current) => current.map((entry, i) => i === index ? { ...entry, amount: formatAmount(event.target.value) } : entry))} placeholder="금액" required={Boolean(item.flow || item.eventDate || item.eventName)} /></label>
                 </div>

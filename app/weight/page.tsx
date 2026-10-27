@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppSelect from '../../components/AppSelect';
 import { useRouter } from 'next/navigation';
 
 type Exercise = '상체' | '하체' | '코어' | '휴식';
@@ -698,16 +699,7 @@ export default function WeightPage() {
         <section className="weight-table-wrap" aria-label="체중관리 일별 기록">
           <div className="weight-year-select-row">
             <label htmlFor="weight-record-year">년도</label>
-            <select
-              id="weight-record-year"
-              value={selectedYear ?? currentYear ?? ''}
-              onChange={(event) => {
-                setSelectedYear(Number(event.target.value));
-                setShowAllRecords(false);
-              }}
-            >
-              {availableYears.map((year) => <option key={year} value={year}>{year}년</option>)}
-            </select>
+            <AppSelect label="기록 연도" value={String(selectedYear ?? currentYear ?? '')} options={availableYears.map((year) => ({ value: String(year), label: `${year}년` }))} onChange={(value) => { setSelectedYear(Number(value)); setShowAllRecords(false); }} />
           </div>
           <table className="weight-table">
             <thead>
@@ -922,9 +914,7 @@ export default function WeightPage() {
 
             <label className="weight-form-field weight-goal-year">
               <span>목표 연도</span>
-              <select value={goalYearDraft} onChange={(event) => changeGoalYear(event.target.value)}>
-                {goalYears.map((year) => <option key={year} value={year}>{year}년</option>)}
-              </select>
+              <AppSelect label="목표 연도" value={goalYearDraft} options={goalYears.map((year) => ({ value: String(year), label: `${year}년` }))} onChange={changeGoalYear} />
             </label>
             <p className="weight-goal-description">선택한 연도의 월별 목표 체중을 입력하세요.</p>
             <div className="weight-goal-table-wrap">

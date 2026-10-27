@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppSelect from '../../components/AppSelect';
 
 type SalaryRecord = {
   income_year: number;
@@ -234,9 +235,7 @@ export default function SalaryPage() {
 
         <div className="salary-year-select-row">
           <label htmlFor="salary-year">년도</label>
-          <select id="salary-year" value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
-            {[...years].reverse().map((year) => <option value={year} key={year}>{year}년</option>)}
-          </select>
+          <AppSelect label="년도" value={String(selectedYear)} options={[...years].reverse().map((year) => ({ value: String(year), label: `${year}년` }))} onChange={(value) => setSelectedYear(Number(value))} />
         </div>
 
         {selectedYear <= 2017 && <p className="salary-sample-note">2015~2017년에는 화면 확인용 가상 데이터가 들어 있습니다.</p>}

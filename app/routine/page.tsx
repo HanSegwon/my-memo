@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppTimePicker from '../../components/AppTimePicker';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { getActiveRoutine, getRoutineDayType, type RoutineDayType } from '../../lib/routineSchedule';
 
 type RoutineItem = {
@@ -66,6 +68,7 @@ export default function RoutinePage() {
   const [copyingRoutines, setCopyingRoutines] = useState(false);
   const [copyMessage, setCopyMessage] = useState('');
   const [copyError, setCopyError] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<{ kind: 'tab'; title: string } | { kind: 'routine'; routine: RoutineItem } | null>(null);
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
 
@@ -237,7 +240,6 @@ export default function RoutinePage() {
 
   async function deleteRoutineTab() {
     if (!renamingTab || deletingTab) return;
-    if (!window.confirm(`“${renamingTab.title}” 루틴과 그 안의 일정을 모두 삭제할까요?`)) return;
     setDeletingTab(true);
     setError('');
     try {
@@ -283,7 +285,6 @@ export default function RoutinePage() {
   }
 
   async function deleteRoutine(routine: RoutineItem) {
-    if (!window.confirm(`“${routine.title}” 생활루틴을 삭제할까요?`)) return;
     const response = await fetch(`/api/routine?id=${encodeURIComponent(routine.id)}`, { method: 'DELETE' });
     const data = await response.json();
     if (!response.ok) { setError(data.message || '생활루틴을 삭제하지 못했습니다.'); return; }
@@ -345,7 +346,7 @@ export default function RoutinePage() {
                 <div className="routine-description">{activeRoutine?.id === routine.id && <span className="routine-current-badge">진행 중</span>}<h2><span className="routine-title-text">{routine.title}</span></h2>{routine.details && <p>{routine.details}</p>}</div>
                 <div className="routine-item-actions">
                   <button type="button" className="routine-edit-button" onClick={() => openForm(routine)} aria-label={`${routine.title} 수정`}>수정</button>
-                  <button type="button" className="routine-delete-button" onClick={() => void deleteRoutine(routine)} aria-label={`${routine.title} 삭제`}>삭제</button>
+                  <button type="button" className="routine-delete-button" onClick={() => setPendingDelete({ kind: 'routine', routine })} aria-label={`${routine.title} 삭제`}>삭제</button>
                 </div>
               </article>
             );
@@ -359,7 +360,7 @@ export default function RoutinePage() {
           <section className="family-event-modal" role="dialog" aria-modal="true" aria-labelledby="routine-form-title">
             <div className="family-event-modal-heading"><div><p className="eyebrow">{editing ? 'EDIT ROUTINE' : 'NEW ROUTINE'}</p><h2 id="routine-form-title">생활루틴 {editing ? '수정' : '추가'}</h2></div><button type="button" onClick={() => setShowForm(false)} aria-label="닫기">×</button></div>
             <form className="family-event-form routine-form" onSubmit={saveRoutine}>
-              <div className="routine-time-fields"><label>시작 시간<input type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} required /></label><label>종료 시간<input type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} required /></label></div>
+              <div className="routine-time-fields"><div className="routine-time-field"><span>시작 시간</span><AppTimePicker label="시작 시간" value={startTime} onChange={setStartTime} /></div><div className="routine-time-field"><span>종료 시간</span><AppTimePicker label="종료 시간" value={endTime} onChange={setEndTime} /></div></div>
               <label>제목<input maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="예: 아침 운동" required /></label>
               <label>세부 계획<textarea className="routine-detail-input" maxLength={2000} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="세부 계획은 비워두어도 됩니다." /></label>
               {error && <p className="routine-error" role="alert">{error}</p>}
@@ -375,7 +376,7 @@ export default function RoutinePage() {
             <div className="family-event-modal-heading">
               <div><p className="eyebrow">ROUTINE SETTING</p><h2 id="routine-tab-name-title">루틴 설정</h2></div>
               <div className="routine-tab-header-actions">
-                <button type="button" className="routine-tab-icon-button is-delete" onClick={() => void deleteRoutineTab()} disabled={deletingTab} aria-label="루틴 삭제" title="루틴 삭제">
+                <button type="button" className="routine-tab-icon-button is-delete" onClick={() => setPendingDelete({ kind: 'tab', title: renamingTab.title })} disabled={deletingTab} aria-label="루틴 삭제" title="루틴 삭제">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5" /></svg>
                 </button>
                 <button type="button" className={`routine-tab-icon-button${renamingTab.is_featured ? ' is-featured' : ''}`} onClick={() => void toggleFeaturedTab()} disabled={updatingFeatured} aria-label={renamingTab.is_featured ? '대표 루틴 해제' : '대표 루틴 지정'} title={renamingTab.is_featured ? '대표 루틴 해제' : '대표 루틴 지정'}>
@@ -417,6 +418,19 @@ export default function RoutinePage() {
           </section>
         </div>
       )}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete?.kind === 'tab' ? `“${pendingDelete.title}” 루틴과 일정을 모두 삭제할까요?` : pendingDelete?.kind === 'routine' ? `“${pendingDelete.routine.title}” 일정을 삭제할까요?` : ''}
+        description="삭제한 내용은 복구할 수 없습니다."
+        busy={deletingTab}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const pending = pendingDelete;
+          setPendingDelete(null);
+          if (pending?.kind === 'tab') void deleteRoutineTab();
+          if (pending?.kind === 'routine') void deleteRoutine(pending.routine);
+        }}
+      />
     </main>
   );
 }

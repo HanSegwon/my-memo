@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
+import AppSelect from '../../components/AppSelect';
 import KoreanLunarCalendar from 'korean-lunar-calendar';
 import { daysUntilEvent, getEventDateInYear, getNextEventDate, type FamilyEvent } from '../../lib/familyEvents';
 
@@ -212,14 +213,14 @@ export default function FamilyEventsPage() {
               </button>
             </div>
             {calendarType === 'solar' ? <div className="family-event-solar-date">
-              <label>연도<select value={solarYear} onChange={(event) => { const year = Number(event.target.value); setSolarYear(year); setSolarDay((day) => Math.min(day, new Date(year, solarMonth, 0).getDate())); }}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</select></label>
-              <label>월<select value={solarMonth} onChange={(event) => { const month = Number(event.target.value); setSolarMonth(month); setSolarDay((day) => Math.min(day, new Date(solarYear, month, 0).getDate())); }}>{Array.from({ length: 12 }, (_, index) => index + 1).map((month) => <option key={month} value={month}>{month}월</option>)}</select></label>
-              <label>일<select value={solarDay} onChange={(event) => setSolarDay(Number(event.target.value))}>{Array.from({ length: solarDaysInMonth }, (_, index) => index + 1).map((day) => <option key={day} value={day}>{day}일</option>)}</select></label>
+              <div className="app-picker-field"><span>연도</span><AppSelect label="연도" value={String(solarYear)} options={yearOptions.map((year) => ({ value: String(year), label: `${year}년` }))} onChange={(value) => { const year = Number(value); setSolarYear(year); setSolarDay((day) => Math.min(day, new Date(year, solarMonth, 0).getDate())); }} /></div>
+              <div className="app-picker-field"><span>월</span><AppSelect label="월" value={String(solarMonth)} options={Array.from({ length: 12 }, (_, index) => index + 1).map((month) => ({ value: String(month), label: `${month}월` }))} onChange={(value) => { const month = Number(value); setSolarMonth(month); setSolarDay((day) => Math.min(day, new Date(solarYear, month, 0).getDate())); }} /></div>
+              <div className="app-picker-field"><span>일</span><AppSelect label="일" value={String(solarDay)} options={Array.from({ length: solarDaysInMonth }, (_, index) => index + 1).map((day) => ({ value: String(day), label: `${day}일` }))} onChange={(value) => setSolarDay(Number(value))} /></div>
             </div> : <>
               <div className="family-event-lunar-date">
-                <label>기준 연도<select value={referenceYear} onChange={(event) => setReferenceYear(Number(event.target.value))}>{yearOptions.map((year) => <option key={year} value={year}>{year}년</option>)}</select></label>
-                <label>월<select value={eventMonth} onChange={(event) => { setEventMonth(Number(event.target.value)); setIsLeapMonth(false); }}>{Array.from({ length: 12 }, (_, index) => index + 1).map((month) => <option key={month} value={month}>{month}월</option>)}</select></label>
-                <label>일<select value={eventDay} onChange={(event) => setEventDay(Number(event.target.value))}>{Array.from({ length: 30 }, (_, index) => index + 1).map((day) => <option key={day} value={day}>{day}일</option>)}</select></label>
+                <div className="app-picker-field"><span>기준 연도</span><AppSelect label="기준 연도" value={String(referenceYear)} options={yearOptions.map((year) => ({ value: String(year), label: `${year}년` }))} onChange={(value) => setReferenceYear(Number(value))} /></div>
+                <div className="app-picker-field"><span>월</span><AppSelect label="월" value={String(eventMonth)} options={Array.from({ length: 12 }, (_, index) => index + 1).map((month) => ({ value: String(month), label: `${month}월` }))} onChange={(value) => { setEventMonth(Number(value)); setIsLeapMonth(false); }} /></div>
+                <div className="app-picker-field"><span>일</span><AppSelect label="일" value={String(eventDay)} options={Array.from({ length: 30 }, (_, index) => index + 1).map((day) => ({ value: String(day), label: `${day}일` }))} onChange={(value) => setEventDay(Number(value))} /></div>
               </div>
               <label className="family-event-leap-toggle"><input type="checkbox" checked={isLeapMonth} onChange={(event) => setIsLeapMonth(event.target.checked)} /> 윤달</label>
               <p className="family-event-preview">{lunarPreview ? `${referenceYear}년에는 ${formatEventDate(lunarPreview)}에 표시됩니다.` : '선택한 연도에 없는 음력 날짜입니다. 연도나 날짜를 확인해주세요.'}</p>
