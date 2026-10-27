@@ -207,11 +207,18 @@ function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()
   if (hour < 6 || hour >= 22) return null;
 
   const currentMinute = hour * 60 + minute;
-  const formatDuration = (targetMinute: number) => {
-    const remaining = Math.max(0, targetMinute - currentMinute);
+  const minutesUntil = (targetMinute: number) => {
+    return Math.max(0, targetMinute - currentMinute);
+  };
+  const formatUntilNextClass = (targetMinute: number) => {
+    const remaining = minutesUntil(targetMinute);
     const hours = Math.floor(remaining / 60);
     const minutes = remaining % 60;
     return hours > 0 ? `${hours}시간${minutes > 0 ? ` ${minutes}분` : ''}` : `${minutes}분`;
+  };
+  const formatUntilClassEnds = (targetMinute: number) => {
+    const remaining = minutesUntil(targetMinute);
+    return `${Math.floor(remaining / 60)}시간 ${remaining % 60}분`;
   };
   const describeChild = (childName: AcademyScheduleSummary['child_name']) => {
     const todaySchedules = schedules
@@ -224,13 +231,13 @@ function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()
     });
     if (current) {
       const end = Number(current.end_time.slice(0, 2)) * 60 + Number(current.end_time.slice(3, 5));
-      return `${childName} (${formatDuration(end)} 뒤 ${current.title} 수업 마침)`;
+      return `${childName} (${current.title} 수업중 / ${formatUntilClassEnds(end)} 뒤 마침)`;
     }
 
     const next = todaySchedules.find((schedule) => Number(schedule.start_time.slice(0, 2)) * 60 + Number(schedule.start_time.slice(3, 5)) > currentMinute);
     if (!next) return `${childName} (일정 종료)`;
     const start = Number(next.start_time.slice(0, 2)) * 60 + Number(next.start_time.slice(3, 5));
-    return `${childName} (${formatDuration(start)} 뒤 ${next.title} 수업)`;
+    return `${childName} (자유 시간 / ${formatUntilNextClass(start)} 뒤 ${next.title})`;
   };
 
   return [describeChild('한유준'), describeChild('한이준')].join(' · ');
