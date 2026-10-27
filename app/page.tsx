@@ -240,7 +240,7 @@ function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()
     const next = todaySchedules.find((schedule) => Number(schedule.start_time.slice(0, 2)) * 60 + Number(schedule.start_time.slice(3, 5)) > currentMinute);
     if (!next) return `${childName} (일정 종료)`;
     const start = Number(next.start_time.slice(0, 2)) * 60 + Number(next.start_time.slice(3, 5));
-    return `${childName} (자유시간 / ${formatUntilNextClass(start)} 뒤 ${next.title})`;
+    return `${childName} (집 / ${formatUntilNextClass(start)} 뒤 ${next.title})`;
   };
 
   return [describeChild('한유준'), describeChild('한이준')].join(' · ');
