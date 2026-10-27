@@ -1470,6 +1470,195 @@ h1 {
   transform: translateY(-1px);
 }
 
+.health-routine-container {
+  max-width: 680px;
+}
+
+.health-routine-tabs {
+  margin-bottom: 18px;
+}
+
+.health-routine-tabs button {
+  min-width: 92px;
+}
+
+.health-routine-add {
+  margin: 0;
+  width: 38px;
+  height: 38px;
+  font-size: 23px;
+}
+
+.health-routine-list {
+  display: grid;
+  gap: 9px;
+}
+
+.health-exercise-card {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 7px;
+  border: 1px solid #e9edf2;
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.health-exercise-card.is-dragging {
+  z-index: 2;
+  border-color: #91a9c8;
+  box-shadow: 0 10px 26px rgba(35, 67, 105, 0.16);
+  transform: translate3d(0, var(--exercise-drag-offset), 0) scale(1.015);
+  transition: none;
+}
+
+.health-exercise-grip,
+.health-exercise-delete {
+  display: grid;
+  flex: 0 0 25px;
+  width: 25px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a4acb7;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.health-exercise-grip svg {
+  width: 14px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.health-exercise-grip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.health-exercise-name {
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 28px;
+  height: 36px;
+  padding: 0 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #252a31;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.health-exercise-name::placeholder {
+  color: #a0a6af;
+  font-weight: 400;
+}
+
+.health-exercise-number {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 3px;
+  border: 1px solid #e8edf2;
+  border-radius: 8px;
+  background: #fbfcfd;
+  color: #303843;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.health-exercise-reps { width: 32px; }
+.health-exercise-sets { width: 25px; }
+
+.health-exercise-unit {
+  flex: 0 0 auto;
+  color: #858d98;
+  font-size: 11px;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+
+.health-exercise-intensity {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 34px;
+  padding: 0 3px 0 6px;
+  border: 1px solid #e8edf2;
+  border-radius: 9px;
+  background: #f7f8fa;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.health-exercise-intensity.is-easy { border-color: #d8e9df; background: #f1f8f3; color: #4b7659; }
+.health-exercise-intensity.is-normal { border-color: #dce5f0; background: #f2f6fb; color: #526a88; }
+.health-exercise-intensity.is-hard { border-color: #efdfdc; background: #fbf3f1; color: #9c5a50; }
+
+.health-exercise-delete {
+  flex-basis: 24px;
+  width: 24px;
+  color: #9ba2ac;
+  cursor: pointer;
+}
+
+.health-exercise-delete svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.health-exercise-delete:hover { color: #a65454; }
+.health-exercise-delete:disabled { opacity: 0.45; cursor: default; }
+
+.health-routine-empty {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 32px 12px 24px;
+  color: #858d98;
+  text-align: center;
+}
+
+.health-routine-empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.health-routine-empty .routine-add-button {
+  margin: 10px auto 0;
+}
+
+.health-routine-error {
+  margin: 0 0 12px;
+}
+
+@media (max-width: 380px) {
+  .health-exercise-card { gap: 3px; padding-right: 5px; padding-left: 5px; }
+  .health-exercise-grip { flex-basis: 21px; width: 21px; }
+  .health-exercise-delete { flex-basis: 21px; width: 21px; }
+  .health-exercise-intensity { flex-basis: 54px; width: 54px; }
+  .health-exercise-name { font-size: 13px; }
+}
+
 .affair-expenses-container {
   max-width: 760px;
 }

@@ -851,7 +851,7 @@ export default function Home() {
                 {weightSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={weightSummary} /></>}
               </Link>
               <Link href="/smoking" className="home-button">금연관리</Link>
-              <button type="button" className="home-button" disabled>헬스루틴</button>
+              <Link href="/health-routine" className="home-button">헬스루틴</Link>
               <Link href="/routine" className="home-button">
                 <span className="home-button-title">생활루틴</span>
                 {routineSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={routineSummary} /></>}
