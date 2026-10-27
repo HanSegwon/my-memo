@@ -3748,6 +3748,37 @@ h1 {
   line-height: 1.55;
 }
 
+.smoking-savings {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 5px 12px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #f7f8fa;
+}
+
+.smoking-savings > span {
+  color: #687382;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.smoking-savings > strong {
+  color: #293341;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.smoking-savings > small {
+  grid-column: 1 / -1;
+  color: #929aa5;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .smoking-quit-error {
   display: flex;
   align-items: center;
