@@ -471,7 +471,7 @@ export default function HealthRoutinePage() {
               <output>{countDialog.field === 'weight_kg' ? String(countDialog.value) : String(countDialog.value).padStart(countDialog.field === 'repetitions' ? 2 : 1, '0')}<span>{countDialog.field === 'weight_kg' ? 'kg' : countDialog.field === 'repetitions' ? '회' : '세트'}</span></output>
               <button type="button" aria-label={countDialog.field === 'weight_kg' ? '1kg 늘리기' : '1 늘리기'} disabled={countDialog.value >= (countDialog.field === 'weight_kg' ? 999 : countDialog.field === 'repetitions' ? 99 : 9)} onClick={() => setCountDialog((current) => current ? { ...current, value: Math.min(current.field === 'weight_kg' ? 999 : current.field === 'repetitions' ? 99 : 9, current.value + 1) } : current)}>+</button>
             </div>
-            <button type="button" className="primary-button" onClick={applyCountDialog}>적용</button>
+            <button type="button" className="settings-save-button" onClick={applyCountDialog}>적용</button>
           </section>
         </div>}
       </section>
