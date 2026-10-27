@@ -143,6 +143,13 @@ type HomeTab = 'health' | 'asset' | 'family';
 const homeTabs: HomeTab[] = ['health', 'asset', 'family'];
 let hasStartedHomeTabSession = false;
 
+function HomeTabIcon({ tab }: { tab: HomeTab }) {
+  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  if (tab === 'health') return <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 16, height: 16, flex: '0 0 auto' }} {...common}><path d="M20.8 8.8c0 5.1-8.8 11-8.8 11s-8.8-5.9-8.8-11A4.8 4.8 0 0 1 12 6.3a4.8 4.8 0 0 1 8.8 2.5Z" /><path d="M7.5 12h2.3l1.3-2.2 2 4.3 1.3-2.1h2.1" /></svg>;
+  if (tab === 'asset') return <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 16, height: 16, flex: '0 0 auto' }} {...common}><path d="M4 19.5h16" /><path d="M7 16v-5M12 16V6M17 16V9" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 16, height: 16, flex: '0 0 auto' }} {...common}><circle cx="9" cy="8" r="3" /><path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19" /><path d="M16 5.4a3 3 0 0 1 0 5.8M17 13h.5a3.5 3.5 0 0 1 3.5 3.5V19" /></svg>;
+}
+
 function getInitialHomeTab(): HomeTab {
   if (typeof window === 'undefined') return 'health';
   if (!hasStartedHomeTabSession) {
@@ -862,10 +869,11 @@ export default function Home() {
                 role="tab"
                 aria-selected={activeHomeTab === tab}
                 className={activeHomeTab === tab ? 'is-selected' : ''}
-                style={{ color: `rgb(${color})`, transition: isDraggingHomeTabs ? 'none' : undefined }}
+                style={{ color: `rgb(${color})`, transition: isDraggingHomeTabs ? 'none' : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                 onClick={() => selectHomeTab(tab)}
               >
-                {tab === 'health' ? '건강관리' : tab === 'asset' ? '자산관리' : '가족관리'}
+                <HomeTabIcon tab={tab} />
+                <span>{tab === 'health' ? '건강관리' : tab === 'asset' ? '자산관리' : '가족관리'}</span>
               </button>
             );
           })}
