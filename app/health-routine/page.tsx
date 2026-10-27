@@ -420,21 +420,22 @@ export default function HealthRoutinePage() {
           </div>
         </header>
 
-        <div className="routine-day-switch health-routine-tabs" role="tablist" aria-label="운동 부위 선택">
-          {BODY_PARTS.map((part) => (
-            <button key={part.id} type="button" role="tab" aria-selected={bodyPart === part.id} className={bodyPart === part.id ? 'is-selected' : ''} onClick={() => { setBodyPart(part.id); setSelectedIds(new Set()); setSelectionMode(false); }}>
-              {part.label}
-            </button>
-          ))}
+        <div className="health-routine-tabbar">
+          <div className="routine-day-switch health-routine-tabs" role="tablist" aria-label="운동 부위 선택">
+            {BODY_PARTS.map((part) => (
+              <button key={part.id} type="button" role="tab" aria-selected={bodyPart === part.id} className={bodyPart === part.id ? 'is-selected' : ''} onClick={() => { setBodyPart(part.id); setSelectedIds(new Set()); setSelectionMode(false); }}>
+                {part.label}
+              </button>
+            ))}
+          </div>
+          <div className="health-routine-list-actions">
+            {selectionMode ? <>
+              <button type="button" className="health-selection-cancel" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>취소</button>
+              <button type="button" className="health-selection-delete" onClick={() => void deleteSelectedExercises()} disabled={selectedIds.size === 0 || deletingIds.size > 0}>삭제</button>
+            </> : <button type="button" className="health-selection-start" onClick={() => { setSelectionMode(true); setSelectedIds(new Set()); }}>선택삭제</button>}
+          </div>
         </div>
-
         {error && <p className="routine-error health-routine-error" role="alert">{error}</p>}
-        <div className="health-routine-list-actions">
-          {selectionMode ? <>
-            <button type="button" className="health-selection-cancel" onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}>취소</button>
-            <button type="button" className="health-selection-delete" onClick={() => void deleteSelectedExercises()} disabled={selectedIds.size === 0 || deletingIds.size > 0}>삭제</button>
-          </> : <button type="button" className="health-selection-start" onClick={() => { setSelectionMode(true); setSelectedIds(new Set()); }}>선택삭제</button>}
-        </div>
         <div ref={listRef} className="health-routine-list" aria-label={`${bodyPart === 'upper' ? '상체' : '하체'} 운동 목록`}>
           {visibleExercises.map((exercise, index) => (
             <article

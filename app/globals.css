@@ -1474,9 +1474,8 @@ h1 {
   max-width: 680px;
 }
 
-.health-routine-tabs {
-  margin-bottom: 18px;
-}
+.health-routine-tabbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 4px 0 18px; }
+.health-routine-tabs { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; margin: 0; }
 
 .health-routine-tabs button {
   min-width: 92px;
@@ -1484,33 +1483,29 @@ h1 {
 
 .health-routine-list-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: -8px 0 8px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
 }
 
 .health-routine-list-actions button {
   min-height: 34px;
-  padding: 0 13px;
-  border: 1px solid #e5e9ee;
-  border-radius: 10px;
-  background: #fff;
-  color: #555e69;
+  padding: 0 7px;
+  border: 0;
+  background: transparent;
+  color: #666;
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .health-routine-list-actions .health-selection-delete {
-  border-color: #252a31;
-  background: #252a31;
-  color: #fff;
+  color: #666;
 }
 
 .health-routine-list-actions .health-selection-delete:disabled {
-  border-color: #d9dde2;
-  background: #d9dde2;
-  color: #fff;
+  color: #aeb4bc;
   cursor: default;
 }
 
@@ -1624,11 +1619,32 @@ h1 {
 }
 
 .health-exercise-select {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
-  margin: 0 2px;
-  accent-color: #252a31;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0 4px;
+  place-content: center;
+  appearance: none;
+  border: 1px solid #c8cdd4;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.health-exercise-select:checked {
+  border-color: #252a31;
+  background: #252a31;
+}
+
+.health-exercise-select:checked::after {
+  width: 4px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  content: '';
+  transform: rotate(45deg);
+  margin-top: -2px;
 }
 
 .health-exercise-count:disabled { cursor: default; }
