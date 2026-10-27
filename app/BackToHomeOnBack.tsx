@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-const DIALOG_SELECTOR = '[role="dialog"], .settings-modal, .family-event-modal, .negative-dialog, .smoking-record-dialog';
+const DIALOG_SELECTOR = '[role="dialog"], [data-back-dialog="true"], .settings-modal, .family-event-modal, .negative-dialog, .smoking-record-dialog';
 const LEGACY_DIALOG_KEYS = ['affairExpenseDialog', 'childrenAcademyDialog', 'smokingDialog'];
 
 function openDialogs() {
@@ -24,7 +24,7 @@ function withoutDialogState(state: Record<string, unknown> | null) {
 
 function closeButtonFor(dialog: HTMLElement) {
   return dialog.querySelector<HTMLButtonElement>(
-    'button[aria-label="닫기"], button.modal-close, button.negative-dialog-cancel',
+    'button[data-back-close], button[aria-label="닫기"], button.modal-close, button.negative-dialog-cancel',
   );
 }
 
