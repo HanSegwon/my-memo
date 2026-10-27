@@ -1486,6 +1486,7 @@ h1 {
   flex: 0 0 auto;
   align-items: center;
   gap: 6px;
+  margin-right: 4px;
 }
 
 .health-routine-list-actions button {
@@ -1547,6 +1548,7 @@ h1 {
 }
 
 .health-exercise-card.is-selection-mode { touch-action: pan-y; }
+.health-exercise-card.is-selection-mode > :not(.health-exercise-select) { pointer-events: none; }
 
 .health-exercise-order {
   display: grid;
