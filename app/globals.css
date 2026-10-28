@@ -1716,7 +1716,7 @@ h1 {
 .leaving-time-top-settings {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  padding: 14px 0 18px;
+  padding: 18px 0 18px;
   border-top: 1px solid #eceef1;
   border-bottom: 1px solid #eceef1;
 }
