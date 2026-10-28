@@ -307,8 +307,8 @@ export default function LeavingTimePage() {
           <div className="app-picker-heading"><div><p className="eyebrow">EXCLUDED TIME</p><h2 id="leaving-exclusion-title">제외시간 {editingExclusionId ? '수정' : '추가'}</h2></div><button type="button" className="app-picker-close" onClick={() => setExclusionDialogOpen(false)} aria-label="닫기">×</button></div>
           <label className="leaving-time-exclusion-dialog-title">항목<input autoFocus maxLength={40} value={draftExclusionTitle} onChange={(event) => setDraftExclusionTitle(event.target.value)} placeholder="예: 흡연, 식사" /></label>
           <div className="leaving-time-goal-dialog-fields">
-            <label><span>시간</span><input type="text" inputMode="numeric" maxLength={2} value={draftExclusionHours} onChange={(event) => setDraftExclusionHours(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
-            <label><span>분</span><input type="text" inputMode="numeric" maxLength={2} value={draftExclusionMinutes} onChange={(event) => setDraftExclusionMinutes(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+            <label><input type="text" inputMode="numeric" maxLength={2} aria-label="시간" value={draftExclusionHours} onChange={(event) => setDraftExclusionHours(event.target.value.replace(/\D/g, '').slice(0, 2))} /><span>시간</span></label>
+            <label><input type="text" inputMode="numeric" maxLength={2} aria-label="분" value={draftExclusionMinutes} onChange={(event) => setDraftExclusionMinutes(event.target.value.replace(/\D/g, '').slice(0, 2))} /><span>분</span></label>
           </div>
           <button type="button" className="app-picker-apply" onClick={saveExclusion}>{editingExclusionId ? '변경사항 저장' : '추가'}</button>
         </section>
