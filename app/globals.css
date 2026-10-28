@@ -1680,6 +1680,238 @@ h1 {
   .health-exercise-name { font-size: 13px; }
 }
 
+/* Leaving time planner */
+.leaving-time-container {
+  max-width: 620px;
+}
+
+.leaving-time-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.leaving-time-header h1 { margin: 0; }
+
+.leaving-time-main {
+  padding: 28px 8px 30px;
+  border-bottom: 1px solid #eceef1;
+  text-align: center;
+}
+
+.leaving-time-label {
+  margin: 0 0 12px;
+  color: #828a95;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leaving-time-clock {
+  display: block;
+  color: #252a31;
+  font-size: clamp(29px, 8vw, 44px);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.leaving-time-clock.is-ready { font-size: clamp(27px, 7vw, 38px); }
+.leaving-time-clock.is-empty { color: #9aa1ab; font-size: 18px; font-weight: 550; }
+
+.leaving-time-countdown {
+  margin: 11px 0 0;
+  color: #6d7784;
+  font-size: 14px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaving-time-section {
+  padding: 20px 2px;
+  border-bottom: 1px solid #eceef1;
+}
+
+.leaving-time-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.leaving-time-section-heading .eyebrow {
+  margin: 0 0 5px;
+  color: #9aa1ab;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.leaving-time-section-heading h2 {
+  margin: 0;
+  color: #303843;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.leaving-time-start-row {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #66717f;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.leaving-time-start-row .app-time-trigger {
+  width: 132px;
+  min-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaving-time-add {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #e7e9ed;
+  border-radius: 50%;
+  background: #fff;
+  color: #38424e;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.leaving-time-exclusion-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.leaving-time-exclusion-row:last-of-type { border-bottom: 0; }
+.leaving-time-exclusion-row.is-automatic { border-radius: 10px; background: #f7f8fa; }
+
+.leaving-time-exclusion-title {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #495462;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.leaving-time-exclusion-title small {
+  color: #929aa5;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.leaving-time-exclusion-title input {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid #e8ebef;
+  border-radius: 9px;
+  background: #fff;
+  color: #303843;
+  font: inherit;
+}
+
+.leaving-time-exclusion-title input::placeholder { color: #a6adb6; }
+.leaving-time-exclusion-row > strong { color: #586473; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.leaving-time-duration-inputs,
+.leaving-time-goal-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.leaving-time-duration-inputs label,
+.leaving-time-goal-inputs label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.leaving-time-duration-inputs input,
+.leaving-time-goal-inputs input {
+  width: 39px;
+  height: 36px;
+  padding: 0 4px;
+  border: 1px solid #e8ebef;
+  border-radius: 8px;
+  background: #fff;
+  color: #303843;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.leaving-time-duration-inputs small,
+.leaving-time-goal-inputs small {
+  color: #89929e;
+  font-size: 10px;
+}
+
+.leaving-time-remove {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f4f5f7;
+  color: #818a96;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.leaving-time-hint {
+  margin: 10px 0 0;
+  color: #929aa5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.leaving-time-goal-inputs { justify-content: flex-start; }
+.leaving-time-goal-inputs input { width: 56px; height: 42px; font-size: 17px; }
+.leaving-time-goal-colon { color: #929aa5; font-size: 18px; }
+.leaving-time-reset {
+  display: block;
+  min-height: 38px;
+  margin: 22px auto 4px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: #fbf2f2;
+  color: #b96a70;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  .leaving-time-exclusion-row { grid-template-columns: minmax(0, 1fr) auto 26px; gap: 6px; padding-right: 4px; padding-left: 4px; }
+  .leaving-time-duration-inputs { gap: 3px; }
+  .leaving-time-duration-inputs input { width: 34px; }
+  .leaving-time-duration-inputs small { font-size: 9px; }
+}
+
 .health-count-backdrop { align-items: center; }
 .health-count-modal { border-radius: 18px; }
 .health-count-controls { display: flex; align-items: center; justify-content: center; gap: 28px; margin: 14px 0 22px; }

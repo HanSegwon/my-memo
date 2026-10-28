@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
-type AppTimePickerProps = { value: string; onChange: (value: string) => void; label: string; minuteStep?: number };
+type AppTimePickerProps = { value: string; onChange: (value: string) => void; label: string; minuteStep?: number; placeholder?: string };
 
-export default function AppTimePicker({ value, onChange, label, minuteStep = 1 }: AppTimePickerProps) {
+export default function AppTimePicker({ value, onChange, label, minuteStep = 1, placeholder = '시간 선택' }: AppTimePickerProps) {
   const [open, setOpen] = useState(false);
-  const [draftHour, setDraftHour] = useState(value.slice(0, 2));
-  const [draftMinute, setDraftMinute] = useState(value.slice(3, 5));
+  const [draftHour, setDraftHour] = useState((value || '09:00').slice(0, 2));
+  const [draftMinute, setDraftMinute] = useState((value || '09:00').slice(3, 5));
   const hours = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
   const minutes = Array.from({ length: Math.ceil(60 / minuteStep) }, (_, index) => String(index * minuteStep).padStart(2, '0'));
 
@@ -19,14 +19,15 @@ export default function AppTimePicker({ value, onChange, label, minuteStep = 1 }
   }, [open]);
 
   function showPicker() {
-    setDraftHour(value.slice(0, 2));
-    setDraftMinute(value.slice(3, 5));
+    const currentValue = value || '09:00';
+    setDraftHour(currentValue.slice(0, 2));
+    setDraftMinute(currentValue.slice(3, 5));
     setOpen(true);
   }
 
   return <>
     <button type="button" className="app-select-trigger app-time-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={showPicker}>
-      <span>{value}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+      <span className={value ? '' : 'is-placeholder'}>{value || placeholder}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
     </button>
     {open && <div className="modal-backdrop app-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="settings-modal app-picker-dialog" role="dialog" aria-modal="true" aria-label={`${label} 선택`}>

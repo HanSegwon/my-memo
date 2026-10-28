@@ -1011,7 +1011,7 @@ export default function Home() {
             </div>
 
             <div className="home-grid-panel" aria-hidden={activeHomeTab !== 'family'} inert={activeHomeTab !== 'family'}>
-              <button type="button" className="home-button" disabled>퇴근시간</button>
+              <Link href="/leaving-time" className="home-button">퇴근시간</Link>
               <Link href="/shared-memo" className="home-button">
                 <span className="home-button-title">공유메모</span>
                 {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
