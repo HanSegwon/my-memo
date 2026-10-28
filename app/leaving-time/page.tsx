@@ -269,12 +269,13 @@ export default function LeavingTimePage() {
           {statutoryBreakMinutes > 0 && <div className="leaving-time-exclusion-row is-automatic">
             <div className="leaving-time-exclusion-title"><span>법정휴게시간</span></div>
             <strong>{formatDuration(String(Math.floor(statutoryBreakMinutes / 60)), String(statutoryBreakMinutes % 60))}</strong>
+            <span className="leaving-time-exclusion-spacer" aria-hidden="true" />
           </div>}
           {plan.exclusions.map((item, index) => <div className="leaving-time-exclusion-row" key={item.id}>
             <button type="button" className="leaving-time-exclusion-edit" onClick={() => editExclusion(item)} aria-label={`${item.title || `제외시간 ${index + 1}`} 수정`}>
               <span>{item.title || '항목'}</span><strong>{formatDuration(item.hours, item.minutes)}</strong>
             </button>
-            <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}>×</button>
+            <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 6h11M8 6V4.5h4V6m2.5 0-.6 9.5H6.1L5.5 6m2.2 2.2v5.1m4.6-5.1v5.1" /></svg></button>
           </div>)}
           <div className="leaving-time-exclusion-add-row">
             <button type="button" className="leaving-time-add routine-add-button" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
