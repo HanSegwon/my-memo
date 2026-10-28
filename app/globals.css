@@ -1812,11 +1812,16 @@ h1 {
 }
 
 .leaving-time-top-setting > .leaving-time-number-trigger.is-placeholder-trigger {
+  width: auto;
+  min-height: 24px;
+  padding: 1px 7px;
+  border: 1px solid #e8ebef;
+  border-radius: 7px;
+  background: #fff;
   color: #376aab;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
 }
 
 .leaving-time-top-setting > .leaving-time-goal-trigger { font-size: clamp(14px, 4.55vw, 18px); }
