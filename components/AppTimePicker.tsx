@@ -30,7 +30,7 @@ export default function AppTimePicker({ value, onChange, label, minuteStep = 1, 
 
   const valueHour = Number(value.slice(0, 2));
   const formattedValue = value && twelveHour
-    ? `${valueHour < 12 ? '오전' : '오후'} ${String(valueHour % 12 || 12).padStart(2, '0')}:${value.slice(3, 5)}`
+    ? `${valueHour < 12 ? '오전' : '오후'} ${String(valueHour % 12 || 12).padStart(2, '0')}시 ${value.slice(3, 5)}분`
     : value;
   const draftHour12 = Number(draftHour) % 12 || 12;
   const draftPeriod = Number(draftHour) < 12 ? '오전' : '오후';
