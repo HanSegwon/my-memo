@@ -246,7 +246,7 @@ export default function LeavingTimePage() {
         </header>
 
         <section className="leaving-time-main" aria-live="polite">
-          <p className="leaving-time-label">Quitting Time</p>
+          <p className="leaving-time-label">End of work</p>
           {leavingAt
             ? <strong className="leaving-time-clock">{formatClock(leavingAt)}</strong>
             : <strong className="leaving-time-clock is-empty">출근시각을 입력해주세요</strong>}
