@@ -233,7 +233,7 @@ export default function LeavingTimePage() {
           </div>
           <div className="leaving-time-top-setting leaving-time-top-goal">
             <h2>목표 근무시간</h2>
-            <button type="button" className="leaving-time-number-trigger" onClick={openGoalDialog} aria-haspopup="dialog">{plan.goalHours}시간 {plan.goalMinutes}분</button>
+            <button type="button" className="leaving-time-number-trigger leaving-time-goal-trigger" onClick={openGoalDialog} aria-haspopup="dialog">{plan.goalHours}시간 {plan.goalMinutes}분</button>
           </div>
         </section>
 
