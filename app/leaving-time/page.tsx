@@ -198,20 +198,15 @@ export default function LeavingTimePage() {
 
         <section className="leaving-time-main" aria-live="polite">
           <p className="leaving-time-label">오늘 퇴근시간</p>
-          {remainingMs !== null && remainingMs <= 0
-            ? <strong className="leaving-time-clock is-ready">지금 퇴근하세요.</strong>
-            : leavingAt
-              ? <strong className="leaving-time-clock">{formatClock(leavingAt)}</strong>
-              : <strong className="leaving-time-clock is-empty">출근시간을 입력해주세요</strong>}
-          {remainingMs === null || remainingMs > 0
-            ? <p className="leaving-time-countdown">{formatCountdown(remainingMs ?? 0)}</p>
-            : null}
+          {leavingAt
+            ? <strong className="leaving-time-clock">{formatClock(leavingAt)}</strong>
+            : <strong className="leaving-time-clock is-empty">출근시각을 입력해주세요</strong>}
+          <p className="leaving-time-countdown">{formatCountdown(remainingMs ?? 0)}</p>
         </section>
 
         <section className="leaving-time-section" aria-label="출근시간 입력">
-          <div className="leaving-time-section-heading"><h2>출근시간</h2></div>
-          <div className="leaving-time-start-row">
-            <span>출근시각</span>
+          <div className="leaving-time-section-heading">
+            <h2>출근시각</h2>
             <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} twelveHour />
           </div>
         </section>
@@ -222,7 +217,7 @@ export default function LeavingTimePage() {
             <button type="button" className="leaving-time-add" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
           </div>
           {statutoryBreakMinutes > 0 && <div className="leaving-time-exclusion-row is-automatic">
-            <div className="leaving-time-exclusion-title"><span>법정근로시간</span><small>출근 후 4시간 30분 / 8시간 30분 경과 시 자동 적용</small></div>
+            <div className="leaving-time-exclusion-title"><span>법정휴게시간</span></div>
             <strong>{formatDuration(String(Math.floor(statutoryBreakMinutes / 60)), String(statutoryBreakMinutes % 60))}</strong>
           </div>}
           {plan.exclusions.map((item, index) => <div className="leaving-time-exclusion-row" key={item.id}>
@@ -243,7 +238,6 @@ export default function LeavingTimePage() {
             <span className="leaving-time-goal-colon">:</span>
             <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
           </div>
-          <p className="leaving-time-hint">출근 후 4시간 30분이 지나면 30분, 8시간 30분이 지나면 총 60분이 자동으로 제외됩니다.</p>
         </section>
 
         <p className="leaving-time-save-status" role="status" aria-live="polite">

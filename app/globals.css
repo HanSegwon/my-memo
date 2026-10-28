@@ -1714,11 +1714,12 @@ h1 {
 }
 
 .leaving-time-section {
-  margin-top: 12px;
-  padding: 17px 16px;
-  border: 1px solid #eef0f3;
-  border-radius: 15px;
-  background: #fafbfc;
+  margin: 0;
+  padding: 18px 2px;
+  border: 0;
+  border-bottom: 1px solid #eceef1;
+  border-radius: 0;
+  background: transparent;
 }
 
 .leaving-time-section-heading {
@@ -1736,18 +1737,7 @@ h1 {
   font-weight: 650;
 }
 
-.leaving-time-start-row {
-  display: flex;
-  min-height: 44px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  color: #66717f;
-  font-size: 13px;
-  font-weight: 550;
-}
-
-.leaving-time-start-row .app-time-trigger {
+.leaving-time-section-heading > .app-time-trigger {
   width: 158px;
   min-height: 40px;
   border-color: #e8ebef;
@@ -1872,6 +1862,7 @@ h1 {
 .leaving-time-goal-inputs { justify-content: flex-start; gap: 10px; }
 .leaving-time-goal-inputs input { width: 54px; height: 40px; border-color: #e8ebef; background: #fff; font-size: 16px; }
 .leaving-time-goal-colon { color: #a0a7b0; font-size: 16px; }
+.leaving-time-goal-section { border-bottom: 0; }
 .leaving-time-reset {
   display: block;
   min-height: 38px;
@@ -1919,8 +1910,7 @@ h1 {
 }
 
 @media (max-width: 380px) {
-  .leaving-time-section { padding-right: 12px; padding-left: 12px; }
-  .leaving-time-start-row .app-time-trigger { width: 150px; }
+  .leaving-time-section-heading > .app-time-trigger { width: 150px; }
   .leaving-time-exclusion-row { grid-template-columns: minmax(0, 1fr) auto 26px; gap: 6px; padding-right: 4px; padding-left: 4px; }
   .leaving-time-duration-inputs { gap: 3px; }
   .leaving-time-duration-inputs input { width: 34px; }
