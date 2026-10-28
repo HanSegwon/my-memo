@@ -1783,7 +1783,7 @@ h1 {
 .leaving-time-clock-dialog .app-picker-heading { text-align: left; }
 .leaving-time-clock-setting-row { display: flex; align-items: center; gap: 9px; }
 .leaving-time-clock-period { flex: 0 0 104px; margin: 0; }
-.leaving-time-clock-period button { min-height: 42px; }
+.leaving-time-clock-period button { height: 42px; min-height: 42px; padding: 0; }
 .leaving-time-clock-dialog-fields { display: flex; min-width: 0; flex: 1; gap: 8px; margin: 0; }
 .leaving-time-clock-dialog-fields label { flex: 1; gap: 4px; }
 .leaving-time-clock-dialog-fields input { height: 42px; padding: 0 5px; }
