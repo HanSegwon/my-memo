@@ -193,7 +193,10 @@ export default function LeavingTimePage() {
       <section className="container leaving-time-container">
         <header className="header leaving-time-header">
           <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>퇴근시간</h1></div>
-          <Link href="/" className="logout-button">처음으로</Link>
+          <div className="leaving-time-header-actions">
+            <button type="button" className="leaving-time-reset" onClick={() => setConfirmReset(true)}>초기화</button>
+            <Link href="/" className="logout-button">처음으로</Link>
+          </div>
         </header>
 
         <section className="leaving-time-main" aria-live="polite">
@@ -228,23 +231,20 @@ export default function LeavingTimePage() {
             </div>
             <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}>×</button>
           </div>)}
-          {statutoryBreakMinutes === 0 && plan.exclusions.length === 0 && <p className="leaving-time-hint">필요한 제외시간이 있으면 + 버튼으로 추가하세요.</p>}
         </section>
 
         <section className="leaving-time-section leaving-time-goal-section" aria-label="목표 근무시간 입력">
-          <div className="leaving-time-section-heading"><h2>목표 근무시간</h2></div>
-          <div className="leaving-time-goal-inputs">
-            <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
-            <span className="leaving-time-goal-colon">:</span>
-            <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
+          <div className="leaving-time-section-heading">
+            <h2>목표 근무시간</h2>
+            <div className="leaving-time-goal-inputs">
+              <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
+              <span className="leaving-time-goal-colon">:</span>
+              <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
+            </div>
           </div>
         </section>
 
-        <p className="leaving-time-save-status" role="status" aria-live="polite">
-          {saveStatus === 'saving' ? 'Supabase에 저장 중...' : saveStatus === 'saved' ? 'Supabase에 저장됨' : ''}
-        </p>
         {saveStatus === 'error' && <p className="family-event-error" role="alert">{error}</p>}
-        <button type="button" className="leaving-time-reset" onClick={() => setConfirmReset(true)}>오늘 입력 초기화</button>
       </section>
       <ConfirmDialog
         open={confirmReset}
