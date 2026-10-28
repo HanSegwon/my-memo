@@ -48,7 +48,7 @@ function formatClock(date: Date) {
   const hour = date.getHours();
   const twelveHour = hour % 12 || 12;
   const period = hour < 12 ? '오전' : '오후';
-  return `${period} ${twelveHour}시 ${date.getMinutes()}분 퇴근`;
+  return `${period} ${String(twelveHour).padStart(2, '0')}시 ${String(date.getMinutes()).padStart(2, '0')}분 퇴근`;
 }
 
 function formatCountdown(milliseconds: number) {
@@ -199,13 +199,13 @@ export default function LeavingTimePage() {
         <section className="leaving-time-main" aria-live="polite">
           <p className="leaving-time-label">오늘 퇴근시간</p>
           {remainingMs !== null && remainingMs <= 0
-            ? null
-            : <p className="leaving-time-countdown">{formatCountdown(remainingMs ?? 0)}</p>}
-          {remainingMs !== null && remainingMs <= 0
             ? <strong className="leaving-time-clock is-ready">지금 퇴근하세요.</strong>
             : leavingAt
               ? <strong className="leaving-time-clock">{formatClock(leavingAt)}</strong>
               : <strong className="leaving-time-clock is-empty">출근시간을 입력해주세요</strong>}
+          {remainingMs === null || remainingMs > 0
+            ? <p className="leaving-time-countdown">{formatCountdown(remainingMs ?? 0)}</p>
+            : null}
         </section>
 
         <section className="leaving-time-section" aria-label="출근시간 입력">
