@@ -1680,7 +1680,7 @@ h1 {
 .leaving-time-header-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
 
 .leaving-time-main {
-  padding: 28px 8px 30px;
+  padding: 28px 8px 34px;
   text-align: center;
 }
 
@@ -1716,7 +1716,7 @@ h1 {
 .leaving-time-top-settings {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  padding: 14px 0;
+  padding: 14px 0 18px;
   border-top: 1px solid #eceef1;
   border-bottom: 1px solid #eceef1;
 }
@@ -1727,13 +1727,13 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 2px 14px 2px 4px;
+  gap: 7px;
+  padding: 2px 14px 4px 4px;
   text-align: center;
 }
 
 .leaving-time-top-goal {
-  padding: 2px 4px 2px 14px;
+  padding: 2px 4px 4px 14px;
   border-left: 1px solid #eceef1;
 }
 
