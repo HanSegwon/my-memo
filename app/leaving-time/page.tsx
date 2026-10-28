@@ -75,6 +75,11 @@ export default function LeavingTimePage() {
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [draftGoalHours, setDraftGoalHours] = useState('00');
   const [draftGoalMinutes, setDraftGoalMinutes] = useState('00');
+  const [exclusionDialogOpen, setExclusionDialogOpen] = useState(false);
+  const [editingExclusionId, setEditingExclusionId] = useState<string | null>(null);
+  const [draftExclusionTitle, setDraftExclusionTitle] = useState('');
+  const [draftExclusionHours, setDraftExclusionHours] = useState('00');
+  const [draftExclusionMinutes, setDraftExclusionMinutes] = useState('00');
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const saveVersion = useRef(0);
 
@@ -170,15 +175,37 @@ export default function LeavingTimePage() {
     setDirty(true);
   }
 
-  function updateExclusion(id: string, patch: Partial<Omit<Exclusion, 'id'>>) {
-    setPlan((current) => ({ ...current, exclusions: current.exclusions.map((item) => item.id === id ? { ...item, ...patch } : item) }));
-    setDirty(true);
+  function addExclusion() {
+    setEditingExclusionId(null);
+    setDraftExclusionTitle('');
+    setDraftExclusionHours('00');
+    setDraftExclusionMinutes('00');
+    setExclusionDialogOpen(true);
   }
 
-  function addExclusion() {
-    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-    setPlan((current) => ({ ...current, exclusions: [...current.exclusions, { id, title: '', hours: '00', minutes: '00' }] }));
+  function editExclusion(item: Exclusion) {
+    setEditingExclusionId(item.id);
+    setDraftExclusionTitle(item.title);
+    setDraftExclusionHours(item.hours);
+    setDraftExclusionMinutes(item.minutes);
+    setExclusionDialogOpen(true);
+  }
+
+  function saveExclusion() {
+    const item = {
+      id: editingExclusionId || (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
+      title: draftExclusionTitle.trim(),
+      hours: String(Math.min(99, numberValue(draftExclusionHours))).padStart(2, '0'),
+      minutes: String(Math.min(59, numberValue(draftExclusionMinutes))).padStart(2, '0'),
+    };
+    setPlan((current) => ({
+      ...current,
+      exclusions: editingExclusionId
+        ? current.exclusions.map((entry) => entry.id === editingExclusionId ? item : entry)
+        : [...current.exclusions, item],
+    }));
     setDirty(true);
+    setExclusionDialogOpen(false);
   }
 
   function resetDay() {
@@ -244,11 +271,9 @@ export default function LeavingTimePage() {
             <strong>{formatDuration(String(Math.floor(statutoryBreakMinutes / 60)), String(statutoryBreakMinutes % 60))}</strong>
           </div>}
           {plan.exclusions.map((item, index) => <div className="leaving-time-exclusion-row" key={item.id}>
-            <label className="leaving-time-exclusion-title"><span className="sr-only">제외시간 {index + 1} 항목</span><input maxLength={40} value={item.title} onChange={(event) => updateExclusion(item.id, { title: event.target.value })} placeholder="항목" /></label>
-            <div className="leaving-time-duration-inputs">
-              <label><span className="sr-only">시간</span><input type="text" inputMode="numeric" maxLength={2} value={item.hours} onChange={(event) => updateExclusion(item.id, { hours: event.target.value.replace(/\D/g, '').slice(0, 2) })} onBlur={() => updateExclusion(item.id, { hours: String(numberValue(item.hours)).padStart(2, '0') })} aria-label="제외시간 시" /><small>시간</small></label>
-              <label><span className="sr-only">분</span><input type="text" inputMode="numeric" maxLength={2} value={item.minutes} onChange={(event) => updateExclusion(item.id, { minutes: event.target.value.replace(/\D/g, '').slice(0, 2) })} onBlur={() => updateExclusion(item.id, { minutes: String(Math.min(59, numberValue(item.minutes))).padStart(2, '0') })} aria-label="제외시간 분" /><small>분</small></label>
-            </div>
+            <button type="button" className="leaving-time-exclusion-edit" onClick={() => editExclusion(item)} aria-label={`${item.title || `제외시간 ${index + 1}`} 수정`}>
+              <span>{item.title || '항목'}</span><strong>{formatDuration(item.hours, item.minutes)}</strong>
+            </button>
             <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}>×</button>
           </div>)}
           <div className="leaving-time-exclusion-add-row">
@@ -274,6 +299,17 @@ export default function LeavingTimePage() {
             <label><span>분</span><input type="text" inputMode="numeric" maxLength={2} value={draftGoalMinutes} onChange={(event) => setDraftGoalMinutes(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
           </div>
           <button type="button" className="app-picker-apply" onClick={saveGoalDialog}>적용</button>
+        </section>
+      </div>}
+      {exclusionDialogOpen && <div className="modal-backdrop leaving-time-goal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setExclusionDialogOpen(false); }}>
+        <section className="settings-modal leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-exclusion-title">
+          <div className="app-picker-heading"><div><p className="eyebrow">EXCLUDED TIME</p><h2 id="leaving-exclusion-title">제외시간 {editingExclusionId ? '수정' : '추가'}</h2></div><button type="button" className="app-picker-close" onClick={() => setExclusionDialogOpen(false)} aria-label="닫기">×</button></div>
+          <label className="leaving-time-exclusion-dialog-title">항목<input autoFocus maxLength={40} value={draftExclusionTitle} onChange={(event) => setDraftExclusionTitle(event.target.value)} placeholder="예: 흡연, 식사" /></label>
+          <div className="leaving-time-goal-dialog-fields">
+            <label><span>시간</span><input type="text" inputMode="numeric" maxLength={2} value={draftExclusionHours} onChange={(event) => setDraftExclusionHours(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+            <label><span>분</span><input type="text" inputMode="numeric" maxLength={2} value={draftExclusionMinutes} onChange={(event) => setDraftExclusionMinutes(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+          </div>
+          <button type="button" className="app-picker-apply" onClick={saveExclusion}>{editingExclusionId ? '변경사항 저장' : '추가'}</button>
         </section>
       </div>}
     </main>
