@@ -209,7 +209,7 @@ export default function LeavingTimePage() {
         </section>
 
         <section className="leaving-time-section" aria-label="출근시간 입력">
-          <div className="leaving-time-section-heading"><div><p className="eyebrow">START TIME</p><h2>출근시간</h2></div></div>
+          <div className="leaving-time-section-heading"><h2>출근시간</h2></div>
           <div className="leaving-time-start-row">
             <span>출근시각</span>
             <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} twelveHour />
@@ -218,7 +218,7 @@ export default function LeavingTimePage() {
 
         <section className="leaving-time-section" aria-label="제외시간 입력">
           <div className="leaving-time-section-heading">
-            <div><p className="eyebrow">EXCLUDED TIME</p><h2>제외시간</h2></div>
+            <h2>제외시간</h2>
             <button type="button" className="leaving-time-add" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
           </div>
           {statutoryBreakMinutes > 0 && <div className="leaving-time-exclusion-row is-automatic">
@@ -237,7 +237,7 @@ export default function LeavingTimePage() {
         </section>
 
         <section className="leaving-time-section leaving-time-goal-section" aria-label="목표 근무시간 입력">
-          <div className="leaving-time-section-heading"><div><p className="eyebrow">TARGET WORK TIME</p><h2>목표 근무시간</h2></div></div>
+          <div className="leaving-time-section-heading"><h2>목표 근무시간</h2></div>
           <div className="leaving-time-goal-inputs">
             <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
             <span className="leaving-time-goal-colon">:</span>
