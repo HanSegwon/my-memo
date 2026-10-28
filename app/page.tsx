@@ -240,7 +240,25 @@ function getAcademySummary(schedules: AcademyScheduleSummary[], now = new Date()
     return `${childName} (집 / ${formatUntilNextClass(start)} 뒤 ${next.title})`;
   };
 
-  return [describeChild('한유준'), describeChild('한이준')].join(' · ');
+  return [describeChild('한유준'), describeChild('한이준')] as const;
+}
+
+function FlippingAcademySummary({ summaries }: { summaries: readonly [string, string] }) {
+  const [showSecond, setShowSecond] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setShowSecond((current) => !current), 4000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <span className="home-button-summary academy-flip-summary" role="status" aria-live="polite" aria-label={summaries[showSecond ? 1 : 0]}>
+      <span className={`academy-flip-inner${showSecond ? ' is-flipped' : ''}`}>
+        <span className="academy-flip-face academy-flip-front" aria-hidden="true">{summaries[0]}</span>
+        <span className="academy-flip-face academy-flip-back" aria-hidden="true">{summaries[1]}</span>
+      </span>
+    </span>
+  );
 }
 
 function SlidingSummary({ text }: { text: string }) {
@@ -303,7 +321,7 @@ export default function Home() {
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [smokingSummary, setSmokingSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
-  const [academySummary, setAcademySummary] = useState<string | null>(null);
+  const [academySummary, setAcademySummary] = useState<readonly [string, string] | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
   const [leavingTimeSummary, setLeavingTimeSummary] = useState<string | null>(null);
@@ -1081,7 +1099,7 @@ export default function Home() {
               </Link>
               <Link href="/children-academy" className="home-button">
                 <span className="home-button-title">자녀학원</span>
-                {academySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={academySummary} /></>}
+                {academySummary && <><span className="home-button-divider" aria-hidden="true">|</span><FlippingAcademySummary summaries={academySummary} /></>}
               </Link>
               <Link href="/affair-expenses" className="home-button">경조사비</Link>
             </div>
