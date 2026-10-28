@@ -1813,13 +1813,13 @@ h1 {
 
 .leaving-time-top-setting > .leaving-time-number-trigger.is-placeholder-trigger {
   width: auto;
-  min-height: 24px;
-  padding: 1px 7px;
+  min-height: 30px;
+  padding: 3px 10px;
   border: 1px solid #e8ebef;
   border-radius: 7px;
   background: #fff;
   color: #376aab;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
 }
