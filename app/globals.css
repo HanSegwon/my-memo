@@ -1774,7 +1774,7 @@ h1 {
   cursor: pointer;
 }
 
-.leaving-time-top-setting > .leaving-time-goal-trigger { font-size: clamp(14px, 4.9vw, 20px); }
+.leaving-time-top-setting > .leaving-time-goal-trigger { font-size: clamp(14px, 4.55vw, 18px); }
 
 .leaving-time-goal-dialog { width: min(100%, 380px); }
 .leaving-time-goal-dialog-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
