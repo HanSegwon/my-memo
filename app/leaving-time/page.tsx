@@ -48,7 +48,7 @@ function formatClock(date: Date) {
   const hour = date.getHours();
   const twelveHour = hour % 12 || 12;
   const period = hour < 12 ? '오전' : '오후';
-  return `오늘은 ${period} ${String(twelveHour).padStart(2, '0')}시 ${String(date.getMinutes()).padStart(2, '0')}분에 퇴근하세요`;
+  return `${period} ${String(twelveHour).padStart(2, '0')}시 ${String(date.getMinutes()).padStart(2, '0')}분 퇴근`;
 }
 
 function formatCountdown(milliseconds: number) {

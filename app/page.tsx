@@ -306,6 +306,7 @@ export default function Home() {
   const [academySummary, setAcademySummary] = useState<string | null>(null);
   const [routineSummary, setRoutineSummary] = useState<string | null>(null);
   const [todoMemoSummary, setTodoMemoSummary] = useState<string | null>(null);
+  const [leavingTimeSummary, setLeavingTimeSummary] = useState<string | null>(null);
   const [greeting, setGreeting] = useState('한세권님, 오늘도 멋진 하루예요!');
   const [activeHomeTab, setActiveHomeTab] = useState<HomeTab>(getInitialHomeTab);
   const homeGridRef = useRef<HTMLElement | null>(null);
@@ -423,6 +424,7 @@ export default function Home() {
         loadAcademySummary(),
         loadRoutineSummary(),
         loadTodoMemoSummary(),
+        loadLeavingTimeSummary(),
       ]);
       setDashboardReady(true);
     } else {
@@ -543,6 +545,7 @@ export default function Home() {
       loadAcademySummary(),
       loadRoutineSummary(),
       loadTodoMemoSummary(),
+      loadLeavingTimeSummary(),
     ]);
     setDashboardReady(true);
   }
@@ -554,6 +557,20 @@ export default function Home() {
     }
     const timer = window.setInterval(() => void loadRoutineSummary(), 60_000);
     return () => window.clearInterval(timer);
+  }, [authenticated, dashboardReady]);
+
+  useEffect(() => {
+    if (authenticated !== true || !dashboardReady) {
+      setLeavingTimeSummary(null);
+      return;
+    }
+    const refresh = () => void loadLeavingTimeSummary();
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
   }, [authenticated, dashboardReady]);
 
   useEffect(() => {
@@ -734,6 +751,41 @@ export default function Home() {
     }
   }
 
+  async function loadLeavingTimeSummary() {
+    try {
+      const response = await fetch('/api/leaving-time', { cache: 'no-store' });
+      if (!response.ok) {
+        setLeavingTimeSummary(null);
+        return;
+      }
+      const data = await response.json() as {
+        plan?: { startTime?: string; goalHours?: string | number; goalMinutes?: string | number; exclusions?: Array<{ hours: string | number; minutes: string | number }> } | null;
+      };
+      const plan = data.plan;
+      if (!plan?.startTime || !/^([01]\d|2[0-3]):[0-5]\d$/.test(plan.startTime)) {
+        setLeavingTimeSummary(null);
+        return;
+      }
+
+      const now = new Date();
+      const [startHour, startMinute] = plan.startTime.split(':').map(Number);
+      const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMinute);
+      const elapsedMinutes = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / 60_000));
+      const statutoryBreakMinutes = elapsedMinutes >= 510 ? 60 : elapsedMinutes >= 270 ? 30 : 0;
+      const targetMinutes = Number(plan.goalHours ?? 0) * 60 + Number(plan.goalMinutes ?? 0);
+      const manualExclusionMinutes = (plan.exclusions ?? []).reduce(
+        (sum, exclusion) => sum + Number(exclusion.hours ?? 0) * 60 + Number(exclusion.minutes ?? 0),
+        0,
+      );
+      const leaveAt = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      leaveAt.setMinutes(startHour * 60 + startMinute + targetMinutes + statutoryBreakMinutes + manualExclusionMinutes, 0, 0);
+      const hour = leaveAt.getHours();
+      setLeavingTimeSummary(`오늘은 ${hour < 12 ? '오전' : '오후'} ${String(hour % 12 || 12).padStart(2, '0')}시 ${String(leaveAt.getMinutes()).padStart(2, '0')}분에 퇴근하세요`);
+    } catch {
+      setLeavingTimeSummary(null);
+    }
+  }
+
   async function loadRoutineSummary() {
     try {
       const response = await fetch('/api/routine', { cache: 'no-store' });
@@ -810,6 +862,7 @@ export default function Home() {
     setFamilyEventSummary(null);
     setRoutineSummary(null);
     setTodoMemoSummary(null);
+    setLeavingTimeSummary(null);
   }
 
   if (authenticated === null) {
@@ -1011,7 +1064,10 @@ export default function Home() {
             </div>
 
             <div className="home-grid-panel" aria-hidden={activeHomeTab !== 'family'} inert={activeHomeTab !== 'family'}>
-              <Link href="/leaving-time" className="home-button">퇴근시간</Link>
+              <Link href="/leaving-time" className="home-button">
+                <span className="home-button-title">퇴근시간</span>
+                {leavingTimeSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={leavingTimeSummary} /></>}
+              </Link>
               <Link href="/shared-memo" className="home-button">
                 <span className="home-button-title">공유메모</span>
                 {todoMemoSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={todoMemoSummary} /></>}
