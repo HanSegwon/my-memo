@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-type AppTimePickerProps = { value: string; onChange: (value: string) => void; label: string; minuteStep?: number; placeholder?: string; twelveHour?: boolean };
+type AppTimePickerProps = { value: string; onChange: (value: string) => void; label: string; minuteStep?: number; placeholder?: string; twelveHour?: boolean; textTrigger?: boolean };
 
-export default function AppTimePicker({ value, onChange, label, minuteStep = 1, placeholder = '시간 선택', twelveHour = false }: AppTimePickerProps) {
+export default function AppTimePicker({ value, onChange, label, minuteStep = 1, placeholder = '시간 선택', twelveHour = false, textTrigger = false }: AppTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [draftHour, setDraftHour] = useState((value || '09:00').slice(0, 2));
   const [draftMinute, setDraftMinute] = useState((value || '09:00').slice(3, 5));
@@ -33,8 +33,8 @@ export default function AppTimePicker({ value, onChange, label, minuteStep = 1, 
   const draftPeriod = Number(draftHour) < 12 ? '오전' : '오후';
 
   return <>
-    <button type="button" className="app-select-trigger app-time-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={showPicker}>
-      <span className={value ? '' : 'is-placeholder'}>{formattedValue || placeholder}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+    <button type="button" className={`app-select-trigger app-time-trigger${textTrigger ? ' leaving-time-number-trigger' : ''}`} aria-haspopup="dialog" aria-expanded={open} onClick={showPicker}>
+      <span className={value ? '' : 'is-placeholder'}>{formattedValue || placeholder}</span>{!textTrigger && <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>}
     </button>
     {open && <div className="modal-backdrop app-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="settings-modal app-picker-dialog" role="dialog" aria-modal="true" aria-label={`${label} 선택`}>

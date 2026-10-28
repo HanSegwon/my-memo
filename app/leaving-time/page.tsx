@@ -72,6 +72,9 @@ export default function LeavingTimePage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+  const [draftGoalHours, setDraftGoalHours] = useState('00');
+  const [draftGoalMinutes, setDraftGoalMinutes] = useState('00');
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const saveVersion = useRef(0);
 
@@ -184,6 +187,22 @@ export default function LeavingTimePage() {
     setConfirmReset(false);
   }
 
+  function openGoalDialog() {
+    setDraftGoalHours(plan.goalHours);
+    setDraftGoalMinutes(plan.goalMinutes);
+    setGoalDialogOpen(true);
+  }
+
+  function saveGoalDialog() {
+    setPlan((current) => ({
+      ...current,
+      goalHours: String(Math.min(99, numberValue(draftGoalHours))).padStart(2, '0'),
+      goalMinutes: String(Math.min(59, numberValue(draftGoalMinutes))).padStart(2, '0'),
+    }));
+    setDirty(true);
+    setGoalDialogOpen(false);
+  }
+
   if (!loaded) return <main className="loading-screen"><LoadingDots /></main>;
   if (error && saveStatus === 'idle') return <main className="app"><section className="container"><div className="feature-placeholder"><h2>퇴근시간 설정을 불러오지 못했습니다.</h2><p role="alert">{error}</p><Link href="/" className="back-link">처음으로</Link></div></section></main>;
   if (!authenticated) return <main className="app"><section className="container"><div className="feature-placeholder"><h2>접근할 수 없습니다.</h2><p>먼저 Passcode를 입력해주세요.</p><Link href="/" className="back-link">처음으로</Link></div></section></main>;
@@ -210,15 +229,11 @@ export default function LeavingTimePage() {
         <section className="leaving-time-top-settings" aria-label="근무시간 설정">
           <div className="leaving-time-top-setting">
             <h2>출근시각</h2>
-            <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} twelveHour />
+            <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} twelveHour textTrigger />
           </div>
           <div className="leaving-time-top-setting leaving-time-top-goal">
             <h2>목표 근무시간</h2>
-            <div className="leaving-time-goal-inputs">
-              <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
-              <span className="leaving-time-goal-colon">:</span>
-              <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
-            </div>
+            <button type="button" className="leaving-time-number-trigger" onClick={openGoalDialog} aria-haspopup="dialog">{plan.goalHours}시간 {plan.goalMinutes}분</button>
           </div>
         </section>
 
@@ -251,6 +266,16 @@ export default function LeavingTimePage() {
         onCancel={() => setConfirmReset(false)}
         onConfirm={resetDay}
       />
+      {goalDialogOpen && <div className="modal-backdrop leaving-time-goal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setGoalDialogOpen(false); }}>
+        <section className="settings-modal leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-goal-title">
+          <div className="app-picker-heading"><div><p className="eyebrow">WORK TIME</p><h2 id="leaving-goal-title">목표 근무시간</h2></div><button type="button" className="app-picker-close" onClick={() => setGoalDialogOpen(false)} aria-label="닫기">×</button></div>
+          <div className="leaving-time-goal-dialog-fields">
+            <label><span>시간</span><input type="text" inputMode="numeric" maxLength={2} value={draftGoalHours} onChange={(event) => setDraftGoalHours(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+            <label><span>분</span><input type="text" inputMode="numeric" maxLength={2} value={draftGoalMinutes} onChange={(event) => setDraftGoalMinutes(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+          </div>
+          <button type="button" className="app-picker-apply" onClick={saveGoalDialog}>적용</button>
+        </section>
+      </div>}
     </main>
   );
 }

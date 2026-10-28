@@ -1754,6 +1754,28 @@ h1 {
   font-size: 13px;
 }
 
+.leaving-time-top-setting > .leaving-time-number-trigger {
+  display: inline-flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #303843;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leaving-time-goal-dialog { width: min(100%, 380px); }
+.leaving-time-goal-dialog-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.leaving-time-goal-dialog-fields label { display: flex; align-items: center; gap: 8px; color: #67717e; font-size: 13px; }
+.leaving-time-goal-dialog-fields input { width: 100%; min-width: 0; height: 46px; padding: 0 10px; border: 1px solid #e6e9ee; border-radius: 10px; background: #fff; color: #303843; font-size: 18px; font-variant-numeric: tabular-nums; text-align: center; }
+
 .leaving-time-section {
   margin: 0;
   padding: 18px 2px;
