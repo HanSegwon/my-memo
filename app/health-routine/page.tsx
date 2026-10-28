@@ -54,6 +54,15 @@ function toCard(exercise: HealthExercise): ExerciseCard {
   };
 }
 
+function revealExerciseInput(input: HTMLInputElement) {
+  const scrollIntoView = (behavior: ScrollBehavior) => {
+    requestAnimationFrame(() => input.scrollIntoView({ block: 'center', inline: 'nearest', behavior }));
+  };
+  scrollIntoView('smooth');
+  window.setTimeout(() => scrollIntoView('auto'), 250);
+  window.setTimeout(() => scrollIntoView('auto'), 550);
+}
+
 export default function HealthRoutinePage() {
   const listRef = useRef<HTMLDivElement | null>(null);
   const reorderPress = useRef<ReorderPress | null>(null);
@@ -459,6 +468,7 @@ export default function HealthRoutinePage() {
                 className="health-exercise-name"
                 aria-label="운동 종목"
                 autoFocus={Boolean(exercise.isDraft)}
+                onFocus={(event) => revealExerciseInput(event.currentTarget)}
                 disabled={selectionMode || savingIds.has(exercise.id) || deletingIds.has(exercise.id)}
                 maxLength={80}
                 placeholder="운동 종목"
