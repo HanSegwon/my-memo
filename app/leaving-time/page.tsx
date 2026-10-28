@@ -207,18 +207,23 @@ export default function LeavingTimePage() {
           <p className="leaving-time-countdown">{formatCountdown(remainingMs ?? 0)}</p>
         </section>
 
-        <section className="leaving-time-section" aria-label="출근시간 입력">
-          <div className="leaving-time-section-heading">
+        <section className="leaving-time-top-settings" aria-label="근무시간 설정">
+          <div className="leaving-time-top-setting">
             <h2>출근시각</h2>
             <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} twelveHour />
+          </div>
+          <div className="leaving-time-top-setting leaving-time-top-goal">
+            <h2>목표 근무시간</h2>
+            <div className="leaving-time-goal-inputs">
+              <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
+              <span className="leaving-time-goal-colon">:</span>
+              <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
+            </div>
           </div>
         </section>
 
         <section className="leaving-time-section" aria-label="제외시간 입력">
-          <div className="leaving-time-section-heading">
-            <h2>제외시간</h2>
-            <button type="button" className="leaving-time-add" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
-          </div>
+          <div className="leaving-time-section-heading"><h2>제외시간</h2></div>
           {statutoryBreakMinutes > 0 && <div className="leaving-time-exclusion-row is-automatic">
             <div className="leaving-time-exclusion-title"><span>법정휴게시간</span></div>
             <strong>{formatDuration(String(Math.floor(statutoryBreakMinutes / 60)), String(statutoryBreakMinutes % 60))}</strong>
@@ -231,16 +236,8 @@ export default function LeavingTimePage() {
             </div>
             <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}>×</button>
           </div>)}
-        </section>
-
-        <section className="leaving-time-section leaving-time-goal-section" aria-label="목표 근무시간 입력">
-          <div className="leaving-time-section-heading">
-            <h2>목표 근무시간</h2>
-            <div className="leaving-time-goal-inputs">
-              <label><span className="sr-only">목표 근무시간 시</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalHours} onChange={(event) => updatePlan('goalHours', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalHours', String(numberValue(plan.goalHours)).padStart(2, '0'))} aria-label="목표 근무시간 시" /><small>시간</small></label>
-              <span className="leaving-time-goal-colon">:</span>
-              <label><span className="sr-only">목표 근무시간 분</span><input type="text" inputMode="numeric" maxLength={2} value={plan.goalMinutes} onChange={(event) => updatePlan('goalMinutes', event.target.value.replace(/\D/g, '').slice(0, 2))} onBlur={() => updatePlan('goalMinutes', String(Math.min(59, numberValue(plan.goalMinutes))).padStart(2, '0'))} aria-label="목표 근무시간 분" /><small>분</small></label>
-            </div>
+          <div className="leaving-time-exclusion-add-row">
+            <button type="button" className="leaving-time-add" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
           </div>
         </section>
 
