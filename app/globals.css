@@ -1796,7 +1796,7 @@ h1 {
 }
 
 .leaving-time-section-heading h2 {
-  margin: 0;
+  margin: 0 0 0 4px;
   color: #788390;
   font-size: 14px;
   font-weight: 550;
@@ -1817,7 +1817,9 @@ h1 {
   cursor: pointer;
 }
 
-.leaving-time-exclusion-add-row { display: flex; justify-content: flex-end; padding-top: 10px; }
+.leaving-time-exclusion-add-row { display: flex; justify-content: center; padding-top: 12px; }
+.leaving-time-add.routine-add-button { width: 44px; height: 44px; margin: 0; border-color: #eaedf1; background: #fff; color: #a0a8b2; box-shadow: none; }
+.leaving-time-add.routine-add-button:hover { border-color: #e3e7ec; background: #fafbfc; box-shadow: none; transform: none; }
 
 .leaving-time-exclusion-row {
   display: grid;

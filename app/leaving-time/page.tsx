@@ -252,7 +252,7 @@ export default function LeavingTimePage() {
             <button type="button" className="leaving-time-remove" onClick={() => { setPlan((current) => ({ ...current, exclusions: current.exclusions.filter((entry) => entry.id !== item.id) })); setDirty(true); }} aria-label={`${item.title || `제외시간 ${index + 1}`} 삭제`}>×</button>
           </div>)}
           <div className="leaving-time-exclusion-add-row">
-            <button type="button" className="leaving-time-add" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
+            <button type="button" className="leaving-time-add routine-add-button" onClick={addExclusion} aria-label="제외시간 추가" title="제외시간 추가">+</button>
           </div>
         </section>
 
