@@ -39,6 +39,19 @@ function toPlan(row: { start_time: string | null; goal_hours: number; goal_minut
   };
 }
 
+function latestSeoulResetTime(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+  }).formatToParts(now);
+  const part = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((item) => item.type === type)?.value);
+  const year = part('year');
+  const month = part('month');
+  const day = part('day');
+  const hour = part('hour');
+  // 02:00 KST marks the start of a new workday. Before then, use yesterday's reset boundary.
+  return new Date(Date.UTC(year, month - 1, day - (hour < 2 ? 1 : 0), 17, 0, 0));
+}
+
 function validatePlan(body: Record<string, unknown>) {
   const goalHours = Number(body.goalHours);
   const goalMinutes = Number(body.goalMinutes);
@@ -81,11 +94,23 @@ function validatePlan(body: Record<string, unknown>) {
 export async function GET() {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   const { data, error } = await supabaseAdmin.from('leaving_time_settings')
-    .select('start_time, goal_hours, goal_minutes, exclusions').eq('id', SETTINGS_ID).maybeSingle();
+    .select('start_time, goal_hours, goal_minutes, exclusions, updated_at').eq('id', SETTINGS_ID).maybeSingle();
   if (error) {
     if (missingTable(error)) return tableRequired();
     console.error(error);
     return Response.json({ message: '퇴근시간 설정을 불러오지 못했습니다.' }, { status: 500 });
+  }
+  if (data?.updated_at && new Date(data.updated_at).getTime() < latestSeoulResetTime().getTime() && (data.start_time || data.exclusions?.length)) {
+    const { data: resetData, error: resetError } = await supabaseAdmin.from('leaving_time_settings')
+      .update({ start_time: null, exclusions: [], updated_at: new Date().toISOString() })
+      .eq('id', SETTINGS_ID)
+      .select('start_time, goal_hours, goal_minutes, exclusions')
+      .single();
+    if (resetError) {
+      console.error(resetError);
+      return Response.json({ message: '퇴근시간을 자동 초기화하지 못했습니다.' }, { status: 500 });
+    }
+    return Response.json({ plan: toPlan(resetData), defaults: toPlan(DEFAULT_PLAN) });
   }
   return Response.json({ plan: data ? toPlan(data) : null, defaults: toPlan(DEFAULT_PLAN) });
 }

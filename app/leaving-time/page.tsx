@@ -44,6 +44,15 @@ function numberValue(value: string) {
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
 }
 
+function seoulWorkdayKey(date: Date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23',
+  }).formatToParts(date);
+  const value = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((part) => part.type === type)?.value);
+  const workday = new Date(Date.UTC(value('year'), value('month') - 1, value('day') - (value('hour') < 2 ? 1 : 0)));
+  return `${workday.getUTCFullYear()}-${String(workday.getUTCMonth() + 1).padStart(2, '0')}-${String(workday.getUTCDate()).padStart(2, '0')}`;
+}
+
 function formatClock(date: Date) {
   const hour = date.getHours();
   const twelveHour = hour % 12 || 12;
@@ -82,6 +91,7 @@ export default function LeavingTimePage() {
   const [draftExclusionMinutes, setDraftExclusionMinutes] = useState('00');
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const saveVersion = useRef(0);
+  const automaticResetDay = useRef('');
 
   useEffect(() => {
     void (async () => {
@@ -147,7 +157,23 @@ export default function LeavingTimePage() {
   }, [authenticated, dirty, loaded, plan]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    const timer = window.setInterval(() => {
+      const current = new Date();
+      setNow(current);
+      const workday = seoulWorkdayKey(current);
+      if (!automaticResetDay.current) {
+        automaticResetDay.current = workday;
+        return;
+      }
+      if (automaticResetDay.current !== workday) {
+        automaticResetDay.current = workday;
+        setPlan((currentPlan) => {
+          if (!currentPlan.startTime && currentPlan.exclusions.length === 0) return currentPlan;
+          setDirty(true);
+          return { ...currentPlan, startTime: '', exclusions: [] };
+        });
+      }
+    }, 1000);
     return () => window.clearInterval(timer);
   }, []);
 

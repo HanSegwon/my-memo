@@ -779,8 +779,11 @@ export default function Home() {
       );
       const leaveAt = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       leaveAt.setMinutes(startHour * 60 + startMinute + targetMinutes + statutoryBreakMinutes + manualExclusionMinutes, 0, 0);
-      const hour = leaveAt.getHours();
-      setLeavingTimeSummary(`오늘은 ${hour < 12 ? '오전' : '오후'} ${String(hour % 12 || 12).padStart(2, '0')}시 ${String(leaveAt.getMinutes()).padStart(2, '0')}분에 퇴근하세요`);
+      if (leaveAt.getTime() <= now.getTime()) {
+        setLeavingTimeSummary('퇴근 시간이 지났습니다.');
+        return;
+      }
+      setLeavingTimeSummary(`오늘은 ${String(leaveAt.getHours()).padStart(2, '0')}:${String(leaveAt.getMinutes()).padStart(2, '0')} 에 퇴근하세요.`);
     } catch {
       setLeavingTimeSummary(null);
     }
