@@ -163,7 +163,7 @@ export default function LeavingTimePage() {
     if (!plan.startTime) return null;
     const [hours, minutes] = plan.startTime.split(':').map(Number);
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const adjustedWorkMinutes = Math.max(0, targetWorkMinutes - statutoryBreakMinutes - manualExclusionMinutes);
+    const adjustedWorkMinutes = targetWorkMinutes + statutoryBreakMinutes + manualExclusionMinutes;
     date.setMinutes(hours * 60 + minutes + adjustedWorkMinutes, 0, 0);
     return date;
   }, [now, plan.startTime, targetWorkMinutes, statutoryBreakMinutes, manualExclusionMinutes]);
