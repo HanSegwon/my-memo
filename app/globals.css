@@ -1822,6 +1822,7 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  transform: translateY(-2px);
 }
 
 .leaving-time-top-setting > .leaving-time-goal-trigger { font-size: clamp(14px, 4.55vw, 18px); }
