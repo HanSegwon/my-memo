@@ -40,13 +40,15 @@ export default function AppTimePicker({ value, onChange, label, minuteStep = 1, 
       <span className={value ? '' : 'is-placeholder'}>{formattedValue || placeholder}</span>{!textTrigger && <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>}
     </button>
     {open && <div className="modal-backdrop app-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <section className="settings-modal app-picker-dialog" role="dialog" aria-modal="true" aria-label={`${label} 선택`}>
-        <div className="app-picker-heading"><div><p className="eyebrow">TIME SETTING</p><h2>{label}</h2></div><button type="button" className="app-picker-close" onClick={() => setOpen(false)} aria-label="닫기">×</button></div>
+      <section className={`settings-modal app-picker-dialog${textTrigger ? ' leaving-time-clock-dialog' : ''}`} role="dialog" aria-modal="true" aria-label={`${label} 선택`}>
+        <div className="app-picker-heading"><div><p className="eyebrow">{textTrigger ? 'WORK TIME' : 'TIME SETTING'}</p><h2>{label}</h2></div><button type="button" className="app-picker-close" onClick={() => setOpen(false)} aria-label="닫기">×</button></div>
         {textTrigger ? <>
-          <div className="app-time-period">{['오전', '오후'].map((period) => { const selected = draftPeriod === period; return <button type="button" key={period} className={selected ? 'is-selected' : ''} aria-pressed={selected} onClick={() => setDraftHour(String((Number(draftHour) % 12) + (period === '오후' ? 12 : 0)).padStart(2, '0'))}>{period}</button>; })}</div>
+          <div className="leaving-time-clock-setting-row">
+            <div className="app-time-period leaving-time-clock-period">{['오전', '오후'].map((period) => { const selected = draftPeriod === period; return <button type="button" key={period} className={selected ? 'is-selected' : ''} aria-pressed={selected} onClick={() => setDraftHour(String((Number(draftHour) % 12) + (period === '오후' ? 12 : 0)).padStart(2, '0'))}>{period}</button>; })}</div>
           <div className="leaving-time-goal-dialog-fields leaving-time-clock-dialog-fields">
-            <label><span>시</span><input type="text" inputMode="numeric" maxLength={2} value={draftHourInput} onChange={(event) => setDraftHourInput(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
-            <label><span>분</span><input type="text" inputMode="numeric" maxLength={2} value={draftMinute} onChange={(event) => setDraftMinute(event.target.value.replace(/\D/g, '').slice(0, 2))} /></label>
+            <label><input type="text" inputMode="numeric" maxLength={2} aria-label="시" value={draftHourInput} onChange={(event) => setDraftHourInput(event.target.value.replace(/\D/g, '').slice(0, 2))} /><span>시</span></label>
+            <label><input type="text" inputMode="numeric" maxLength={2} aria-label="분" value={draftMinute} onChange={(event) => setDraftMinute(event.target.value.replace(/\D/g, '').slice(0, 2))} /><span>분</span></label>
+          </div>
           </div>
         </> : <div className="app-time-columns">
           <div><p>시</p>{twelveHour && <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>{['오전', '오후'].map((period) => { const selected = draftPeriod === period; return <button type="button" key={period} aria-pressed={selected} onClick={() => setDraftHour(String((Number(draftHour) % 12) + (period === '오후' ? 12 : 0)).padStart(2, '0'))} style={{ flex: 1, minHeight: 34, border: `1px solid ${selected ? '#d9e5f5' : '#e8ebef'}`, borderRadius: 9, background: selected ? '#f1f6fc' : '#fff', color: selected ? '#376aab' : '#687381', fontSize: 13, fontWeight: selected ? 600 : 400, cursor: 'pointer' }}>{period}</button>; })}</div>}<div className="app-time-options">{hours.map((hour) => { const selected = twelveHour ? Number(hour) === draftHour12 : hour === draftHour; return <button type="button" key={hour} className={selected ? 'is-selected' : ''} aria-pressed={selected} onClick={() => setDraftHour(String((Number(hour) % 12) + (draftPeriod === '오후' ? 12 : 0)).padStart(2, '0'))}>{hour}</button>; })}</div></div>
