@@ -1776,7 +1776,7 @@ h1 {
 
 .leaving-time-top-setting > .leaving-time-goal-trigger { font-size: clamp(14px, 4.55vw, 18px); }
 
-.leaving-time-goal-dialog { width: min(100%, 380px); }
+.leaving-time-goal-dialog { width: min(100%, 420px); }
 .leaving-time-goal-backdrop { align-items: center; padding: 18px; background: rgb(31 38 48 / 28%); }
 .leaving-time-goal-dialog-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .leaving-time-goal-dialog-fields label { display: flex; min-width: 0; flex-wrap: nowrap; align-items: center; gap: 8px; color: #67717e; font-size: 13px; white-space: nowrap; }

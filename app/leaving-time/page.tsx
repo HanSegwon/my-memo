@@ -293,7 +293,7 @@ export default function LeavingTimePage() {
         onConfirm={resetDay}
       />
       {goalDialogOpen && <div className="modal-backdrop leaving-time-goal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setGoalDialogOpen(false); }}>
-        <section className="settings-modal leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-goal-title">
+        <section className="settings-modal app-picker-dialog leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-goal-title">
           <div className="app-picker-heading"><div><p className="eyebrow">WORK TIME</p><h2 id="leaving-goal-title">목표 근무시간</h2></div><button type="button" className="app-picker-close" onClick={() => setGoalDialogOpen(false)} aria-label="닫기">×</button></div>
           <div className="leaving-time-goal-dialog-fields">
             <label><input type="text" inputMode="numeric" maxLength={2} aria-label="시간" value={draftGoalHours} onChange={(event) => setDraftGoalHours(event.target.value.replace(/\D/g, '').slice(0, 2))} /><span>시간</span></label>
@@ -303,7 +303,7 @@ export default function LeavingTimePage() {
         </section>
       </div>}
       {exclusionDialogOpen && <div className="modal-backdrop leaving-time-goal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setExclusionDialogOpen(false); }}>
-        <section className="settings-modal leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-exclusion-title">
+        <section className="settings-modal app-picker-dialog leaving-time-goal-dialog" role="dialog" aria-modal="true" aria-labelledby="leaving-exclusion-title">
           <div className="app-picker-heading"><div><p className="eyebrow">EXCLUDED TIME</p><h2 id="leaving-exclusion-title">제외시간 {editingExclusionId ? '수정' : '추가'}</h2></div><button type="button" className="app-picker-close" onClick={() => setExclusionDialogOpen(false)} aria-label="닫기">×</button></div>
           <label className="leaving-time-exclusion-dialog-title">항목<input autoFocus maxLength={40} value={draftExclusionTitle} onChange={(event) => setDraftExclusionTitle(event.target.value)} placeholder="예: 흡연, 식사" /></label>
           <div className="leaving-time-goal-dialog-fields">
