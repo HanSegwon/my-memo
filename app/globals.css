@@ -4792,3 +4792,32 @@ h1 {
     max-width: 190px;
   }
 }
+
+/* Keep leaving-time dialogs centered and align all clock controls after shared modal rules. */
+.modal-backdrop.leaving-time-goal-backdrop {
+  align-items: center;
+  padding: 18px;
+  background: rgb(31 38 48 / 28%);
+}
+
+.app-time-period.leaving-time-clock-period {
+  height: 42px;
+  align-items: stretch;
+  margin: 0;
+}
+
+.app-time-period.leaving-time-clock-period button {
+  height: 42px;
+  min-height: 42px;
+  align-self: stretch;
+  padding: 0;
+}
+
+.leaving-time-clock-setting-row,
+.leaving-time-clock-dialog-fields,
+.leaving-time-clock-dialog-fields label {
+  height: 42px;
+  align-items: center;
+}
+
+.leaving-time-clock-dialog-fields input { height: 42px; }
