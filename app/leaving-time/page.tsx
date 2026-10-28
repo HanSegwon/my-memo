@@ -282,7 +282,7 @@ export default function LeavingTimePage() {
         <section className="leaving-time-top-settings" aria-label="근무시간 설정">
           <div className="leaving-time-top-setting">
             <h2>출근시각</h2>
-            <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} placeholder="시간입력" twelveHour textTrigger />
+            <AppTimePicker label="출근시각" value={plan.startTime} onChange={(value) => updatePlan('startTime', value)} placeholder="입력" twelveHour textTrigger />
           </div>
           <div className="leaving-time-top-setting leaving-time-top-goal">
             <h2>목표 근무시간</h2>

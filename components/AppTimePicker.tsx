@@ -36,7 +36,7 @@ export default function AppTimePicker({ value, onChange, label, minuteStep = 1, 
   const draftPeriod = Number(draftHour) < 12 ? '오전' : '오후';
 
   return <>
-    <button type="button" className={`app-select-trigger app-time-trigger${textTrigger ? ' leaving-time-number-trigger' : ''}`} aria-haspopup="dialog" aria-expanded={open} onClick={showPicker}>
+    <button type="button" className={`app-select-trigger app-time-trigger${textTrigger ? ` leaving-time-number-trigger${value ? '' : ' is-placeholder-trigger'}` : ''}`} aria-haspopup="dialog" aria-expanded={open} onClick={showPicker}>
       <span className={value ? '' : 'is-placeholder'}>{formattedValue || placeholder}</span>{!textTrigger && <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>}
     </button>
     {open && <div className="modal-backdrop app-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
