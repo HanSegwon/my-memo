@@ -4892,6 +4892,7 @@ h1 {
 .fixed-expense-category { min-width: 0; padding: 4px 0 8px; border-bottom: 0; }
 .fixed-expense-category.is-dragging,
 .fixed-expense-item.is-dragging { position: relative; z-index: 2; border-color: #91a9c8; box-shadow: 0 8px 22px rgba(35, 67, 105, .13); }
+.fixed-expense-item.is-dragging { transform: translateY(-1px) scale(1.01); transition: none; will-change: transform; }
 .fixed-expense-category-heading { display: flex; min-height: 44px; align-items: center; gap: 10px; padding-left: 6px; touch-action: none; }
 .fixed-expense-category.is-selection-mode .fixed-expense-category-heading,
 .fixed-expense-item.is-selection-mode { touch-action: pan-y; }

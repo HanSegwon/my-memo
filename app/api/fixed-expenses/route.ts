@@ -161,6 +161,29 @@ export async function PATCH(request: Request) {
   const body = parseBody(await request.json().catch(() => null));
   if (!body) return Response.json({ message: '수정할 정보를 확인해주세요.' }, { status: 400 });
   try {
+    if (body.type === 'moveItem') {
+      const { id, sourceCategoryId, categoryId, sourceIds, ids } = body;
+      const validIds = (value: unknown): value is string[] => Array.isArray(value) && value.every((entry) => typeof entry === 'string' && UUID_PATTERN.test(entry)) && new Set(value).size === value.length;
+      if (typeof id !== 'string' || !UUID_PATTERN.test(id) || typeof sourceCategoryId !== 'string' || !UUID_PATTERN.test(sourceCategoryId) || typeof categoryId !== 'string' || !UUID_PATTERN.test(categoryId) || sourceCategoryId === categoryId || !validIds(sourceIds) || !validIds(ids) || ids.includes(id) === false || sourceIds.includes(id)) {
+        return Response.json({ message: '이동할 지출 항목 정보를 확인해주세요.' }, { status: 400 });
+      }
+      const [{ data: sourceCategory, error: sourceCategoryError }, { data: destinationCategory, error: destinationCategoryError }, { data: movingItem, error: movingItemError }] = await Promise.all([
+        supabaseAdmin.from('fixed_expense_categories').select('id, month_start').eq('id', sourceCategoryId).maybeSingle(),
+        supabaseAdmin.from('fixed_expense_categories').select('id, month_start').eq('id', categoryId).maybeSingle(),
+        supabaseAdmin.from('fixed_expense_items').select('id, category_id').eq('id', id).maybeSingle(),
+      ]);
+      if (sourceCategoryError || destinationCategoryError || movingItemError) throw sourceCategoryError ?? destinationCategoryError ?? movingItemError;
+      if (!sourceCategory || !destinationCategory || !movingItem || movingItem.category_id !== sourceCategoryId || sourceCategory.month_start !== destinationCategory.month_start) {
+        return Response.json({ message: '같은 달의 지출 카테고리 사이에서만 이동할 수 있습니다.' }, { status: 400 });
+      }
+      const results = await Promise.all([
+        ...sourceIds.map((itemId, sortOrder) => supabaseAdmin.from('fixed_expense_items').update({ sort_order: sortOrder }).eq('id', itemId).eq('category_id', sourceCategoryId)),
+        ...ids.map((itemId, sortOrder) => supabaseAdmin.from('fixed_expense_items').update(itemId === id ? { category_id: categoryId, sort_order: sortOrder } : { sort_order: sortOrder }).eq('id', itemId).eq('category_id', itemId === id ? sourceCategoryId : categoryId)),
+      ]);
+      const error = results.find((result) => result.error)?.error;
+      if (error) throw error;
+      return Response.json({ success: true });
+    }
     if (body.type === 'reorderCategories' || body.type === 'reorderItems') {
       const ids = body.ids;
       if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string' || !UUID_PATTERN.test(id)) || new Set(ids).size !== ids.length) return Response.json({ message: '순서 정보를 확인해주세요.' }, { status: 400 });

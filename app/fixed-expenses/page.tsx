@@ -8,7 +8,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; is_paid: boolean; sort_order: number };
 type ExpenseCategory = { id: string; month_start: string; name: string; sort_order: number; items: ExpenseItem[] };
 type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount'; id: string; value: string } | null;
-type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean; originalOrder: string[] };
+type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean };
 
 const FIRST_MONTH = '2026-10';
 const MIN_HISTORY_MONTH = '2026-10';
@@ -222,8 +222,6 @@ export default function FixedExpensesPage() {
   function startLongPress(kind: 'category' | 'item', id: string, categoryId: string | undefined, event: PointerEvent<HTMLElement>) {
     if (selectionMode || !event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     if (kind === 'category' && (event.target as HTMLElement).closest('[data-expense-item]')) return;
-    const category = categories.find((entry) => entry.id === categoryId);
-    const originalOrder = kind === 'category' ? categories.map((entry) => entry.id) : (category?.items ?? []).map((entry) => entry.id);
     const captureTarget = event.currentTarget;
     try { captureTarget.setPointerCapture(event.pointerId); } catch {}
     const timer = window.setTimeout(() => {
@@ -234,7 +232,7 @@ export default function FixedExpensesPage() {
       setDraggingId(id);
       try { captureTarget.setPointerCapture(event.pointerId); } catch {}
     }, 380);
-    dragState.current = { kind, id, categoryId, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, timer, active: false, scrolling: false, originalOrder };
+    dragState.current = { kind, id, categoryId, originalCategoryId: categoryId, originalCategories: categories, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, timer, active: false, scrolling: false };
   }
 
   function moveLongPress(event: PointerEvent<HTMLElement>) {
@@ -253,9 +251,61 @@ export default function FixedExpensesPage() {
       return;
     }
     event.preventDefault();
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(state.kind === 'category' ? '[data-expense-category]' : '[data-expense-item]');
+    if (state.kind === 'item' && event.currentTarget.matches('[data-expense-category]')) return;
+    const hovered = document.elementFromPoint(event.clientX, event.clientY);
+    const target = state.kind === 'category'
+      ? hovered?.closest<HTMLElement>('[data-expense-category]')
+      : hovered?.closest<HTMLElement>('[data-expense-item]') ?? hovered?.closest<HTMLElement>('[data-expense-category]');
     if (!target) return;
     const targetId = state.kind === 'category' ? target.dataset.expenseCategory : target.dataset.expenseItem;
+    if (state.kind === 'item') {
+      const destination = hovered?.closest<HTMLElement>('[data-expense-category]');
+      const destinationCategoryId = destination?.dataset.expenseCategory;
+      if (!destinationCategoryId || targetId === state.id) return;
+      const targetRect = target.getBoundingClientRect();
+      const insertAfter = event.clientY > targetRect.top + targetRect.height / 2;
+      const previousTops = new Map<string, number>();
+      document.querySelectorAll<HTMLElement>('[data-expense-item]').forEach((node) => {
+        const itemId = node.dataset.expenseItem;
+        if (itemId && itemId !== state.id) {
+          node.getAnimations().forEach((animation) => animation.cancel());
+          previousTops.set(itemId, node.getBoundingClientRect().top);
+        }
+      });
+      const animateDisplaced = () => window.requestAnimationFrame(() => {
+        document.querySelectorAll<HTMLElement>('[data-expense-item]').forEach((node) => {
+          const itemId = node.dataset.expenseItem;
+          const previousTop = itemId ? previousTops.get(itemId) : undefined;
+          if (!itemId || itemId === state.id || previousTop === undefined) return;
+          const distance = previousTop - node.getBoundingClientRect().top;
+          if (Math.abs(distance) < 1) return;
+          node.animate([{ transform: `translateY(${distance}px)` }, { transform: 'translateY(0)' }], { duration: 200, easing: 'cubic-bezier(0.22, 0.75, 0.25, 1)' });
+        });
+      });
+      setCategories((current) => {
+        const source = current.find((category) => category.items.some((item) => item.id === state.id));
+        const destinationCategory = current.find((category) => category.id === destinationCategoryId);
+        if (!source || !destinationCategory) return current;
+        const movingItem = source.items.find((item) => item.id === state.id);
+        if (!movingItem) return current;
+        const sourceItems = source.items.filter((item) => item.id !== state.id);
+        const destinationItems = source.id === destinationCategory.id ? sourceItems : [...destinationCategory.items];
+        const targetIndex = targetId ? destinationItems.findIndex((item) => item.id === targetId) : -1;
+        const insertIndex = targetIndex < 0 ? destinationItems.length : targetIndex + (insertAfter ? 1 : 0);
+        if (source.id === destinationCategory.id && insertIndex === source.items.findIndex((item) => item.id === state.id)) return current;
+        const nextItems = [...destinationItems];
+        nextItems.splice(insertIndex, 0, { ...movingItem, category_id: destinationCategory.id });
+        return current.map((category) => {
+          if (category.id === source.id && category.id === destinationCategory.id) return { ...category, items: nextItems };
+          if (category.id === source.id) return { ...category, items: sourceItems };
+          if (category.id === destinationCategory.id) return { ...category, items: nextItems };
+          return category;
+        });
+      });
+      state.categoryId = destinationCategoryId;
+      animateDisplaced();
+      return;
+    }
     if (!targetId || targetId === state.id) return;
     const rect = target.getBoundingClientRect();
     if (event.clientY > rect.top + rect.height / 2) {
@@ -324,19 +374,20 @@ export default function FixedExpensesPage() {
     setDraggingId(null);
     window.setTimeout(() => { suppressClick.current = false; }, 100);
     if (cancelled) {
-      setCategories((current) => state.kind === 'category'
-        ? state.originalOrder.map((id) => current.find((category) => category.id === id)).filter((category): category is ExpenseCategory => Boolean(category))
-        : current.map((category) => category.id === state.categoryId ? {
-          ...category,
-          items: state.originalOrder.map((id) => category.items.find((item) => item.id === id)).filter((item): item is ExpenseItem => Boolean(item)),
-        } : category));
+      setCategories(state.originalCategories);
       return;
     }
-    const ids = state.kind === 'category'
-      ? categories.map((category) => category.id)
-      : categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
     try {
-      await requestJson('/api/fixed-expenses', 'PATCH', { type: state.kind === 'category' ? 'reorderCategories' : 'reorderItems', ids });
+      if (state.kind === 'item' && state.originalCategoryId && state.categoryId !== state.originalCategoryId) {
+        const sourceIds = categories.find((category) => category.id === state.originalCategoryId)?.items.map((item) => item.id) ?? [];
+        const destinationIds = categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
+        await requestJson('/api/fixed-expenses', 'PATCH', { type: 'moveItem', id: state.id, sourceCategoryId: state.originalCategoryId, categoryId: state.categoryId, sourceIds, ids: destinationIds });
+      } else {
+        const ids = state.kind === 'category'
+          ? categories.map((category) => category.id)
+          : categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
+        await requestJson('/api/fixed-expenses', 'PATCH', { type: state.kind === 'category' ? 'reorderCategories' : 'reorderItems', ids });
+      }
     } catch (reorderError) {
       setError(reorderError instanceof Error ? reorderError.message : '순서를 저장하지 못했습니다.');
       void loadMonth(month);
