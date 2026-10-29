@@ -24,8 +24,9 @@ function shiftMonth(month: string, amount: number) {
 }
 
 function currentSeoulMonth() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
-  return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const calendarMonth = `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+  return Number(parts.find((part) => part.type === 'day')?.value) >= 21 ? calendarMonth : shiftMonth(calendarMonth, -1);
 }
 
 function monthRange() {

@@ -318,6 +318,7 @@ export default function Home() {
   const isPasscodeComplete = /^\d{6}$/.test(passcode);
   const [stockSummary, setStockSummary] = useState<string | null>(null);
   const [salarySummary, setSalarySummary] = useState<string | null>(null);
+  const [fixedExpenseSummary, setFixedExpenseSummary] = useState<string | null>(null);
   const [weightSummary, setWeightSummary] = useState<string | null>(null);
   const [smokingSummary, setSmokingSummary] = useState<string | null>(null);
   const [familyEventSummary, setFamilyEventSummary] = useState<string | null>(null);
@@ -436,6 +437,7 @@ export default function Home() {
       await Promise.all([
         loadStockSummary(),
         loadSalarySummary(),
+        loadFixedExpenseSummary(),
         loadWeightSummary(),
         loadSmokingSummary(),
         loadFamilyEventSummary(),
@@ -557,6 +559,7 @@ export default function Home() {
     await Promise.all([
       loadStockSummary(),
       loadSalarySummary(),
+      loadFixedExpenseSummary(),
       loadWeightSummary(),
       loadSmokingSummary(),
       loadFamilyEventSummary(),
@@ -729,6 +732,21 @@ export default function Home() {
     }
   }
 
+  async function loadFixedExpenseSummary() {
+    try {
+      const response = await fetch('/api/fixed-expenses?summary=1', { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json() as { unpaidCount?: number; unpaidTotal?: number };
+      const unpaidCount = Number(data.unpaidCount ?? 0);
+      const unpaidTotal = Number(data.unpaidTotal ?? 0);
+      setFixedExpenseSummary(unpaidCount > 0
+        ? `미납 ${unpaidCount}건 / 총 ${unpaidTotal.toLocaleString('ko-KR')}원 납입 예정입니다.`
+        : '완납');
+    } catch {
+      // 고정지출 요약을 불러오지 못해도 다른 대시보드 정보를 표시합니다.
+    }
+  }
+
   async function loadFamilyEventSummary() {
     try {
       const response = await fetch('/api/family-events', { cache: 'no-store' });
@@ -889,6 +907,7 @@ export default function Home() {
     setRoutineSummary(null);
     setTodoMemoSummary(null);
     setLeavingTimeSummary(null);
+    setFixedExpenseSummary(null);
   }
 
   if (authenticated === null) {
@@ -1085,7 +1104,10 @@ export default function Home() {
                 <span className="home-button-title">급여추이</span>
                 {salarySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={salarySummary} /></>}
               </Link>
-              <Link href="/fixed-expenses" className="home-button">고정지출</Link>
+              <Link href="/fixed-expenses" className="home-button">
+                <span className="home-button-title">고정지출</span>
+                {fixedExpenseSummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={fixedExpenseSummary} /></>}
+              </Link>
               <Link href="/overtime" className="home-button">초과수당</Link>
             </div>
 

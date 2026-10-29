@@ -35,8 +35,9 @@ function monthStart(month: string | null) {
 }
 
 function currentSeoulMonth() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
-  return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const calendarMonth = `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+  return Number(parts.find((part) => part.type === 'day')?.value) >= 21 ? calendarMonth : shiftMonth(calendarMonth, -1);
 }
 
 function monthRange() {
@@ -109,6 +110,29 @@ function parseBody(value: unknown): Record<string, unknown> | null {
 export async function GET(request: Request) {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   const url = new URL(request.url);
+  if (url.searchParams.get('summary') === '1') {
+    try {
+      await deleteExpiredMonths();
+      const latest = monthRange().latest;
+      const date = monthStart(latest);
+      if (!date) return Response.json({ message: '요약할 월을 확인해주세요.' }, { status: 400 });
+      await ensureMonth(latest);
+      const { data: categories, error: categoryError } = await supabaseAdmin.from('fixed_expense_categories')
+        .select('id').eq('month_start', date);
+      if (categoryError) throw categoryError;
+      const ids = (categories ?? []).map((category) => category.id);
+      const { data: items, error: itemError } = ids.length
+        ? await supabaseAdmin.from('fixed_expense_items').select('fixed_amount, is_paid').in('category_id', ids)
+        : { data: [], error: null };
+      if (itemError) throw itemError;
+      const unpaid = (items ?? []).filter((item) => !item.is_paid);
+      return Response.json({ month: latest, unpaidCount: unpaid.length, unpaidTotal: unpaid.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0) });
+    } catch (error) {
+      if (schemaMissing(error as { code?: string; message?: string })) return schemaRequired();
+      console.error(error);
+      return Response.json({ message: '고정지출 요약을 불러오지 못했습니다.' }, { status: 500 });
+    }
+  }
   if (url.searchParams.get('prefetch') === '1') {
     try {
       await deleteExpiredMonths();
