@@ -713,17 +713,17 @@ export default function Home() {
           ? `${Math.round(roundedAmount / 10_000).toLocaleString('ko-KR')}만원`
           : `${roundedAmount.toLocaleString('ko-KR')}원`;
       };
-      const monthLabel = `${month}월 급여는 ${formatAmount(currentSalary)}이며`;
+      const monthLabel = `${month}월 급여 ${formatAmount(currentSalary)}`;
       if (previousRecord?.monthly_salary == null) {
-        setSalarySummary(`${monthLabel}, 지난달 기록이 없어 비교할 수 없어요.`);
+        setSalarySummary(`${monthLabel} (전월 기록 없음)`);
         return;
       }
 
       const difference = currentSalary - Number(previousRecord.monthly_salary);
       const comparison = difference === 0
-        ? '지난달과 차이가 없어요.'
-        : `지난달보다 ${formatAmount(Math.abs(difference))} ${difference > 0 ? '증가' : '감소'}했어요.`;
-      setSalarySummary(`${monthLabel}, ${comparison}`);
+        ? '전월 대비 변동 없음'
+        : `전월 대비 ${formatAmount(Math.abs(difference))} ${difference > 0 ? '증가' : '감소'}`;
+      setSalarySummary(`${monthLabel} (${comparison})`);
     } catch {
       // 급여 요약을 불러오지 못해도 대시보드의 다른 메뉴는 사용할 수 있습니다.
     }
