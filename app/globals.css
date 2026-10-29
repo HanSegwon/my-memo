@@ -4878,13 +4878,15 @@ h1 {
 .fixed-expenses-monthbar h2 { min-width: 150px; margin: 0; color: #303843; font-size: 19px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
 .fixed-expenses-monthbar button { display: grid; width: 30px; height: 34px; place-items: center; border: 0; border-radius: 0; background: transparent; color: #687381; font-size: 26px; line-height: 1; cursor: pointer; }
 .fixed-expenses-monthbar button:disabled { color: #c8cdd3; cursor: default; }
-.fixed-expense-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 18px; padding: 13px 4px; border: 1px solid #eceef1; border-radius: 14px; background: #fff; }
-.fixed-expense-summary-cell { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 2px 5px; text-align: center; }
+.fixed-expense-summary { margin: 0 0 20px; padding: 14px 10px 12px; border: 1px solid #e3eaf2; border-radius: 16px; background: #f4f8fc; }
+.fixed-expense-summary-heading { margin: 0 5px 10px; color: #52647a; font-size: 12px; font-weight: 650; letter-spacing: -.02em; }
+.fixed-expense-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fixed-expense-summary-cell { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 10px 5px; text-align: center; }
 .fixed-expense-summary-cell + .fixed-expense-summary-cell { border-left: 1px solid #eceef1; }
 .fixed-expense-summary-cell:nth-child(3n + 1) { border-left: 0; }
-.fixed-expense-summary-cell:nth-child(n + 4) { border-top: 1px solid #eceef1; padding-top: 11px; }
-.fixed-expense-summary-cell span { color: #858d98; font-size: 11px; }
-.fixed-expense-summary-cell strong { overflow: hidden; max-width: 100%; color: #303843; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.fixed-expense-summary-cell:nth-child(n + 4) { border-top: 1px solid #e1e8f0; padding-top: 13px; }
+.fixed-expense-summary-cell span { color: #7a8796; font-size: 11px; }
+.fixed-expense-summary-cell strong { overflow: hidden; max-width: 100%; color: #29496b; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
 .fixed-expense-summary-cell strong.is-empty { color: #b6bdc6; font-size: 12px; font-weight: 450; }
 .fixed-expenses-selection-row { display: flex; justify-content: flex-end; min-height: 36px; margin-bottom: 4px; }
 .fixed-expenses-categories { display: grid; gap: 16px; }
@@ -4929,9 +4931,9 @@ h1 {
 @media (max-width: 480px) {
   .fixed-expenses-monthbar { gap: 16px; }
   .fixed-expenses-monthbar h2 { min-width: 136px; font-size: 17px; }
-  .fixed-expense-summary { padding: 11px 2px; }
-  .fixed-expense-summary-cell { gap: 6px; padding: 2px 3px; }
-  .fixed-expense-summary-cell strong { font-size: 12px; }
+  .fixed-expense-summary { padding: 12px 7px 10px; }
+  .fixed-expense-summary-cell { gap: 6px; padding: 9px 3px; }
+  .fixed-expense-summary-cell strong { font-size: 13px; }
   .fixed-expense-item { min-height: 58px; grid-template-columns: 24px minmax(38px, 10em) 45px 75px minmax(0, 1fr) auto; gap: 4px; padding: 8px 14px 8px 9px; }
   .fixed-expense-paid-button { min-height: 27px; padding: 0 11px; font-size: 12px; }
 }
