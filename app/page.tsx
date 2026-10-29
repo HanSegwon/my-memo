@@ -5,7 +5,7 @@ import Link from 'next/link';
 import LoadingDots from '../components/LoadingDots';
 import { daysUntilEvent, getNextEventDate, type FamilyEvent } from '../lib/familyEvents';
 import { getActiveRoutine, type ScheduledRoutine } from '../lib/routineSchedule';
-import { getNextQuitSummary } from '../lib/smokingQuit';
+import { getQuitDuration } from '../lib/smokingQuit';
 
 const greetings = [
   '한세권님, 오늘도 힘차게 시작해요!',
@@ -680,7 +680,7 @@ export default function Home() {
         return;
       }
       const data = await response.json() as { quitStartedAt?: string | null };
-      setSmokingSummary(data.quitStartedAt ? getNextQuitSummary(data.quitStartedAt, Date.now()) : null);
+      setSmokingSummary(data.quitStartedAt ? `${Math.floor(getQuitDuration(data.quitStartedAt) / 86_400_000) + 1}일차` : null);
     } catch {
       setSmokingSummary(null);
     }
