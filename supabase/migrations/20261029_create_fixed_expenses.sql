@@ -19,6 +19,7 @@ create table if not exists public.fixed_expense_items (
   due_day smallint not null default 21 check (due_day between 1 and 31),
   fixed_amount bigint not null default 100000 check (fixed_amount >= 0),
   actual_amount bigint check (actual_amount is null or actual_amount >= 0),
+  is_paid boolean not null default false,
   sort_order integer not null default 0 check (sort_order >= 0),
   created_at timestamptz not null default now()
 );

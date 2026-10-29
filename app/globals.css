@@ -4900,6 +4900,10 @@ h1 {
 .fixed-expense-due { color: #727d8b; text-align: center; }
 .fixed-expense-fixed-amount { text-align: right; font-variant-numeric: tabular-nums; }
 .fixed-expense-actual-amount { width: 100%; min-width: 0; min-height: 36px; padding: 0 8px; border: 1px solid #e6e9ee; border-radius: 8px; background: #fff; color: #303843; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; cursor: pointer; }
+.fixed-expense-paid-button { width: 100%; min-width: 0; min-height: 30px; padding: 0 10px; border: 1px solid #edf0f3; border-radius: 999px; background: #f4f6f8; color: #a5adb7; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease; }
+.fixed-expense-paid-button:active { transform: scale(.97); }
+.fixed-expense-paid-button.is-paid { border-color: #3478d4; background: #3478d4; color: #fff; }
+.fixed-expense-paid-button:focus-visible { outline: 2px solid #8bb8ed; outline-offset: 2px; }
 .fixed-expense-item button:disabled { cursor: default; }
 .fixed-expense-checkbox { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: #464f5b; cursor: pointer; }
 .fixed-expense-add-category { margin: 17px auto 12px; }
@@ -4916,4 +4920,5 @@ h1 {
   .fixed-expense-fixed-amount,
   .fixed-expense-actual-amount { font-size: 11px; }
   .fixed-expense-actual-amount { min-height: 34px; padding: 0 5px; }
+  .fixed-expense-paid-button { min-height: 29px; padding: 0 5px; font-size: 10px; }
 }

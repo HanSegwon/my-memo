@@ -66,7 +66,7 @@ async function ensureMonth(month: string) {
   if (itemError) throw itemError;
   const copies = (previousItems ?? []).flatMap((item) => {
     const categoryId = categoryMap.get(item.category_id);
-    return categoryId ? [{ category_id: categoryId, expense_name: item.expense_name, due_day: item.due_day, fixed_amount: item.fixed_amount, actual_amount: null, sort_order: item.sort_order }] : [];
+    return categoryId ? [{ category_id: categoryId, expense_name: item.expense_name, due_day: item.due_day, fixed_amount: item.fixed_amount, actual_amount: null, is_paid: false, sort_order: item.sort_order }] : [];
   });
   if (copies.length) {
     const { error } = await supabaseAdmin.from('fixed_expense_items').insert(copies);
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
     if (categoryError) throw categoryError;
     const ids = (categories ?? []).map((category) => category.id);
     const { data: items, error: itemError } = ids.length
-      ? await supabaseAdmin.from('fixed_expense_items').select('id, category_id, expense_name, due_day, fixed_amount, actual_amount, sort_order').in('category_id', ids).order('sort_order', { ascending: true }).order('created_at', { ascending: true })
+      ? await supabaseAdmin.from('fixed_expense_items').select('id, category_id, expense_name, due_day, fixed_amount, actual_amount, is_paid, sort_order').in('category_id', ids).order('sort_order', { ascending: true }).order('created_at', { ascending: true })
       : { data: [], error: null };
     if (itemError) throw itemError;
     return Response.json({ categories: (categories ?? []).map((category) => ({ ...category, items: (items ?? []).filter((item) => item.category_id === category.id) })) });
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       if (categoryError) throw categoryError;
       if (!category) return Response.json({ message: '카테고리를 찾을 수 없습니다.' }, { status: 404 });
       const { data: last } = await supabaseAdmin.from('fixed_expense_items').select('sort_order').eq('category_id', body.categoryId).order('sort_order', { ascending: false }).limit(1).maybeSingle();
-      const { data, error } = await supabaseAdmin.from('fixed_expense_items').insert({ category_id: body.categoryId, expense_name: '지출항목', due_day: 21, fixed_amount: 100000, actual_amount: null, sort_order: (last?.sort_order ?? -1) + 1 }).select('id, category_id, expense_name, due_day, fixed_amount, actual_amount, sort_order').single();
+      const { data, error } = await supabaseAdmin.from('fixed_expense_items').insert({ category_id: body.categoryId, expense_name: '지출항목', due_day: 21, fixed_amount: 100000, actual_amount: null, is_paid: false, sort_order: (last?.sort_order ?? -1) + 1 }).select('id, category_id, expense_name, due_day, fixed_amount, actual_amount, is_paid, sort_order').single();
       if (error) throw error;
       return Response.json({ item: data });
     }
@@ -172,6 +172,10 @@ export async function PATCH(request: Request) {
         if (amount !== null && (!Number.isSafeInteger(amount) || amount < 0)) return Response.json({ message: '금액은 0 이상의 정수로 입력해주세요.' }, { status: 400 });
         if (column === 'fixed_amount' && amount === null) return Response.json({ message: '고정금액은 비워둘 수 없습니다.' }, { status: 400 });
         update[column] = amount;
+      }
+      if (body.isPaid !== undefined) {
+        if (typeof body.isPaid !== 'boolean') return Response.json({ message: '납부 상태를 확인해주세요.' }, { status: 400 });
+        update.is_paid = body.isPaid;
       }
       if (!Object.keys(update).length) return Response.json({ message: '수정할 내용을 선택해주세요.' }, { status: 400 });
       const { error } = await supabaseAdmin.from('fixed_expense_items').update(update).eq('id', body.id);

@@ -5,9 +5,9 @@ import Link from 'next/link';
 import LoadingDots from '../../components/LoadingDots';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
-type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; sort_order: number };
+type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; is_paid: boolean; sort_order: number };
 type ExpenseCategory = { id: string; month_start: string; name: string; sort_order: number; items: ExpenseItem[] };
-type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount' | 'actual-amount'; id: string; value: string } | null;
+type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount'; id: string; value: string } | null;
 type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean; originalOrder: string[] };
 
 const FIRST_MONTH = '2026-10';
@@ -171,7 +171,6 @@ export default function FixedExpensesPage() {
         if (editDialog.kind === 'item-name') body.expenseName = editDialog.value;
         if (editDialog.kind === 'due-day') body.dueDay = numberInput(editDialog.value);
         if (editDialog.kind === 'fixed-amount') body.fixedAmount = numberInput(editDialog.value);
-        if (editDialog.kind === 'actual-amount') body.actualAmount = numberInput(editDialog.value);
         await requestJson('/api/fixed-expenses', 'PATCH', body);
         setCategories((current) => current.map((category) => ({
           ...category,
@@ -180,7 +179,6 @@ export default function FixedExpensesPage() {
             ...(editDialog.kind === 'item-name' ? { expense_name: editDialog.value.trim() } : {}),
             ...(editDialog.kind === 'due-day' ? { due_day: numberInput(editDialog.value) ?? entry.due_day } : {}),
             ...(editDialog.kind === 'fixed-amount' ? { fixed_amount: numberInput(editDialog.value) ?? entry.fixed_amount } : {}),
-            ...(editDialog.kind === 'actual-amount' ? { actual_amount: numberInput(editDialog.value) } : {}),
           }),
         })));
       }
@@ -316,8 +314,21 @@ export default function FixedExpensesPage() {
     }
   }
 
-  function handleItemActual(item: ExpenseItem) {
-    openEdit('actual-amount', item.id, item.actual_amount == null ? '' : String(item.actual_amount));
+  async function togglePaid(item: ExpenseItem) {
+    const nextPaid = !item.is_paid;
+    setCategories((current) => current.map((category) => ({
+      ...category,
+      items: category.items.map((entry) => entry.id === item.id ? { ...entry, is_paid: nextPaid } : entry),
+    })));
+    try {
+      await requestJson('/api/fixed-expenses', 'PATCH', { type: 'item', id: item.id, isPaid: nextPaid });
+    } catch (saveError) {
+      setCategories((current) => current.map((category) => ({
+        ...category,
+        items: category.items.map((entry) => entry.id === item.id ? { ...entry, is_paid: item.is_paid } : entry),
+      })));
+      setError(saveError instanceof Error ? saveError.message : '납부 상태를 저장하지 못했습니다.');
+    }
   }
 
   if (loading || authenticated === null) return <main className="loading-screen"><LoadingDots /></main>;
@@ -358,7 +369,7 @@ export default function FixedExpensesPage() {
               <button type="button" className="fixed-expense-item-name" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } if (!suppressClick.current) openEdit('item-name', item.id, item.expense_name); }}>{index + 1}. {item.expense_name}</button>
               <button type="button" className="fixed-expense-due" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('due-day', item.id, String(item.due_day)); }}>{item.due_day}일</button>
               <button type="button" className="fixed-expense-fixed-amount" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('fixed-amount', item.id, String(item.fixed_amount)); }}>{money(item.fixed_amount)}원</button>
-              <button type="button" className="fixed-expense-actual-amount" aria-label={`${item.expense_name} 지출금액 입력`} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } handleItemActual(item); }}>{money(item.actual_amount)}</button>
+              <button type="button" className={`fixed-expense-paid-button${item.is_paid ? ' is-paid' : ''}`} aria-label={`${item.expense_name} 납부 ${item.is_paid ? '완료' : '미완료'}`} aria-pressed={item.is_paid} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } void togglePaid(item); }}>납부</button>
             </article>)}
           </div>
         </section>)}
@@ -371,11 +382,11 @@ export default function FixedExpensesPage() {
       <section className="settings-modal fixed-expense-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="fixed-expense-dialog-title">
         <div className="settings-modal-header"><h2 id="fixed-expense-dialog-title">{editDialog.kind === 'category' ? '카테고리 이름' : editDialog.kind === 'item-name' ? '지출명' : editDialog.kind === 'due-day' ? '납부일' : editDialog.kind === 'fixed-amount' ? '고정금액' : '지출금액'}</h2><button type="button" className="modal-close" onClick={() => setEditDialog(null)} aria-label="닫기">×</button></div>
         <label className="fixed-expense-dialog-field">
-          <input autoFocus type="text" inputMode={editDialog.kind === 'category' || editDialog.kind === 'item-name' ? 'text' : 'numeric'} maxLength={editDialog.kind === 'category' ? 40 : editDialog.kind === 'item-name' ? 60 : undefined} value={editDialog.value} placeholder={editDialog.kind === 'actual-amount' ? '금액 입력' : ''} onChange={(event) => setEditDialog({ ...editDialog, value: editDialog.kind === 'category' || editDialog.kind === 'item-name' ? event.target.value : event.target.value.replace(/\D/g, '') })} />
+          <input autoFocus type="text" inputMode={editDialog.kind === 'category' || editDialog.kind === 'item-name' ? 'text' : 'numeric'} maxLength={editDialog.kind === 'category' ? 40 : editDialog.kind === 'item-name' ? 60 : undefined} value={editDialog.value} onChange={(event) => setEditDialog({ ...editDialog, value: editDialog.kind === 'category' || editDialog.kind === 'item-name' ? event.target.value : event.target.value.replace(/\D/g, '') })} />
           {editDialog.kind === 'due-day' && <span>일</span>}
-          {(editDialog.kind === 'fixed-amount' || editDialog.kind === 'actual-amount') && <span>원</span>}
+          {editDialog.kind === 'fixed-amount' && <span>원</span>}
         </label>
-        <button type="button" className="settings-save-button" disabled={busy || (editDialog.kind !== 'actual-amount' && !editDialog.value.trim())} onClick={() => void saveEdit()}>적용</button>
+        <button type="button" className="settings-save-button" disabled={busy || !editDialog.value.trim()} onClick={() => void saveEdit()}>적용</button>
       </section>
     </div>}
   </main>;
