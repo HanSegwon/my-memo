@@ -8,7 +8,8 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; is_paid: boolean; sort_order: number };
 type ExpenseCategory = { id: string; month_start: string; name: string; sort_order: number; items: ExpenseItem[] };
 type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount'; id: string; value: string } | null;
-type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; grabOffsetY: number; pointerY: number; dragOffset: number; timer: number; active: boolean; scrolling: boolean };
+type DragPointerEvent = { pointerId: number; clientX: number; clientY: number; currentTarget?: HTMLElement | null; preventDefault: () => void };
+type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; grabOffsetY: number; pointerY: number; dragOffset: number; timer: number; active: boolean; scrolling: boolean; cleanup?: () => void };
 
 const FIRST_MONTH = '2026-10';
 const MIN_HISTORY_MONTH = '2026-10';
@@ -233,8 +234,26 @@ export default function FixedExpensesPage() {
       state.dragOffset = 0;
       suppressClick.current = true;
       setDraggingId(id);
-      if (kind === 'item') captureTarget.style.setProperty('--fixed-expense-drag-offset', '0px');
+      if (kind === 'item') document.documentElement.style.setProperty('--fixed-expense-drag-offset', '0px');
       try { captureTarget.setPointerCapture(event.pointerId); } catch {}
+      if (kind === 'item') {
+        const onMove = (pointerEvent: globalThis.PointerEvent) => {
+          if (pointerEvent.pointerId !== state.pointerId) return;
+          if (pointerEvent.cancelable) pointerEvent.preventDefault();
+          moveLongPress({ pointerId: pointerEvent.pointerId, clientX: pointerEvent.clientX, clientY: pointerEvent.clientY, currentTarget: null, preventDefault: () => pointerEvent.preventDefault() });
+        };
+        const onEnd = (pointerEvent: globalThis.PointerEvent) => {
+          if (pointerEvent.pointerId === state.pointerId) void finishLongPress(pointerEvent.type === 'pointercancel');
+        };
+        window.addEventListener('pointermove', onMove, { passive: false });
+        window.addEventListener('pointerup', onEnd);
+        window.addEventListener('pointercancel', onEnd);
+        state.cleanup = () => {
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onEnd);
+          window.removeEventListener('pointercancel', onEnd);
+        };
+      }
     }, 380);
     dragState.current = { kind, id, categoryId, originalCategoryId: categoryId, originalCategories: categories, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, grabOffsetY: 0, pointerY: event.clientY, dragOffset: 0, timer, active: false, scrolling: false };
   }
@@ -246,10 +265,10 @@ export default function FixedExpensesPage() {
     if (!node) return;
     const layoutTop = node.getBoundingClientRect().top - state.dragOffset;
     state.dragOffset = pointerY - state.grabOffsetY - layoutTop;
-    node.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
+    document.documentElement.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
   }
 
-  function moveLongPress(event: PointerEvent<HTMLElement>) {
+  function moveLongPress(event: DragPointerEvent) {
     const state = dragState.current;
     if (!state || state.pointerId !== event.pointerId) return;
     if (!state.active) {
@@ -265,17 +284,20 @@ export default function FixedExpensesPage() {
       return;
     }
     event.preventDefault();
-    if (state.kind === 'item' && event.currentTarget.matches('[data-expense-category]')) return;
+    if (state.kind === 'item' && event.currentTarget) return;
     followDraggedItem(state, event.clientY);
-    const hovered = document.elementFromPoint(event.clientX, event.clientY);
+    const hitElements = document.elementsFromPoint(event.clientX, event.clientY);
+    const hovered = hitElements[0];
+    const destinationElement = state.kind === 'item'
+      ? hitElements.map((element) => element.closest<HTMLElement>('[data-expense-category]')).find((element): element is HTMLElement => Boolean(element))
+      : undefined;
     const target = state.kind === 'category'
       ? hovered?.closest<HTMLElement>('[data-expense-category]')
-      : hovered?.closest<HTMLElement>('[data-expense-item]') ?? hovered?.closest<HTMLElement>('[data-expense-category]');
+      : hitElements.map((element) => element.closest<HTMLElement>('[data-expense-item]')).find((element): element is HTMLElement => Boolean(element)) ?? destinationElement;
     if (!target) return;
     const targetId = state.kind === 'category' ? target.dataset.expenseCategory : target.dataset.expenseItem;
     if (state.kind === 'item') {
-      const destination = hovered?.closest<HTMLElement>('[data-expense-category]');
-      const destinationCategoryId = destination?.dataset.expenseCategory;
+      const destinationCategoryId = destinationElement?.dataset.expenseCategory;
       if (!destinationCategoryId || targetId === state.id) return;
       const targetRect = target.getBoundingClientRect();
       const insertAfter = event.clientY > targetRect.top + targetRect.height / 2;
@@ -292,7 +314,7 @@ export default function FixedExpensesPage() {
         if (draggedNode) {
           const layoutTop = draggedNode.getBoundingClientRect().top - state.dragOffset;
           state.dragOffset = state.pointerY - state.grabOffsetY - layoutTop;
-          draggedNode.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
+          document.documentElement.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
         }
         document.querySelectorAll<HTMLElement>('[data-expense-item]').forEach((node) => {
           const itemId = node.dataset.expenseItem;
@@ -390,9 +412,10 @@ export default function FixedExpensesPage() {
     const state = dragState.current;
     dragState.current = null;
     if (!state) return;
+    state.cleanup?.();
     window.clearTimeout(state.timer);
     if (!state.active) return;
-    document.querySelector<HTMLElement>(`[data-expense-item="${state.id}"]`)?.style.removeProperty('--fixed-expense-drag-offset');
+    if (state.kind === 'item') document.documentElement.style.removeProperty('--fixed-expense-drag-offset');
     setDraggingId(null);
     window.setTimeout(() => { suppressClick.current = false; }, 100);
     if (cancelled) {
