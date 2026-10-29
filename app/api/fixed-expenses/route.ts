@@ -5,7 +5,7 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 const COOKIE_NAME = 'memo_auth';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-const MIN_MONTH = '2025-11';
+const MIN_MONTH = '2026-10';
 const INITIAL_MONTH = '2026-10';
 
 function sessionToken() {
