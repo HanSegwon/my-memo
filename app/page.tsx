@@ -736,7 +736,11 @@ export default function Home() {
     try {
       const response = await fetch('/api/fixed-expenses?summary=1', { cache: 'no-store' });
       if (!response.ok) return;
-      const data = await response.json() as { unpaidCount?: number; unpaidTotal?: number };
+      const data = await response.json() as { itemCount?: number; unpaidCount?: number; unpaidTotal?: number };
+      if (!data.itemCount) {
+        setFixedExpenseSummary(null);
+        return;
+      }
       const unpaidCount = Number(data.unpaidCount ?? 0);
       const unpaidTotal = Number(data.unpaidTotal ?? 0);
       setFixedExpenseSummary(unpaidCount > 0

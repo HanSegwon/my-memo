@@ -126,7 +126,7 @@ export async function GET(request: Request) {
         : { data: [], error: null };
       if (itemError) throw itemError;
       const unpaid = (items ?? []).filter((item) => !item.is_paid);
-      return Response.json({ month: latest, unpaidCount: unpaid.length, unpaidTotal: unpaid.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0) });
+      return Response.json({ month: latest, itemCount: (items ?? []).length, unpaidCount: unpaid.length, unpaidTotal: unpaid.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0) });
     } catch (error) {
       if (schemaMissing(error as { code?: string; message?: string })) return schemaRequired();
       console.error(error);
