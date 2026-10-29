@@ -4892,10 +4892,10 @@ h1 {
 .fixed-expense-category-heading { display: flex; min-height: 44px; align-items: center; gap: 10px; padding-left: 6px; touch-action: none; }
 .fixed-expense-category.is-selection-mode .fixed-expense-category-heading,
 .fixed-expense-item.is-selection-mode { touch-action: pan-y; }
-.fixed-expense-category-name { min-width: 0; max-width: calc(100% - 40px); flex: 0 1 auto; padding: 4px 0; border: 0; background: transparent; color: #303843; font-size: 16px; font-weight: 650; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.fixed-expense-category-name { min-width: 0; max-width: calc(100% - 40px); flex: 0 1 auto; padding: 4px 0; border: 0; background: transparent; color: #303843; font-size: 13px; font-weight: 650; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .fixed-expense-category-name:disabled { cursor: default; }
 .fixed-expense-category-total { min-width: 0; overflow: hidden; color: #808a97; font-size: 13px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
-.fixed-expense-add-item { width: auto; height: 34px; flex: 0 0 auto; margin-right: 12px; margin-left: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: #a4adb8; font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.fixed-expense-add-item { width: auto; height: 34px; flex: 0 0 auto; margin-right: 12px; margin-left: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: #a4adb8; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
 .fixed-expense-add-item:hover { color: #747f8d; }
 .fixed-expense-category-add { min-height: 34px; padding: 0 5px; border: 0; background: transparent; color: #666; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
 .fixed-expense-category-add:hover { color: #222; }
