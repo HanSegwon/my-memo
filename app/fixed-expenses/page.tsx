@@ -41,6 +41,7 @@ function numberInput(value: string) {
 export default function FixedExpensesPage() {
   const [month, setMonth] = useState(() => currentSeoulMonth() < FIRST_MONTH ? FIRST_MONTH : currentSeoulMonth());
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
+  const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -58,10 +59,24 @@ export default function FixedExpensesPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`/api/fixed-expenses?month=${encodeURIComponent(targetMonth)}`, { cache: 'no-store' });
+      const [response, salaryResponse] = await Promise.all([
+        fetch(`/api/fixed-expenses?month=${encodeURIComponent(targetMonth)}`, { cache: 'no-store' }),
+        fetch('/api/salary-records', { cache: 'no-store' }),
+      ]);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || '고정지출을 불러오지 못했습니다.');
       setCategories((data.categories ?? []) as ExpenseCategory[]);
+      let income: number | null = null;
+      if (salaryResponse.ok) {
+        try {
+          const salaryData = await salaryResponse.json() as { records?: Array<{ income_year: number; income_month: number; monthly_salary: number | null }> };
+          const [year, monthNumber] = targetMonth.split('-').map(Number);
+          income = salaryData.records?.find((record) => record.income_year === year && record.income_month === monthNumber)?.monthly_salary ?? null;
+        } catch {
+          income = null;
+        }
+      }
+      setMonthlyIncome(income);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : '고정지출을 불러오지 못했습니다.');
     } finally {
@@ -351,6 +366,8 @@ export default function FixedExpensesPage() {
   const [year, monthNumber] = month.split('-').map(Number);
   const range = monthRange();
   const selectedCount = selectedCategories.size + selectedItems.size;
+  const monthlyExpenses = categories.reduce((total, category) => total + category.items.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0), 0);
+  const monthlyBalance = monthlyIncome === null ? null : monthlyIncome - monthlyExpenses;
   const editValueDisplay = editDialog?.kind === 'fixed-amount' && editDialog.value
     ? Number(editDialog.value).toLocaleString('ko-KR')
     : editDialog?.value ?? '';
@@ -373,6 +390,11 @@ export default function FixedExpensesPage() {
         <h2>{year}년 {monthNumber}월</h2>
         <button type="button" aria-label="다음 달" disabled={month >= range.latest} onClick={() => changeMonth(shiftMonth(month, 1))}>›</button>
       </div>
+      <section className="fixed-expense-summary" aria-label={`${year}년 ${monthNumber}월 요약`}>
+        <div className="fixed-expense-summary-cell"><span>월 소득</span><strong className={monthlyIncome === null ? 'is-empty' : ''}>{monthlyIncome === null ? '데이터 없음' : `${monthlyIncome.toLocaleString('ko-KR')}원`}</strong></div>
+        <div className="fixed-expense-summary-cell"><span>월 지출</span><strong>{`${monthlyExpenses.toLocaleString('ko-KR')}원`}</strong></div>
+        <div className="fixed-expense-summary-cell"><span>잔액</span><strong className={monthlyBalance === null ? 'is-empty' : ''}>{monthlyBalance === null ? '-' : `${monthlyBalance.toLocaleString('ko-KR')}원`}</strong></div>
+      </section>
       {error && <p className="routine-error" role="alert">{error}</p>}
 
       <div className="fixed-expenses-categories">
