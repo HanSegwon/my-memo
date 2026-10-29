@@ -366,7 +366,12 @@ export default function FixedExpensesPage() {
   const [year, monthNumber] = month.split('-').map(Number);
   const range = monthRange();
   const selectedCount = selectedCategories.size + selectedItems.size;
-  const monthlyExpenses = categories.reduce((total, category) => total + category.items.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0), 0);
+  const allItems = categories.flatMap((category) => category.items);
+  const paidItems = allItems.filter((item) => item.is_paid);
+  const unpaidItems = allItems.filter((item) => !item.is_paid);
+  const monthlyExpenses = allItems.reduce((total, item) => total + Number(item.fixed_amount || 0), 0);
+  const paidTotal = paidItems.reduce((total, item) => total + Number(item.fixed_amount || 0), 0);
+  const unpaidTotal = unpaidItems.reduce((total, item) => total + Number(item.fixed_amount || 0), 0);
   const monthlyBalance = monthlyIncome === null ? null : monthlyIncome - monthlyExpenses;
   const editValueDisplay = editDialog?.kind === 'fixed-amount' && editDialog.value
     ? Number(editDialog.value).toLocaleString('ko-KR')
@@ -394,6 +399,9 @@ export default function FixedExpensesPage() {
         <div className="fixed-expense-summary-cell"><span>월 소득</span><strong className={monthlyIncome === null ? 'is-empty' : ''}>{monthlyIncome === null ? '데이터 없음' : `${monthlyIncome.toLocaleString('ko-KR')}원`}</strong></div>
         <div className="fixed-expense-summary-cell"><span>월 지출</span><strong>{`${monthlyExpenses.toLocaleString('ko-KR')}원`}</strong></div>
         <div className="fixed-expense-summary-cell"><span>잔액</span><strong className={monthlyBalance === null ? 'is-empty' : ''}>{monthlyBalance === null ? '-' : `${monthlyBalance.toLocaleString('ko-KR')}원`}</strong></div>
+        <div className="fixed-expense-summary-cell"><span>납부건수</span><strong>{`${paidItems.length}/${allItems.length}건`}</strong></div>
+        <div className="fixed-expense-summary-cell"><span>납부총액</span><strong>{`${paidTotal.toLocaleString('ko-KR')}원`}</strong></div>
+        <div className="fixed-expense-summary-cell"><span>미납총액</span><strong>{`${unpaidTotal.toLocaleString('ko-KR')}원`}</strong></div>
       </section>
       {error && <p className="routine-error" role="alert">{error}</p>}
 

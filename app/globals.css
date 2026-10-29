@@ -4881,6 +4881,8 @@ h1 {
 .fixed-expense-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 18px; padding: 13px 4px; border: 1px solid #eceef1; border-radius: 14px; background: #fff; }
 .fixed-expense-summary-cell { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 2px 5px; text-align: center; }
 .fixed-expense-summary-cell + .fixed-expense-summary-cell { border-left: 1px solid #eceef1; }
+.fixed-expense-summary-cell:nth-child(3n + 1) { border-left: 0; }
+.fixed-expense-summary-cell:nth-child(n + 4) { border-top: 1px solid #eceef1; padding-top: 11px; }
 .fixed-expense-summary-cell span { color: #858d98; font-size: 11px; }
 .fixed-expense-summary-cell strong { overflow: hidden; max-width: 100%; color: #303843; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
 .fixed-expense-summary-cell strong.is-empty { color: #b6bdc6; font-size: 12px; font-weight: 450; }
