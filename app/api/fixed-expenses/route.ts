@@ -48,6 +48,12 @@ function monthRange() {
   return { earliest: rollingStart < MIN_MONTH ? MIN_MONTH : rollingStart, latest };
 }
 
+function shiftMonth(month: string, amount: number) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const date = new Date(Date.UTC(year, monthNumber - 1 + amount, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
 async function deleteExpiredMonths() {
   const { earliest } = monthRange();
   const { error } = await supabaseAdmin.from('fixed_expense_months').delete().lt('month_start', `${earliest}-01`);
@@ -102,7 +108,33 @@ function parseBody(value: unknown): Record<string, unknown> | null {
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
-  const month = new URL(request.url).searchParams.get('month');
+  const url = new URL(request.url);
+  if (url.searchParams.get('prefetch') === '1') {
+    try {
+      await deleteExpiredMonths();
+      const { earliest, latest } = monthRange();
+      for (let month = earliest; month <= latest; month = shiftMonth(month, 1)) await ensureMonth(month);
+      const { data: categories, error: categoryError } = await supabaseAdmin.from('fixed_expense_categories')
+        .select('id, month_start, name, sort_order').gte('month_start', `${earliest}-01`).lte('month_start', `${latest}-01`).order('month_start', { ascending: true }).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+      if (categoryError) throw categoryError;
+      const ids = (categories ?? []).map((category) => category.id);
+      const { data: items, error: itemError } = ids.length
+        ? await supabaseAdmin.from('fixed_expense_items').select('id, category_id, expense_name, due_day, fixed_amount, actual_amount, is_paid, sort_order').in('category_id', ids).order('sort_order', { ascending: true }).order('created_at', { ascending: true })
+        : { data: [], error: null };
+      if (itemError) throw itemError;
+      const months: Record<string, unknown>[] = [];
+      for (let month = earliest; month <= latest; month = shiftMonth(month, 1)) {
+        const date = `${month}-01`;
+        months.push({ month, categories: (categories ?? []).filter((category) => category.month_start === date).map((category) => ({ ...category, items: (items ?? []).filter((item) => item.category_id === category.id) })) });
+      }
+      return Response.json({ months });
+    } catch (error) {
+      if (schemaMissing(error as { code?: string; message?: string })) return schemaRequired();
+      console.error(error);
+      return Response.json({ message: '지난달 고정지출을 미리 불러오지 못했습니다.' }, { status: 500 });
+    }
+  }
+  const month = url.searchParams.get('month');
   const date = monthStart(month);
   if (!date || !month) return Response.json({ message: '현재 달부터 최근 1년 이내의 월을 선택해주세요.' }, { status: 400 });
   try {

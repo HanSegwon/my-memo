@@ -7,6 +7,8 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 
 type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; is_paid: boolean; sort_order: number };
 type ExpenseCategory = { id: string; month_start: string; name: string; sort_order: number; items: ExpenseItem[] };
+type SalaryRecord = { income_year: number; income_month: number; monthly_salary: number | null };
+type MonthSnapshot = { categories: ExpenseCategory[]; income: number | null };
 type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount'; id: string; value: string } | null;
 type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean };
 
@@ -40,6 +42,7 @@ function numberInput(value: string) {
 
 export default function FixedExpensesPage() {
   const [month, setMonth] = useState(() => currentSeoulMonth() < FIRST_MONTH ? FIRST_MONTH : currentSeoulMonth());
+  const activeMonth = useRef(month);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -54,33 +57,109 @@ export default function FixedExpensesPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const dragState = useRef<DragState | null>(null);
   const suppressClick = useRef(false);
+  const monthCache = useRef(new Map<string, MonthSnapshot>());
+  const monthRequests = useRef(new Map<string, Promise<MonthSnapshot>>());
+  const salaryRecordsRequest = useRef<Promise<SalaryRecord[] | null> | null>(null);
+  const historyPreload = useRef<Promise<void> | null>(null);
 
-  async function loadMonth(targetMonth: string) {
-    setLoading(true);
-    setError('');
-    try {
-      const [response, salaryResponse] = await Promise.all([
+  function getSalaryRecords() {
+    if (!salaryRecordsRequest.current) {
+      salaryRecordsRequest.current = fetch('/api/salary-records', { cache: 'no-store' })
+        .then(async (response) => response.ok ? ((await response.json()) as { records?: SalaryRecord[] }).records ?? null : null)
+        .catch(() => null);
+    }
+    return salaryRecordsRequest.current;
+  }
+
+  async function getMonthSnapshot(targetMonth: string) {
+    const cached = monthCache.current.get(targetMonth);
+    if (cached) return cached;
+    const inFlight = monthRequests.current.get(targetMonth);
+    if (inFlight) return inFlight;
+    const request = (async () => {
+      const [response, salaryRecords] = await Promise.all([
         fetch(`/api/fixed-expenses?month=${encodeURIComponent(targetMonth)}`, { cache: 'no-store' }),
-        fetch('/api/salary-records', { cache: 'no-store' }),
+        getSalaryRecords(),
       ]);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || '고정지출을 불러오지 못했습니다.');
-      setCategories((data.categories ?? []) as ExpenseCategory[]);
-      let income: number | null = null;
-      if (salaryResponse.ok) {
-        try {
-          const salaryData = await salaryResponse.json() as { records?: Array<{ income_year: number; income_month: number; monthly_salary: number | null }> };
-          const [year, monthNumber] = targetMonth.split('-').map(Number);
-          income = salaryData.records?.find((record) => record.income_year === year && record.income_month === monthNumber)?.monthly_salary ?? null;
-        } catch {
-          income = null;
-        }
-      }
-      setMonthlyIncome(income);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : '고정지출을 불러오지 못했습니다.');
+      const [year, monthNumber] = targetMonth.split('-').map(Number);
+      const snapshot: MonthSnapshot = {
+        categories: (data.categories ?? []) as ExpenseCategory[],
+        income: salaryRecords?.find((record) => record.income_year === year && record.income_month === monthNumber)?.monthly_salary ?? null,
+      };
+      monthCache.current.set(targetMonth, snapshot);
+      return snapshot;
+    })();
+    monthRequests.current.set(targetMonth, request);
+    try {
+      return await request;
     } finally {
-      setLoading(false);
+      if (monthRequests.current.get(targetMonth) === request) monthRequests.current.delete(targetMonth);
+    }
+  }
+
+  function prefetchMonthHistory() {
+    if (historyPreload.current) return historyPreload.current;
+    const { earliest, latest } = monthRange();
+    let allCached = true;
+    for (let cursor = earliest; cursor <= latest; cursor = shiftMonth(cursor, 1)) {
+      if (!monthCache.current.has(cursor)) { allCached = false; break; }
+    }
+    if (allCached) return Promise.resolve();
+    const request = (async () => {
+      const [response, salaryRecords] = await Promise.all([
+        fetch('/api/fixed-expenses?prefetch=1', { cache: 'no-store' }),
+        getSalaryRecords(),
+      ]);
+      const data = await response.json() as { months?: Array<{ month: string; categories: ExpenseCategory[] }> };
+      if (!response.ok) throw new Error((data as { message?: string }).message || '지난달 고정지출을 미리 불러오지 못했습니다.');
+      for (const entry of data.months ?? []) {
+        const [year, monthNumber] = entry.month.split('-').map(Number);
+        monthCache.current.set(entry.month, {
+          categories: entry.categories,
+          income: salaryRecords?.find((record) => record.income_year === year && record.income_month === monthNumber)?.monthly_salary ?? null,
+        });
+      }
+    })();
+    historyPreload.current = request;
+    void request.finally(() => { if (historyPreload.current === request) historyPreload.current = null; }).catch(() => undefined);
+    return request;
+  }
+
+  function updateCategories(updater: (current: ExpenseCategory[]) => ExpenseCategory[]) {
+    setCategories((current) => {
+      const next = updater(current);
+      const cached = monthCache.current.get(activeMonth.current);
+      if (cached) monthCache.current.set(activeMonth.current, { ...cached, categories: next });
+      return next;
+    });
+  }
+
+  async function loadMonth(targetMonth: string, force = false) {
+    if (force) monthCache.current.delete(targetMonth);
+    const cached = !force ? monthCache.current.get(targetMonth) : undefined;
+    if (cached) {
+      if (activeMonth.current === targetMonth) {
+        setCategories(cached.categories);
+        setMonthlyIncome(cached.income);
+        setError('');
+        setLoading(false);
+      }
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const snapshot = await getMonthSnapshot(targetMonth);
+      if (activeMonth.current === targetMonth) {
+        setCategories(snapshot.categories);
+        setMonthlyIncome(snapshot.income);
+      }
+    } catch (loadError) {
+      if (activeMonth.current === targetMonth) setError(loadError instanceof Error ? loadError.message : '고정지출을 불러오지 못했습니다.');
+    } finally {
+      if (activeMonth.current === targetMonth) setLoading(false);
     }
   }
 
@@ -117,17 +196,24 @@ export default function FixedExpensesPage() {
   function changeMonth(value: string) {
     const range = monthRange();
     if (value < range.earliest || value > range.latest) return;
+    const previousMonth = month;
+    activeMonth.current = value;
     setMonth(value);
     setSelectionMode(false);
     setSelectedCategories(new Set());
     setSelectedItems(new Set());
-    void loadMonth(value);
+    if (value < previousMonth && !monthCache.current.has(value)) {
+      setLoading(true);
+      void prefetchMonthHistory().then(() => loadMonth(value)).catch(() => loadMonth(value));
+    } else {
+      void loadMonth(value);
+    }
   }
 
   async function addCategory() {
     try {
       const data = await requestJson('/api/fixed-expenses', 'POST', { type: 'category', month });
-      setCategories((current) => [...current, data.category as ExpenseCategory]);
+      updateCategories((current) => [...current, data.category as ExpenseCategory]);
     } catch (addError) {
       setError(addError instanceof Error ? addError.message : '카테고리를 추가하지 못했습니다.');
     }
@@ -147,12 +233,12 @@ export default function FixedExpensesPage() {
       sort_order: category?.items.length ?? 0,
     };
     setError('');
-    setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: [...entry.items, optimisticItem] } : entry));
+    updateCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: [...entry.items, optimisticItem] } : entry));
     try {
       const data = await requestJson('/api/fixed-expenses', 'POST', { type: 'item', categoryId });
-      setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.map((item) => item.id === optimisticId ? data.item as ExpenseItem : item) } : entry));
+      updateCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.map((item) => item.id === optimisticId ? data.item as ExpenseItem : item) } : entry));
     } catch (addError) {
-      setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.filter((item) => item.id !== optimisticId) } : entry));
+      updateCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.filter((item) => item.id !== optimisticId) } : entry));
       setError(addError instanceof Error ? addError.message : '지출 항목을 추가하지 못했습니다.');
     }
   }
@@ -183,7 +269,7 @@ export default function FixedExpensesPage() {
     setError('');
     try {
       await requestJson('/api/fixed-expenses', 'DELETE', { categoryIds: [...selectedCategories], itemIds });
-      setCategories((current) => current.filter((category) => !selectedCategories.has(category.id)).map((category) => ({ ...category, items: category.items.filter((item) => !selectedItems.has(item.id)) })));
+      updateCategories((current) => current.filter((category) => !selectedCategories.has(category.id)).map((category) => ({ ...category, items: category.items.filter((item) => !selectedItems.has(item.id)) })));
       setSelectedCategories(new Set());
       setSelectedItems(new Set());
       setSelectionMode(false);
@@ -207,7 +293,7 @@ export default function FixedExpensesPage() {
     try {
       if (editDialog.kind === 'category') {
         await requestJson('/api/fixed-expenses', 'PATCH', { type: 'category', id: editDialog.id, name: editDialog.value });
-        setCategories((current) => current.map((category) => category.id === editDialog.id ? { ...category, name: editDialog.value.trim() } : category));
+        updateCategories((current) => current.map((category) => category.id === editDialog.id ? { ...category, name: editDialog.value.trim() } : category));
       } else {
         const item = categories.flatMap((category) => category.items).find((entry) => entry.id === editDialog.id);
         if (!item) return;
@@ -216,7 +302,7 @@ export default function FixedExpensesPage() {
         if (editDialog.kind === 'due-day') body.dueDay = numberInput(editDialog.value);
         if (editDialog.kind === 'fixed-amount') body.fixedAmount = numberInput(editDialog.value);
         await requestJson('/api/fixed-expenses', 'PATCH', body);
-        setCategories((current) => current.map((category) => ({
+        updateCategories((current) => current.map((category) => ({
           ...category,
           items: category.items.map((entry) => entry.id !== item.id ? entry : {
             ...entry,
@@ -296,7 +382,7 @@ export default function FixedExpensesPage() {
           node.animate([{ transform: `translateY(${distance}px)` }, { transform: 'translateY(0)' }], { duration: 200, easing: 'cubic-bezier(0.22, 0.75, 0.25, 1)' });
         });
       });
-      setCategories((current) => {
+      updateCategories((current) => {
         const source = current.find((category) => category.items.some((item) => item.id === state.id));
         const destinationCategory = current.find((category) => category.id === destinationCategoryId);
         if (!source || !destinationCategory) return current;
@@ -350,7 +436,7 @@ export default function FixedExpensesPage() {
       });
     });
     if (state.kind === 'category') {
-      setCategories((current) => {
+      updateCategories((current) => {
         const from = current.findIndex((item) => item.id === state.id);
         const targetIndex = current.findIndex((item) => item.id === targetId);
         if (from < 0 || targetIndex < 0 || from === targetIndex) return current;
@@ -363,7 +449,7 @@ export default function FixedExpensesPage() {
       });
       animateDisplaced();
     } else if (state.categoryId) {
-      setCategories((current) => current.map((category) => {
+      updateCategories((current) => current.map((category) => {
         if (category.id !== state.categoryId) return category;
         const from = category.items.findIndex((item) => item.id === state.id);
         const targetIndex = category.items.findIndex((item) => item.id === targetId);
@@ -388,7 +474,7 @@ export default function FixedExpensesPage() {
     setDraggingId(null);
     window.setTimeout(() => { suppressClick.current = false; }, 100);
     if (cancelled) {
-      setCategories(state.originalCategories);
+      updateCategories(() => state.originalCategories);
       return;
     }
     try {
@@ -398,20 +484,20 @@ export default function FixedExpensesPage() {
       await requestJson('/api/fixed-expenses', 'PATCH', { type: state.kind === 'category' ? 'reorderCategories' : 'reorderItems', ids });
     } catch (reorderError) {
       setError(reorderError instanceof Error ? reorderError.message : '순서를 저장하지 못했습니다.');
-      void loadMonth(month);
+      void loadMonth(month, true);
     }
   }
 
   async function togglePaid(item: ExpenseItem) {
     const nextPaid = !item.is_paid;
-    setCategories((current) => current.map((category) => ({
+    updateCategories((current) => current.map((category) => ({
       ...category,
       items: category.items.map((entry) => entry.id === item.id ? { ...entry, is_paid: nextPaid } : entry),
     })));
     try {
       await requestJson('/api/fixed-expenses', 'PATCH', { type: 'item', id: item.id, isPaid: nextPaid });
     } catch (saveError) {
-      setCategories((current) => current.map((category) => ({
+      updateCategories((current) => current.map((category) => ({
         ...category,
         items: category.items.map((entry) => entry.id === item.id ? { ...entry, is_paid: item.is_paid } : entry),
       })));
