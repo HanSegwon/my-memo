@@ -15,7 +15,7 @@ create table if not exists public.fixed_expense_categories (
 create table if not exists public.fixed_expense_items (
   id uuid primary key default gen_random_uuid(),
   category_id uuid not null references public.fixed_expense_categories(id) on delete cascade,
-  expense_name text not null default '지출항목' check (char_length(trim(expense_name)) between 1 and 60),
+  expense_name text not null default '지출항목' check (char_length(trim(expense_name)) between 1 and 10),
   due_day smallint not null default 21 check (due_day between 1 and 31),
   fixed_amount bigint not null default 100000 check (fixed_amount >= 0),
   actual_amount bigint check (actual_amount is null or actual_amount >= 0),

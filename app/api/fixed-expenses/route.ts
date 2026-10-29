@@ -181,7 +181,7 @@ export async function PATCH(request: Request) {
       const update: Record<string, unknown> = {};
       if (body.expenseName !== undefined) {
         const name = typeof body.expenseName === 'string' ? body.expenseName.trim() : '';
-        if (!name || name.length > 60) return Response.json({ message: '지출명을 1~60자로 입력해주세요.' }, { status: 400 });
+        if (!name || Array.from(name).length > 10) return Response.json({ message: '지출명을 1~10자로 입력해주세요.' }, { status: 400 });
         update.expense_name = name;
       }
       if (body.dueDay !== undefined) {
