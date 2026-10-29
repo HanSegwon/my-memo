@@ -396,7 +396,6 @@ export default function FixedExpensesPage() {
         <button type="button" aria-label="다음 달" disabled={month >= range.latest} onClick={() => changeMonth(shiftMonth(month, 1))}>›</button>
       </div>
       <section className="fixed-expense-summary" aria-label={`${year}년 ${monthNumber}월 요약`}>
-        <h2 className="fixed-expense-summary-heading">월간 요약</h2>
         <div className="fixed-expense-summary-grid">
           <div className="fixed-expense-summary-cell"><span>월 소득</span><strong className={monthlyIncome === null ? 'is-empty' : ''}>{monthlyIncome === null ? '데이터 없음' : `${monthlyIncome.toLocaleString('ko-KR')}원`}</strong></div>
           <div className="fixed-expense-summary-cell"><span>월 지출</span><strong>{`${monthlyExpenses.toLocaleString('ko-KR')}원`}</strong></div>
