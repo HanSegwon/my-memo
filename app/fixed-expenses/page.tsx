@@ -380,6 +380,7 @@ export default function FixedExpensesPage() {
           <header className="fixed-expense-category-heading">
             {selectionMode && <input type="checkbox" className="health-exercise-select" aria-label={`${category.name} 카테고리 선택`} checked={selectedCategories.has(category.id)} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onChange={() => toggleCategorySelection(category)} />}
             <button type="button" className="fixed-expense-category-name" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleCategorySelection(category); return; } if (suppressClick.current) { event.preventDefault(); return; } openEdit('category', category.id, category.name); }}>{category.name}</button>
+            <span className="fixed-expense-category-total">: {category.items.reduce((sum, item) => sum + Number(item.fixed_amount || 0), 0).toLocaleString('ko-KR')}원</span>
             <button type="button" className="fixed-expense-add-item" disabled={selectionMode} onPointerDown={(event) => event.stopPropagation()} onClick={() => void addItem(category.id)}>항목 추가</button>
           </header>
           <div className="fixed-expense-items">
