@@ -351,6 +351,9 @@ export default function FixedExpensesPage() {
   const [year, monthNumber] = month.split('-').map(Number);
   const range = monthRange();
   const selectedCount = selectedCategories.size + selectedItems.size;
+  const editValueDisplay = editDialog?.kind === 'fixed-amount' && editDialog.value
+    ? Number(editDialog.value).toLocaleString('ko-KR')
+    : editDialog?.value ?? '';
 
   return <main className="app">
     <section className="container stock-container fixed-expenses-container">
@@ -395,13 +398,13 @@ export default function FixedExpensesPage() {
     <ConfirmDialog open={confirmDeleteOpen} title={`선택한 항목 ${selectedCount}개를 삭제할까요?`} description="삭제한 고정지출은 복구할 수 없습니다. 선택한 카테고리는 하위 지출 항목도 함께 삭제됩니다." busy={busy} onCancel={() => setConfirmDeleteOpen(false)} onConfirm={() => void deleteSelected()} />
     {editDialog && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditDialog(null); }}>
       <section className="settings-modal fixed-expense-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="fixed-expense-dialog-title">
-        <div className="settings-modal-header"><h2 id="fixed-expense-dialog-title">{editDialog.kind === 'category' ? '카테고리 이름' : editDialog.kind === 'item-name' ? '지출명' : editDialog.kind === 'due-day' ? '납부일' : editDialog.kind === 'fixed-amount' ? '고정금액' : '지출금액'}</h2><button type="button" className="modal-close" onClick={() => setEditDialog(null)} aria-label="닫기">×</button></div>
-        <label className="fixed-expense-dialog-field">
-          <input autoFocus type="text" inputMode={editDialog.kind === 'category' || editDialog.kind === 'item-name' ? 'text' : 'numeric'} maxLength={editDialog.kind === 'category' ? 40 : editDialog.kind === 'item-name' ? 10 : undefined} value={editDialog.value} onChange={(event) => setEditDialog({ ...editDialog, value: editDialog.kind === 'category' || editDialog.kind === 'item-name' ? event.target.value : event.target.value.replace(/\D/g, '') })} />
+        <div className="settings-modal-header"><h2 id="fixed-expense-dialog-title">{editDialog.kind === 'category' ? '카테고리 이름' : editDialog.kind === 'item-name' ? '지출명' : editDialog.kind === 'due-day' ? '납부일' : '지출금액'}</h2><button type="button" className="app-picker-close" onClick={() => setEditDialog(null)} aria-label="닫기">×</button></div>
+        <label className={`fixed-expense-dialog-field${editDialog.kind === 'fixed-amount' ? ' is-money' : ''}`}>
+          <input autoFocus type="text" inputMode={editDialog.kind === 'category' || editDialog.kind === 'item-name' ? 'text' : 'numeric'} maxLength={editDialog.kind === 'category' ? 40 : editDialog.kind === 'item-name' ? 10 : undefined} value={editValueDisplay} onChange={(event) => setEditDialog({ ...editDialog, value: editDialog.kind === 'category' || editDialog.kind === 'item-name' ? event.target.value : event.target.value.replace(/\D/g, '') })} />
           {editDialog.kind === 'due-day' && <span>일</span>}
           {editDialog.kind === 'fixed-amount' && <span>원</span>}
         </label>
-        <button type="button" className="settings-save-button" disabled={busy || !editDialog.value.trim()} onClick={() => void saveEdit()}>적용</button>
+        <button type="button" className="settings-save-button" disabled={busy || !editDialog.value.trim()} onClick={() => void saveEdit()}>{editDialog.kind === 'category' ? '적용' : '입력'}</button>
       </section>
     </div>}
   </main>;

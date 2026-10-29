@@ -4914,6 +4914,7 @@ h1 {
 .fixed-expense-edit-dialog { width: min(100%, 390px); }
 .fixed-expense-dialog-field { display: flex; align-items: center; gap: 8px; margin: 18px 0; color: #687381; font-size: 14px; }
 .fixed-expense-dialog-field input { width: 100%; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid #e6e9ee; border-radius: 10px; background: #fff; color: #303843; font-size: 16px; }
+.fixed-expense-dialog-field.is-money input { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 480px) {
   .fixed-expenses-monthbar { gap: 16px; }
