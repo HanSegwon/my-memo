@@ -11,6 +11,7 @@ type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'ite
 type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean; originalOrder: string[] };
 
 const FIRST_MONTH = '2026-10';
+const MIN_HISTORY_MONTH = '2025-11';
 const money = (value: number | null) => value == null ? '' : value.toLocaleString('ko-KR');
 const validId = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
@@ -29,7 +30,7 @@ function monthRange() {
   const current = currentSeoulMonth();
   const latest = current < FIRST_MONTH ? FIRST_MONTH : current;
   const earliestCandidate = shiftMonth(latest, -11);
-  return { earliest: earliestCandidate < FIRST_MONTH ? FIRST_MONTH : earliestCandidate, latest };
+  return { earliest: earliestCandidate < MIN_HISTORY_MONTH ? MIN_HISTORY_MONTH : earliestCandidate, latest };
 }
 
 function numberInput(value: string) {

@@ -5,7 +5,8 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 const COOKIE_NAME = 'memo_auth';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
-const MIN_MONTH = '2026-10';
+const MIN_MONTH = '2025-11';
+const INITIAL_MONTH = '2026-10';
 
 function sessionToken() {
   return createHmac('sha256', process.env.SUPABASE_SECRET_KEY!).update('my-memo-authenticated').digest('hex');
@@ -40,7 +41,7 @@ function currentSeoulMonth() {
 
 function monthRange() {
   const current = currentSeoulMonth();
-  const latest = current < MIN_MONTH ? MIN_MONTH : current;
+  const latest = current < INITIAL_MONTH ? INITIAL_MONTH : current;
   const [year, month] = latest.split('-').map(Number);
   const startDate = new Date(Date.UTC(year, month - 1 - 11, 1));
   const rollingStart = `${startDate.getUTCFullYear()}-${String(startDate.getUTCMonth() + 1).padStart(2, '0')}`;

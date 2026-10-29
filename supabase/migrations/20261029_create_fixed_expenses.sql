@@ -1,6 +1,6 @@
 -- Monthly snapshots for fixed expenses. Each month is independent after its first copy.
 create table if not exists public.fixed_expense_months (
-  month_start date primary key check (extract(day from month_start) = 1 and month_start >= date '2026-10-01'),
+  month_start date primary key check (extract(day from month_start) = 1),
   created_at timestamptz not null default now()
 );
 
