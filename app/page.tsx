@@ -1085,7 +1085,7 @@ export default function Home() {
                 <span className="home-button-title">급여추이</span>
                 {salarySummary && <><span className="home-button-divider" aria-hidden="true">|</span><SlidingSummary text={salarySummary} /></>}
               </Link>
-              <button type="button" className="home-button" disabled>고정지출</button>
+              <Link href="/fixed-expenses" className="home-button">고정지출</Link>
               <Link href="/overtime" className="home-button">초과수당</Link>
             </div>
 

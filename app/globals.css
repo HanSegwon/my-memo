@@ -4872,3 +4872,48 @@ h1 {
 }
 
 .leaving-time-clock-dialog-fields input { height: 42px; }
+
+.fixed-expenses-container { max-width: 820px; }
+.fixed-expenses-monthbar { display: flex; align-items: center; justify-content: center; gap: 24px; margin: 4px 0 12px; }
+.fixed-expenses-monthbar h2 { min-width: 150px; margin: 0; color: #303843; font-size: 19px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.fixed-expenses-monthbar button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #e8ebef; border-radius: 50%; background: #fff; color: #687381; font-size: 24px; line-height: 1; cursor: pointer; }
+.fixed-expenses-monthbar button:disabled { color: #c8cdd3; cursor: default; }
+.fixed-expenses-selection-row { display: flex; justify-content: flex-end; min-height: 36px; margin-bottom: 4px; }
+.fixed-expenses-categories { display: grid; gap: 16px; }
+.fixed-expense-category { min-width: 0; padding: 4px 0 12px; border-bottom: 1px solid #eceef1; }
+.fixed-expense-category.is-dragging,
+.fixed-expense-item.is-dragging { position: relative; z-index: 2; border-color: #91a9c8; box-shadow: 0 8px 22px rgba(35, 67, 105, .13); }
+.fixed-expense-category-heading { display: flex; min-height: 44px; align-items: center; gap: 10px; touch-action: none; }
+.fixed-expense-category.is-selection-mode .fixed-expense-category-heading,
+.fixed-expense-item.is-selection-mode { touch-action: pan-y; }
+.fixed-expense-category-name { min-width: 0; flex: 1; padding: 4px 0; border: 0; background: transparent; color: #303843; font-size: 16px; font-weight: 650; text-align: left; cursor: pointer; }
+.fixed-expense-category-name:disabled { cursor: default; }
+.fixed-expense-add-item { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border: 1px solid #e2e6eb; border-radius: 50%; background: #fff; color: #687381; font-size: 21px; line-height: 1; cursor: pointer; }
+.fixed-expense-add-item:disabled,
+.fixed-expenses-add-category:disabled { opacity: .45; cursor: default; }
+.fixed-expense-items { display: grid; gap: 7px; }
+.fixed-expense-item { display: grid; min-width: 0; min-height: 50px; grid-template-columns: minmax(0, 1.6fr) 52px minmax(90px, 1fr) minmax(92px, 1fr); align-items: center; gap: 8px; padding: 6px 9px; border: 1px solid #eceef1; border-radius: 12px; background: #fff; touch-action: none; }
+.fixed-expense-item.is-selection-mode { cursor: pointer; }
+.fixed-expense-item-name,
+.fixed-expense-due,
+.fixed-expense-fixed-amount { min-width: 0; overflow: hidden; padding: 7px 0; border: 0; background: transparent; color: #3d4652; font-size: 13px; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.fixed-expense-due { color: #727d8b; text-align: center; }
+.fixed-expense-fixed-amount { text-align: right; font-variant-numeric: tabular-nums; }
+.fixed-expense-actual-amount { width: 100%; min-width: 0; min-height: 36px; padding: 0 8px; border: 1px solid #e6e9ee; border-radius: 8px; background: #fff; color: #303843; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; cursor: pointer; }
+.fixed-expense-item button:disabled { cursor: default; }
+.fixed-expense-checkbox { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; accent-color: #464f5b; cursor: pointer; }
+.fixed-expense-add-category { margin: 17px auto 12px; }
+.fixed-expense-edit-dialog { width: min(100%, 390px); }
+.fixed-expense-dialog-field { display: flex; align-items: center; gap: 8px; margin: 18px 0; color: #687381; font-size: 14px; }
+.fixed-expense-dialog-field input { width: 100%; min-width: 0; height: 46px; padding: 0 12px; border: 1px solid #e6e9ee; border-radius: 10px; background: #fff; color: #303843; font-size: 16px; }
+
+@media (max-width: 480px) {
+  .fixed-expenses-monthbar { gap: 16px; }
+  .fixed-expenses-monthbar h2 { min-width: 136px; font-size: 17px; }
+  .fixed-expense-item { grid-template-columns: minmax(0, 1fr) 36px 73px 76px; gap: 5px; padding: 5px 7px; }
+  .fixed-expense-item-name,
+  .fixed-expense-due,
+  .fixed-expense-fixed-amount,
+  .fixed-expense-actual-amount { font-size: 11px; }
+  .fixed-expense-actual-amount { min-height: 34px; padding: 0 5px; }
+}
