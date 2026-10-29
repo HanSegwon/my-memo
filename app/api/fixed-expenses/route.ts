@@ -28,8 +28,29 @@ function schemaRequired() {
 }
 
 function monthStart(month: string | null) {
-  if (!month || !MONTH_PATTERN.test(month) || month < MIN_MONTH) return null;
+  const { earliest, latest } = monthRange();
+  if (!month || !MONTH_PATTERN.test(month) || month < earliest || month > latest) return null;
   return `${month}-01`;
+}
+
+function currentSeoulMonth() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+}
+
+function monthRange() {
+  const current = currentSeoulMonth();
+  const latest = current < MIN_MONTH ? MIN_MONTH : current;
+  const [year, month] = latest.split('-').map(Number);
+  const startDate = new Date(Date.UTC(year, month - 1 - 11, 1));
+  const rollingStart = `${startDate.getUTCFullYear()}-${String(startDate.getUTCMonth() + 1).padStart(2, '0')}`;
+  return { earliest: rollingStart < MIN_MONTH ? MIN_MONTH : rollingStart, latest };
+}
+
+async function deleteExpiredMonths() {
+  const { earliest } = monthRange();
+  const { error } = await supabaseAdmin.from('fixed_expense_months').delete().lt('month_start', `${earliest}-01`);
+  if (error) throw error;
 }
 
 async function ensureMonth(month: string) {
@@ -82,8 +103,9 @@ export async function GET(request: Request) {
   if (!(await isAuthenticated())) return Response.json({ message: '로그인이 필요합니다.' }, { status: 401 });
   const month = new URL(request.url).searchParams.get('month');
   const date = monthStart(month);
-  if (!date || !month) return Response.json({ message: '2026년 10월 이후의 월을 선택해주세요.' }, { status: 400 });
+  if (!date || !month) return Response.json({ message: '현재 달부터 최근 1년 이내의 월을 선택해주세요.' }, { status: 400 });
   try {
+    await deleteExpiredMonths();
     await ensureMonth(month);
     const { data: categories, error: categoryError } = await supabaseAdmin.from('fixed_expense_categories')
       .select('id, month_start, name, sort_order').eq('month_start', date).order('sort_order', { ascending: true }).order('created_at', { ascending: true });

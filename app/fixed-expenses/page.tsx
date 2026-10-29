@@ -20,13 +20,25 @@ function shiftMonth(month: string, amount: number) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
+function currentSeoulMonth() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}`;
+}
+
+function monthRange() {
+  const current = currentSeoulMonth();
+  const latest = current < FIRST_MONTH ? FIRST_MONTH : current;
+  const earliestCandidate = shiftMonth(latest, -11);
+  return { earliest: earliestCandidate < FIRST_MONTH ? FIRST_MONTH : earliestCandidate, latest };
+}
+
 function numberInput(value: string) {
   const digits = value.replace(/\D/g, '');
   return digits ? Number(digits) : null;
 }
 
 export default function FixedExpensesPage() {
-  const [month, setMonth] = useState(FIRST_MONTH);
+  const [month, setMonth] = useState(() => currentSeoulMonth() < FIRST_MONTH ? FIRST_MONTH : currentSeoulMonth());
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +99,8 @@ export default function FixedExpensesPage() {
   }
 
   function changeMonth(value: string) {
-    if (value < FIRST_MONTH) return;
+    const range = monthRange();
+    if (value < range.earliest || value > range.latest) return;
     setMonth(value);
     setSelectionMode(false);
     setSelectedCategories(new Set());
@@ -335,6 +348,7 @@ export default function FixedExpensesPage() {
   if (!authenticated) return <main className="app"><section className="container"><div className="feature-placeholder"><h2>접근할 수 없습니다.</h2><p>먼저 Passcode를 입력해주세요.</p><Link href="/" className="back-link">처음으로</Link></div></section></main>;
 
   const [year, monthNumber] = month.split('-').map(Number);
+  const range = monthRange();
   const selectedCount = selectedCategories.size + selectedItems.size;
 
   return <main className="app">
@@ -351,9 +365,9 @@ export default function FixedExpensesPage() {
         </div>
       </header>
       <div className="fixed-expenses-monthbar">
-        <button type="button" aria-label="이전 달" disabled={month === FIRST_MONTH} onClick={() => changeMonth(shiftMonth(month, -1))}>‹</button>
+        <button type="button" aria-label="이전 달" disabled={month <= range.earliest} onClick={() => changeMonth(shiftMonth(month, -1))}>‹</button>
         <h2>{year}년 {monthNumber}월</h2>
-        <button type="button" aria-label="다음 달" onClick={() => changeMonth(shiftMonth(month, 1))}>›</button>
+        <button type="button" aria-label="다음 달" disabled={month >= range.latest} onClick={() => changeMonth(shiftMonth(month, 1))}>›</button>
       </div>
       {error && <p className="routine-error" role="alert">{error}</p>}
 
