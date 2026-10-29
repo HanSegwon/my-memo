@@ -4878,6 +4878,31 @@ h1 {
 .fixed-expenses-monthbar h2 { min-width: 150px; margin: 0; color: #303843; font-size: 19px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
 .fixed-expenses-monthbar button { display: grid; width: 30px; height: 34px; place-items: center; border: 0; border-radius: 0; background: transparent; color: #687381; font-size: 26px; line-height: 1; cursor: pointer; }
 .fixed-expenses-monthbar button:disabled { color: #c8cdd3; cursor: default; }
+.overtime-total-amount { margin: 12px 0 24px; color: #263b55; font-size: 32px; font-weight: 750; letter-spacing: -.045em; line-height: 1.15; text-align: center; font-variant-numeric: tabular-nums; }
+.overtime-total-amount span { color: #718096; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
+.overtime-dashboard { width: 100%; }
+.overtime-metric-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); min-height: 76px; border-top: 1px solid #e5e9ef; }
+.overtime-metric-row:last-child { border-bottom: 1px solid #e5e9ef; }
+.overtime-metric { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px 3px; text-align: center; }
+.overtime-metric + .overtime-metric { border-left: 1px solid #edf0f3; }
+.overtime-metric span { overflow: hidden; max-width: 100%; color: #858d98; font-size: 11px; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
+.overtime-metric strong,
+.overtime-wage-value { max-width: 100%; overflow: hidden; color: #303843; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.overtime-wage-value { padding: 0; border: 0; background: transparent; cursor: pointer; }
+.overtime-wage-value:focus-visible { outline: 2px solid #8bb8ed; outline-offset: 3px; border-radius: 3px; }
+.overtime-metric-empty { pointer-events: none; }
+.overtime-dialog-backdrop { align-items: center; padding: 18px; background: rgb(31 38 48 / 28%); }
+.overtime-wage-dialog { width: min(100%, 390px); padding: 22px 20px 20px; border-radius: 18px; box-shadow: 0 16px 45px rgba(0, 0, 0, .14); }
+.overtime-wage-dialog .settings-modal-header { align-items: center; margin-bottom: 18px; }
+.overtime-wage-field { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0 2px; border-bottom: 1px solid #dfe4ea; color: #77818d; }
+.overtime-wage-field:focus-within { border-bottom-color: #465b73; }
+.overtime-wage-field input { width: 100%; min-width: 0; height: 48px; padding: 0; border: 0; outline: 0; background: transparent; color: #26313d; font-size: 20px; font-variant-numeric: tabular-nums; text-align: right; }
+.overtime-wage-field span { flex: 0 0 auto; font-size: 14px; }
+.overtime-wage-actions { display: flex; gap: 10px; margin-top: 22px; }
+.overtime-wage-actions > button { min-width: 0; flex: 1 1 0; height: 44px; border-radius: 10px; font-size: 14px; font-weight: 650; cursor: pointer; }
+.overtime-wage-actions .secondary-button { border: 1px solid #e5e8ec; background: #fff; color: #65707d; }
+.overtime-wage-actions .settings-save-button { height: 44px; }
+.overtime-wage-actions .settings-save-button:disabled { opacity: .45; cursor: default; }
 .fixed-expense-summary { margin: 0 0 20px; padding: 0; border: 1px solid #edf1f5; border-radius: 16px; background: #fff; overflow: hidden; }
 .fixed-expense-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(72px, 1fr)); }
 .fixed-expense-summary-cell { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 12px 5px; text-align: center; box-sizing: border-box; }
@@ -4934,6 +4959,12 @@ h1 {
 @media (max-width: 480px) {
   .fixed-expenses-monthbar { gap: 16px; }
   .fixed-expenses-monthbar h2 { min-width: 136px; font-size: 17px; }
+  .overtime-total-amount { margin: 10px 0 18px; font-size: 28px; }
+  .overtime-metric-row { min-height: 66px; }
+  .overtime-metric { gap: 7px; padding: 9px 2px; }
+  .overtime-metric span { font-size: 9px; letter-spacing: -.055em; }
+  .overtime-metric strong,
+  .overtime-wage-value { font-size: 11px; letter-spacing: -.035em; }
   .fixed-expense-summary-grid { grid-template-rows: repeat(2, minmax(68px, 1fr)); }
   .fixed-expense-summary-cell { gap: 6px; padding: 10px 3px; }
   .fixed-expense-summary-cell strong { font-size: 13px; }
