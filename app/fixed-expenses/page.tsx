@@ -8,8 +8,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 type ExpenseItem = { id: string; category_id: string; expense_name: string; due_day: number; fixed_amount: number; actual_amount: number | null; is_paid: boolean; sort_order: number };
 type ExpenseCategory = { id: string; month_start: string; name: string; sort_order: number; items: ExpenseItem[] };
 type EditDialog = { kind: 'category'; id: string; value: string } | { kind: 'item-name' | 'due-day' | 'fixed-amount'; id: string; value: string } | null;
-type DragPointerEvent = { pointerId: number; clientX: number; clientY: number; currentTarget?: HTMLElement | null; preventDefault: () => void };
-type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; grabOffsetY: number; pointerY: number; dragOffset: number; timer: number; active: boolean; scrolling: boolean; cleanup?: () => void };
+type DragState = { kind: 'category' | 'item'; id: string; categoryId?: string; originalCategories: ExpenseCategory[]; pointerId: number; startY: number; lastY: number; timer: number; active: boolean; scrolling: boolean };
 
 const FIRST_MONTH = '2026-10';
 const MIN_HISTORY_MONTH = '2026-10';
@@ -229,46 +228,14 @@ export default function FixedExpensesPage() {
       const state = dragState.current;
       if (!state || state.id !== id || state.pointerId !== event.pointerId) return;
       state.active = true;
-      state.grabOffsetY = event.clientY - captureTarget.getBoundingClientRect().top;
-      state.pointerY = event.clientY;
-      state.dragOffset = 0;
       suppressClick.current = true;
       setDraggingId(id);
-      if (kind === 'item') document.documentElement.style.setProperty('--fixed-expense-drag-offset', '0px');
       try { captureTarget.setPointerCapture(event.pointerId); } catch {}
-      if (kind === 'item') {
-        const onMove = (pointerEvent: globalThis.PointerEvent) => {
-          if (pointerEvent.pointerId !== state.pointerId) return;
-          if (pointerEvent.cancelable) pointerEvent.preventDefault();
-          moveLongPress({ pointerId: pointerEvent.pointerId, clientX: pointerEvent.clientX, clientY: pointerEvent.clientY, currentTarget: null, preventDefault: () => pointerEvent.preventDefault() });
-        };
-        const onEnd = (pointerEvent: globalThis.PointerEvent) => {
-          if (pointerEvent.pointerId === state.pointerId) void finishLongPress(pointerEvent.type === 'pointercancel');
-        };
-        window.addEventListener('pointermove', onMove, { passive: false });
-        window.addEventListener('pointerup', onEnd);
-        window.addEventListener('pointercancel', onEnd);
-        state.cleanup = () => {
-          window.removeEventListener('pointermove', onMove);
-          window.removeEventListener('pointerup', onEnd);
-          window.removeEventListener('pointercancel', onEnd);
-        };
-      }
     }, 380);
-    dragState.current = { kind, id, categoryId, originalCategoryId: categoryId, originalCategories: categories, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, grabOffsetY: 0, pointerY: event.clientY, dragOffset: 0, timer, active: false, scrolling: false };
+    dragState.current = { kind, id, categoryId, originalCategories: categories, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, timer, active: false, scrolling: false };
   }
 
-  function followDraggedItem(state: DragState, pointerY: number) {
-    if (state.kind !== 'item') return;
-    state.pointerY = pointerY;
-    const node = document.querySelector<HTMLElement>(`[data-expense-item="${state.id}"]`);
-    if (!node) return;
-    const layoutTop = node.getBoundingClientRect().top - state.dragOffset;
-    state.dragOffset = pointerY - state.grabOffsetY - layoutTop;
-    document.documentElement.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
-  }
-
-  function moveLongPress(event: DragPointerEvent) {
+  function moveLongPress(event: PointerEvent<HTMLElement>) {
     const state = dragState.current;
     if (!state || state.pointerId !== event.pointerId) return;
     if (!state.active) {
@@ -284,21 +251,16 @@ export default function FixedExpensesPage() {
       return;
     }
     event.preventDefault();
-    if (state.kind === 'item' && event.currentTarget) return;
-    followDraggedItem(state, event.clientY);
-    const hitElements = document.elementsFromPoint(event.clientX, event.clientY);
-    const hovered = hitElements[0];
-    const destinationElement = state.kind === 'item'
-      ? hitElements.map((element) => element.closest<HTMLElement>('[data-expense-category]')).find((element): element is HTMLElement => Boolean(element))
-      : undefined;
+    if (state.kind === 'item' && event.currentTarget.matches('[data-expense-category]')) return;
+    const hovered = document.elementFromPoint(event.clientX, event.clientY);
     const target = state.kind === 'category'
       ? hovered?.closest<HTMLElement>('[data-expense-category]')
-      : hitElements.map((element) => element.closest<HTMLElement>('[data-expense-item]')).find((element): element is HTMLElement => Boolean(element)) ?? destinationElement;
+      : hovered?.closest<HTMLElement>('[data-expense-item]') ?? hovered?.closest<HTMLElement>('[data-expense-category]');
     if (!target) return;
     const targetId = state.kind === 'category' ? target.dataset.expenseCategory : target.dataset.expenseItem;
     if (state.kind === 'item') {
-      const destinationCategoryId = destinationElement?.dataset.expenseCategory;
-      if (!destinationCategoryId || targetId === state.id) return;
+      const destinationCategoryId = hovered?.closest<HTMLElement>('[data-expense-category]')?.dataset.expenseCategory;
+      if (!destinationCategoryId || destinationCategoryId !== state.categoryId || targetId === state.id) return;
       const targetRect = target.getBoundingClientRect();
       const insertAfter = event.clientY > targetRect.top + targetRect.height / 2;
       const previousTops = new Map<string, number>();
@@ -310,12 +272,6 @@ export default function FixedExpensesPage() {
         }
       });
       const animateDisplaced = () => window.requestAnimationFrame(() => {
-        const draggedNode = document.querySelector<HTMLElement>(`[data-expense-item="${state.id}"]`);
-        if (draggedNode) {
-          const layoutTop = draggedNode.getBoundingClientRect().top - state.dragOffset;
-          state.dragOffset = state.pointerY - state.grabOffsetY - layoutTop;
-          document.documentElement.style.setProperty('--fixed-expense-drag-offset', `${state.dragOffset}px`);
-        }
         document.querySelectorAll<HTMLElement>('[data-expense-item]').forEach((node) => {
           const itemId = node.dataset.expenseItem;
           const previousTop = itemId ? previousTops.get(itemId) : undefined;
@@ -412,10 +368,8 @@ export default function FixedExpensesPage() {
     const state = dragState.current;
     dragState.current = null;
     if (!state) return;
-    state.cleanup?.();
     window.clearTimeout(state.timer);
     if (!state.active) return;
-    if (state.kind === 'item') document.documentElement.style.removeProperty('--fixed-expense-drag-offset');
     setDraggingId(null);
     window.setTimeout(() => { suppressClick.current = false; }, 100);
     if (cancelled) {
@@ -423,16 +377,10 @@ export default function FixedExpensesPage() {
       return;
     }
     try {
-      if (state.kind === 'item' && state.originalCategoryId && state.categoryId !== state.originalCategoryId) {
-        const sourceIds = categories.find((category) => category.id === state.originalCategoryId)?.items.map((item) => item.id) ?? [];
-        const destinationIds = categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
-        await requestJson('/api/fixed-expenses', 'PATCH', { type: 'moveItem', id: state.id, sourceCategoryId: state.originalCategoryId, categoryId: state.categoryId, sourceIds, ids: destinationIds });
-      } else {
-        const ids = state.kind === 'category'
-          ? categories.map((category) => category.id)
-          : categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
-        await requestJson('/api/fixed-expenses', 'PATCH', { type: state.kind === 'category' ? 'reorderCategories' : 'reorderItems', ids });
-      }
+      const ids = state.kind === 'category'
+        ? categories.map((category) => category.id)
+        : categories.find((category) => category.id === state.categoryId)?.items.map((item) => item.id) ?? [];
+      await requestJson('/api/fixed-expenses', 'PATCH', { type: state.kind === 'category' ? 'reorderCategories' : 'reorderItems', ids });
     } catch (reorderError) {
       setError(reorderError instanceof Error ? reorderError.message : '순서를 저장하지 못했습니다.');
       void loadMonth(month);

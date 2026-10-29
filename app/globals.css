@@ -4892,7 +4892,7 @@ h1 {
 .fixed-expense-category { min-width: 0; padding: 4px 0 8px; border-bottom: 0; }
 .fixed-expense-category.is-dragging,
 .fixed-expense-item.is-dragging { position: relative; z-index: 2; border-color: #91a9c8; box-shadow: 0 8px 22px rgba(35, 67, 105, .13); }
-.fixed-expense-item.is-dragging { transform: translate3d(0, var(--fixed-expense-drag-offset, 0px), 0) scale(1.015); transition: transform 70ms linear; will-change: transform; pointer-events: none; }
+.fixed-expense-item.is-dragging { transform: translateY(-1px) scale(1.01); transition: none; will-change: transform; }
 .fixed-expense-category-heading { display: flex; min-height: 44px; align-items: center; gap: 10px; padding-left: 6px; touch-action: none; }
 .fixed-expense-category.is-selection-mode .fixed-expense-category-heading,
 .fixed-expense-item.is-selection-mode { touch-action: pan-y; }
@@ -4906,7 +4906,6 @@ h1 {
 .fixed-expense-add-item:disabled,
 .fixed-expenses-add-category:disabled { opacity: .45; cursor: default; }
 .fixed-expense-items { display: grid; gap: 9px; }
-.fixed-expense-items:empty { min-height: 48px; }
 .fixed-expense-item { position: relative; z-index: 0; display: grid; min-width: 0; min-height: 58px; grid-template-columns: 24px minmax(0, 8em) 56px 99px minmax(0, .6fr) auto; align-items: center; justify-content: start; gap: 6px; padding: 8px 16px 8px 12px; border: 1px solid #e9edf2; border-radius: 14px; background: #fff; transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; touch-action: none; }
 .fixed-expense-item.is-selection-mode { cursor: pointer; }
 .fixed-expense-item .health-exercise-order { font-size: 12px; }
