@@ -4880,15 +4880,17 @@ h1 {
 .fixed-expenses-monthbar button:disabled { color: #c8cdd3; cursor: default; }
 .fixed-expenses-selection-row { display: flex; justify-content: flex-end; min-height: 36px; margin-bottom: 4px; }
 .fixed-expenses-categories { display: grid; gap: 16px; }
-.fixed-expense-category { min-width: 0; padding: 4px 0 12px; border-bottom: 1px solid #eceef1; }
+.fixed-expense-category { min-width: 0; padding: 4px 0 8px; border-bottom: 0; }
 .fixed-expense-category.is-dragging,
 .fixed-expense-item.is-dragging { position: relative; z-index: 2; border-color: #91a9c8; box-shadow: 0 8px 22px rgba(35, 67, 105, .13); }
 .fixed-expense-category-heading { display: flex; min-height: 44px; align-items: center; gap: 10px; touch-action: none; }
 .fixed-expense-category.is-selection-mode .fixed-expense-category-heading,
 .fixed-expense-item.is-selection-mode { touch-action: pan-y; }
-.fixed-expense-category-name { min-width: 0; flex: 1; padding: 4px 0; border: 0; background: transparent; color: #303843; font-size: 16px; font-weight: 650; text-align: left; cursor: pointer; }
+.fixed-expense-category-name { min-width: 0; max-width: calc(100% - 40px); flex: 0 1 auto; padding: 4px 0; border: 0; background: transparent; color: #303843; font-size: 16px; font-weight: 650; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .fixed-expense-category-name:disabled { cursor: default; }
-.fixed-expense-add-item { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border: 1px solid #e2e6eb; border-radius: 50%; background: #fff; color: #687381; font-size: 21px; line-height: 1; cursor: pointer; }
+.fixed-expense-add-item { display: grid; width: 28px; height: 30px; flex: 0 0 auto; place-items: center; border: 0; border-radius: 0; background: transparent; color: #a3adb8; font-size: 22px; font-weight: 350; line-height: 1; cursor: pointer; }
+.fixed-expense-category-add { min-height: 34px; padding: 0 5px; border: 0; background: transparent; color: #666; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.fixed-expense-category-add:hover { color: #222; }
 .fixed-expense-add-item:disabled,
 .fixed-expenses-add-category:disabled { opacity: .45; cursor: default; }
 .fixed-expense-items { display: grid; gap: 9px; }
@@ -4897,11 +4899,11 @@ h1 {
 .fixed-expense-item-name,
 .fixed-expense-due,
 .fixed-expense-fixed-amount { min-width: 0; overflow: hidden; padding: 7px 0; border: 0; background: transparent; color: #3d4652; font-size: 13px; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.fixed-expense-item-name { width: 0; height: 36px; flex: 1 1 auto; min-width: 28px; padding: 0 2px; color: #252a31; font-size: 14px; font-weight: 600; letter-spacing: -.04em; }
-.fixed-expense-due { flex: 0 0 auto; padding: 6px 2px; color: #858d98; font-size: 11px; text-align: center; }
-.fixed-expense-fixed-amount { flex: 0 0 auto; padding: 6px 2px; color: #303843; font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.fixed-expense-item-name { width: 0; height: 36px; flex: 1 1 auto; min-width: 28px; padding: 0 2px; color: #252a31; font-size: 12px; font-weight: 600; letter-spacing: -.04em; text-overflow: ellipsis; }
+.fixed-expense-due { flex: 0 0 auto; padding: 6px 2px; color: #858d98; font-size: 12px; text-align: center; }
+.fixed-expense-fixed-amount { flex: 0 0 auto; padding: 6px 2px; color: #303843; font-size: 12px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .fixed-expense-actual-amount { width: 100%; min-width: 0; min-height: 36px; padding: 0 8px; border: 1px solid #e6e9ee; border-radius: 8px; background: #fff; color: #303843; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; cursor: pointer; }
-.fixed-expense-paid-button { width: auto; min-width: 0; min-height: 29px; flex: 0 0 auto; padding: 0 9px; border: 1px solid #edf0f3; border-radius: 999px; background: #f4f6f8; color: #a5adb7; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease; }
+.fixed-expense-paid-button { width: auto; min-width: 0; min-height: 29px; flex: 0 0 auto; padding: 0 13px; border: 1px solid #edf0f3; border-radius: 999px; background: #f4f6f8; color: #a5adb7; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease; }
 .fixed-expense-paid-button:active { transform: scale(.97); }
 .fixed-expense-paid-button.is-paid { border-color: #3478d4; background: #3478d4; color: #fff; }
 .fixed-expense-paid-button:focus-visible { outline: 2px solid #8bb8ed; outline-offset: 2px; }
@@ -4916,8 +4918,8 @@ h1 {
   .fixed-expenses-monthbar { gap: 16px; }
   .fixed-expenses-monthbar h2 { min-width: 136px; font-size: 17px; }
   .fixed-expense-item { min-height: 58px; gap: 3px; padding: 8px 9px; }
-  .fixed-expense-item-name { font-size: 13px; }
-  .fixed-expense-due { font-size: 10px; }
-  .fixed-expense-fixed-amount { font-size: 11px; }
-  .fixed-expense-paid-button { min-height: 27px; padding: 0 7px; font-size: 10px; }
+  .fixed-expense-item-name,
+  .fixed-expense-due,
+  .fixed-expense-fixed-amount { font-size: 12px; }
+  .fixed-expense-paid-button { min-height: 27px; padding: 0 11px; font-size: 12px; }
 }

@@ -342,6 +342,7 @@ export default function FixedExpensesPage() {
       <header className="header">
         <div><p className="eyebrow brand-eyebrow">Master 3.0</p><h1>고정지출</h1></div>
         <div className="routine-header-actions health-routine-list-actions fixed-expenses-header-actions" data-back-dialog={selectionMode ? 'true' : undefined}>
+          {!selectionMode && <button type="button" className="fixed-expense-category-add" onClick={() => void addCategory()}>카테고리 추가</button>}
           {selectionMode ? <>
             <button type="button" className="health-selection-cancel" data-back-close onClick={() => { setSelectionMode(false); setSelectedCategories(new Set()); setSelectedItems(new Set()); }}>취소</button>
             <button type="button" className="health-selection-delete" disabled={selectedCount === 0 || busy} onClick={() => setConfirmDeleteOpen(true)}>삭제</button>
@@ -366,14 +367,13 @@ export default function FixedExpensesPage() {
           <div className="fixed-expense-items">
             {category.items.map((item, index) => <article key={item.id} className={`fixed-expense-item${draggingId === item.id ? ' is-dragging' : ''}${selectionMode ? ' is-selection-mode' : ''}`} data-expense-item={item.id} onPointerDown={selectionMode ? undefined : (event) => startLongPress('item', item.id, category.id, event)} onPointerMove={selectionMode ? undefined : moveLongPress} onPointerUp={selectionMode ? undefined : () => void finishLongPress()} onPointerCancel={selectionMode ? undefined : () => void finishLongPress(true)} onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()} onClick={selectionMode ? () => toggleSelection('item', item.id) : undefined}>
               {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${item.expense_name} 선택`} checked={selectedItems.has(item.id)} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onChange={() => toggleSelection('item', item.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 지출항목`}>{index + 1}</span>}
-              <button type="button" className="fixed-expense-item-name" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } if (!suppressClick.current) openEdit('item-name', item.id, item.expense_name); }}>{item.expense_name}</button>
+              <button type="button" className="fixed-expense-item-name" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } if (!suppressClick.current) openEdit('item-name', item.id, item.expense_name); }}>{Array.from(item.expense_name).length > 8 ? `${Array.from(item.expense_name).slice(0, 7).join('')}…` : item.expense_name}</button>
               <button type="button" className="fixed-expense-due" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('due-day', item.id, String(item.due_day)); }}>{item.due_day}일</button>
               <button type="button" className="fixed-expense-fixed-amount" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('fixed-amount', item.id, String(item.fixed_amount)); }}>{money(item.fixed_amount)}원</button>
-              <button type="button" className={`fixed-expense-paid-button${item.is_paid ? ' is-paid' : ''}`} aria-label={`${item.expense_name} 납부 ${item.is_paid ? '완료' : '미완료'}`} aria-pressed={item.is_paid} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } void togglePaid(item); }}>납부</button>
+              <button type="button" className={`fixed-expense-paid-button${item.is_paid ? ' is-paid' : ''}`} aria-label={`${item.expense_name} 납부 ${item.is_paid ? '완료' : '미납'}`} aria-pressed={item.is_paid} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } void togglePaid(item); }}>{item.is_paid ? '납부' : '미납'}</button>
             </article>)}
           </div>
         </section>)}
-        <button type="button" className="routine-add-button fixed-expenses-add-category" disabled={selectionMode} onClick={() => void addCategory()} aria-label="카테고리 추가" title="카테고리 추가">+</button>
       </div>
     </section>
 
