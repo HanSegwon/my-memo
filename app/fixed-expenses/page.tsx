@@ -134,10 +134,25 @@ export default function FixedExpensesPage() {
   }
 
   async function addItem(categoryId: string) {
+    const optimisticId = `pending:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+    const category = categories.find((entry) => entry.id === categoryId);
+    const optimisticItem: ExpenseItem = {
+      id: optimisticId,
+      category_id: categoryId,
+      expense_name: '지출항목',
+      due_day: 21,
+      fixed_amount: 100000,
+      actual_amount: null,
+      is_paid: false,
+      sort_order: category?.items.length ?? 0,
+    };
+    setError('');
+    setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: [...entry.items, optimisticItem] } : entry));
     try {
       const data = await requestJson('/api/fixed-expenses', 'POST', { type: 'item', categoryId });
-      setCategories((current) => current.map((category) => category.id === categoryId ? { ...category, items: [...category.items, data.item as ExpenseItem] } : category));
+      setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.map((item) => item.id === optimisticId ? data.item as ExpenseItem : item) } : entry));
     } catch (addError) {
+      setCategories((current) => current.map((entry) => entry.id === categoryId ? { ...entry, items: entry.items.filter((item) => item.id !== optimisticId) } : entry));
       setError(addError instanceof Error ? addError.message : '지출 항목을 추가하지 못했습니다.');
     }
   }
@@ -460,13 +475,16 @@ export default function FixedExpensesPage() {
             <button type="button" className="fixed-expense-add-item" disabled={selectionMode} onPointerDown={(event) => event.stopPropagation()} onClick={() => void addItem(category.id)}>항목 추가</button>
           </header>
           <div className="fixed-expense-items">
-            {category.items.map((item, index) => <article key={item.id} className={`fixed-expense-item${draggingId === item.id ? ' is-dragging' : ''}${selectionMode ? ' is-selection-mode' : ''}`} data-expense-item={item.id} onPointerDown={selectionMode ? undefined : (event) => startLongPress('item', item.id, category.id, event)} onPointerMove={selectionMode ? undefined : moveLongPress} onPointerUp={selectionMode ? undefined : () => void finishLongPress()} onPointerCancel={selectionMode ? undefined : () => void finishLongPress(true)} onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()} onClick={selectionMode ? () => toggleSelection('item', item.id) : undefined}>
-              {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${item.expense_name} 선택`} checked={selectedItems.has(item.id)} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onChange={() => toggleSelection('item', item.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 지출항목`}>{index + 1}</span>}
-              <button type="button" className="fixed-expense-item-name" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } if (!suppressClick.current) openEdit('item-name', item.id, item.expense_name); }}>{Array.from(item.expense_name).slice(0, 10).join('')}</button>
-              <button type="button" className="fixed-expense-due" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('due-day', item.id, String(item.due_day)); }}>{item.due_day}일</button>
-              <button type="button" className="fixed-expense-fixed-amount" onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('fixed-amount', item.id, String(item.fixed_amount)); }}>{money(item.fixed_amount)}원</button>
-              <button type="button" className={`fixed-expense-paid-button${item.is_paid ? ' is-paid' : ''}`} aria-label={`${item.expense_name} 납부 ${item.is_paid ? '완료' : '미납'}`} aria-pressed={item.is_paid} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } void togglePaid(item); }}>{item.is_paid ? '납부' : '미납'}</button>
-            </article>)}
+            {category.items.map((item, index) => {
+              const isPending = item.id.startsWith('pending:');
+              return <article key={item.id} className={`fixed-expense-item${draggingId === item.id ? ' is-dragging' : ''}${selectionMode ? ' is-selection-mode' : ''}`} data-expense-item={item.id} onPointerDown={selectionMode || isPending ? undefined : (event) => startLongPress('item', item.id, category.id, event)} onPointerMove={selectionMode || isPending ? undefined : moveLongPress} onPointerUp={selectionMode || isPending ? undefined : () => void finishLongPress()} onPointerCancel={selectionMode || isPending ? undefined : () => void finishLongPress(true)} onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()} onClick={selectionMode && !isPending ? () => toggleSelection('item', item.id) : undefined}>
+                {selectionMode ? <input type="checkbox" className="health-exercise-select" aria-label={`${item.expense_name} 선택`} checked={selectedItems.has(item.id)} disabled={isPending} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()} onChange={() => toggleSelection('item', item.id)} /> : <span className="health-exercise-order" aria-label={`${index + 1}번째 지출항목`}>{index + 1}</span>}
+                <button type="button" className="fixed-expense-item-name" disabled={isPending} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } if (!suppressClick.current) openEdit('item-name', item.id, item.expense_name); }}>{Array.from(item.expense_name).slice(0, 10).join('')}</button>
+                <button type="button" className="fixed-expense-due" disabled={isPending} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('due-day', item.id, String(item.due_day)); }}>{item.due_day}일</button>
+                <button type="button" className="fixed-expense-fixed-amount" disabled={isPending} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } openEdit('fixed-amount', item.id, String(item.fixed_amount)); }}>{money(item.fixed_amount)}원</button>
+                <button type="button" className={`fixed-expense-paid-button${item.is_paid ? ' is-paid' : ''}`} disabled={isPending} aria-label={`${item.expense_name} 납부 ${item.is_paid ? '완료' : '미납'}`} aria-pressed={item.is_paid} onClick={(event) => { event.stopPropagation(); if (selectionMode) { toggleSelection('item', item.id); return; } void togglePaid(item); }}>{item.is_paid ? '납부' : '미납'}</button>
+              </article>;
+            })}
           </div>
         </section>)}
       </div>
