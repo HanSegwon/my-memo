@@ -4906,14 +4906,17 @@ h1 {
 .overtime-record-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 28px 0 10px; }
 .overtime-record-heading h2 { margin: 0; color: #303843; font-size: 16px; font-weight: 650; }
 .overtime-record-heading > span { color: #98a1ad; font-size: 11px; }
-.overtime-record-wrap { position: relative; width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
-.overtime-record-table { width: 100%; min-width: 650px; table-layout: fixed; border-collapse: collapse; border-spacing: 0; color: #303843; }
+.overtime-record-wrap { position: relative; width: 100%; overflow: hidden; }
+.overtime-record-table { width: 100%; min-width: 0; table-layout: fixed; border-collapse: collapse; border-spacing: 0; color: #303843; }
+.overtime-record-table col:nth-child(1) { width: 8%; }
+.overtime-record-table col:nth-child(2) { width: 8%; }
+.overtime-record-table col:nth-child(3) { width: 18%; }
+.overtime-record-table col:nth-child(n + 4) { width: 13.2%; }
 .overtime-record-table th,
 .overtime-record-table td { height: 40px; padding: 6px 4px; border: 1px solid #dfe4e9; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
 .overtime-record-table thead th { height: 36px; background: #f7f8fa; color: #596574; font-weight: 600; }
-.overtime-record-table thead tr:first-child th:first-child { width: 48px; }
-.overtime-record-table thead tr:first-child th:nth-child(2) { width: 54px; }
-.overtime-record-table thead tr:first-child th:nth-child(3) { width: 92px; }
+.overtime-record-table th,
+.overtime-record-table td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .overtime-record-table tbody tr { cursor: pointer; transition: background-color 120ms ease; }
 .overtime-record-table tbody tr:hover,
 .overtime-record-table tbody tr:focus-visible { outline: none; background: #f6f9fc; }
@@ -4993,7 +4996,8 @@ h1 {
   .overtime-wage-value { font-size: 11px; letter-spacing: -.035em; }
   .overtime-record-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
   .overtime-record-table th,
-  .overtime-record-table td { height: 38px; font-size: 11px; }
+  .overtime-record-table td { height: 38px; padding: 4px 1px; font-size: 9px; letter-spacing: -.04em; }
+  .overtime-record-table thead th { font-size: 9px; }
   .overtime-record-dialog { padding: 18px 16px 16px; }
   .overtime-form-row { grid-template-columns: 78px minmax(0, 1fr); }
   .fixed-expense-summary-grid { grid-template-rows: repeat(2, minmax(68px, 1fr)); }

@@ -200,6 +200,7 @@ export default function OvertimePage() {
         <div className="overtime-record-heading"><h2>일별 근무 기록</h2><span>날짜 행을 누르면 입력·수정할 수 있어요.</span></div>
         <div className="overtime-record-wrap">
           <table className="overtime-record-table">
+            <colgroup><col /><col /><col /><col /><col /><col /><col /><col /></colgroup>
             <thead>
               <tr><th rowSpan={2}>날짜</th><th rowSpan={2}>근무</th><th rowSpan={2}>근태</th><th colSpan={2}>평일근무</th><th colSpan={3}>주말근무</th></tr>
               <tr><th>전체</th><th>심야</th><th>전체</th><th>초과</th><th>심야</th></tr>
